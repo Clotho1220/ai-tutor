@@ -55,9 +55,9 @@ let currentStageIndex = 0;
 let userStopped = false;       // 使用者主動按「結束連線」（區別於意外斷線）
 let resumeHandle = null;       // Live API session resumption 握把，重連時恢復對話記憶
 let reconnectAttempts = 0;     // 意外斷線後的重連次數
-let keepAliveTimer = null;     // 保活計時器：閒置時定期送靜音避免連線被判定死亡
 let turnChunks = [];           // 當前這句話的音訊暫存（斷線重連後整句重送用）
 let needsReplay = false;       // 重連後是否需要重送暫存的語音
+let lastReplayTime = 0;        // 上次重送的時間（保險絲：重送後立刻又斷線就放棄，避免迴圈）
 
 const actionBtn = document.getElementById('actionBtn');
 const statusBadge = document.getElementById('statusBadge');
@@ -210,7 +210,6 @@ function connectWebSocket(isReconnect) {
         reconnectAttempts = 0;
         sendSetupMessage();
         startLessonTimer();
-        startKeepAlive();
         if (isReconnect) {
             logSystem(resumeHandle
                 ? "🔄 已重新連上，對話記憶已透過 resumption handle 恢復。"
@@ -233,9 +232,22 @@ function connectWebSocket(isReconnect) {
         logSystem(`<span style="color:#ff8800;">WebSocket 關閉 (code=${e.code}${e.reason ? ', reason=' + e.reason : ''})</span>`);
         if (e.code === 1011) logSystem("（code 1011 = Gemini 伺服器內部錯誤，服務端偶發問題，靠重連恢復）");
         if (userStopped) { stopSession(); return; }
-        // 斷線時使用者正在說話或正在等 AI 回應：標記重連後重送這句話。
-        // 注意：不重置 isTalking，使用者可以繼續講，音訊會進暫存不會漏字
-        if (isTalking || waitingFirstAudio) needsReplay = true;
+        // 保險絲：剛重送完就又被斷線，代表重送內容被伺服器拒絕（如 activity 狀態衝突），
+        // 作廢這句避免無限迴圈，請使用者重講
+        if (needsReplay === false && lastReplayTime && Date.now() - lastReplayTime < 4000) {
+            turnChunks = [];
+            lastReplayTime = 0;
+            logSystem("<span style='color:#ff8800;'>⚠️ 語音重送遭伺服器拒絕，該句作廢。重連後請再說一次。</span>");
+            if (isTalking) {
+                isTalking = false;
+                talkBtn.classList.remove('talking');
+                talkBtn.textContent = '🎙️ 按一下開始說話';
+            }
+        } else if (isTalking || waitingFirstAudio) {
+            // 斷線時使用者正在說話或正在等 AI 回應：標記重連後重送這句話。
+            // 不重置 isTalking，使用者可以繼續講，音訊會進暫存不會漏字
+            needsReplay = true;
+        }
         if (reconnectAttempts < 3) {
             reconnectAttempts++;
             statusBadge.textContent = '🔄 重連中...'; statusBadge.style.background = '#b8860b';
@@ -252,19 +264,9 @@ function connectWebSocket(isReconnect) {
     };
 }
 
-// 保活：PTT 模式下閒置時沒有任何資料流動，容易被伺服器/行動網路判定死亡。
-// 每 8 秒送 100ms 靜音（手動 VAD 模式下，活動範圍外的音訊會被伺服器忽略）。
-function startKeepAlive() {
-    if (keepAliveTimer) clearInterval(keepAliveTimer);
-    keepAliveTimer = setInterval(() => {
-        if (webSocket && webSocket.readyState === WebSocket.OPEN && !isTalking) {
-            const silence = arrayBufferToBase64(new Int16Array(1600).buffer); // 100ms @ 16kHz
-            webSocket.send(JSON.stringify({
-                realtimeInput: { mediaChunks: [{ mimeType: "audio/pcm;rate=16000", data: silence }] }
-            }));
-        }
-    }, 8000);
-}
+// （原本這裡有「閒置保活」機制：每 8 秒送靜音。已移除——
+//   手動 VAD 模式下，活動範圍外送音訊會被伺服器以 1007 invalid argument 拒絕並斷線，
+//   反而造成連環斷線迴圈。閒置斷線的風險改由自動重連＋重送機制承擔。）
 
 // ---------------- Setup 訊息（含工具宣告與逐字稿） ----------------
 
@@ -344,6 +346,7 @@ function handleServerMessage(response) {
         // 重連完成後，重送斷線時遺失的那句話
         if (needsReplay && turnChunks.length > 0) {
             logSystem(`📤 重送剛才的語音（${turnChunks.length} 個片段，約 ${(turnChunks.length * 0.128).toFixed(1)} 秒）...`);
+            lastReplayTime = Date.now();
             webSocket.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
             for (let i = 0; i < turnChunks.length; i += 8) {
                 const batch = turnChunks.slice(i, i + 8).map(d => ({ mimeType: "audio/pcm;rate=16000", data: d }));
@@ -661,7 +664,6 @@ function stopAllPlayback() {
 function stopSession() {
     if (!webSocket && !micStream && !audioContext) return; // 已清理過，避免 onclose 重複觸發
     if (lessonTimer) clearInterval(lessonTimer);
-    if (keepAliveTimer) { clearInterval(keepAliveTimer); keepAliveTimer = null; }
     stopAllPlayback();
     if (webSocket && webSocket.readyState === WebSocket.OPEN) webSocket.close();
     if (micStream) micStream.getTracks().forEach(t => t.stop());

@@ -111,12 +111,118 @@ talkBtn.addEventListener('click', () => {
 const DIRECTOR_PREFIX = "[DIRECTOR NOTE - hidden instruction from the lesson system, NOT from the student. " +
     "The student has NOT spoken. Do not reply to this note, do not speak for the student, never mention it. Instruction: ";
 
-const teachingFlow = [
-    { time: 0,   name: "階段 1：開場暖身 (3分)", prompt: "Greet the student warmly in English and make light small talk with ONE simple question, then wait for their reply." },
-    { time: 180, name: "階段 2：複習 (3分)", prompt: "Review previously learned words with the student, one word at a time, waiting for each answer." },
-    { time: 360, name: "階段 3：主題課程 (8分)", prompt: "Main lesson: introduce today's topic, teach new vocabulary (call show_image for each visual word), and practice with short interactive questions, one at a time." },
-    { time: 840, name: "階段 4：總結 (1分)", prompt: "Wrap up: summarize what was learned today in simple terms, praise the student, and say goodbye." }
-];
+// ---------------- 教案系統（Phase 1）----------------
+// 課程內容不再寫死：啟動時依序嘗試
+//   1. GAS 後端 getLesson（未來的「慢腦」自動排課）
+//   2. 同目錄的 lesson.json（手寫教案，目前的主要來源）
+//   3. 內建預設課程（保底，等同舊版行為）
+// 教案格式見 lesson.json。
+
+const DEFAULT_LESSON = {
+    student: { name: "同學", level: 2, interests: [] },
+    unit: "一般練習",
+    stages: [
+        { label: "開場暖身", minutes: 3, goal: "Greet the student warmly and make light small talk with ONE simple question, then wait for their reply." },
+        { label: "複習", minutes: 3, goal: "Review previously learned words with the student, one word at a time, waiting for each answer." },
+        { label: "主題課程", minutes: 8, goal: "Main lesson: introduce today's topic, teach new vocabulary (call show_image for each visual word), and practice with short interactive questions, one at a time." },
+        { label: "總結", minutes: 1, goal: "Wrap up: summarize what was learned today in simple terms, praise the student, and say goodbye." }
+    ]
+};
+
+let LESSON = null;        // 本堂課的教案（startSession 時載入）
+let teachingFlow = [];    // 由教案展開的階段時間表（隱形導演使用）
+
+async function loadLesson() {
+    // 1) GAS 慢腦排課（後端尚未實作 getLesson 時會自然落空，往下走）
+    if (GAS_URL) {
+        const r = await gasPost({ action: "getLesson" });
+        if (r && r.stages && r.stages.length) {
+            logSystem("📋 已從後端取得今日教案。");
+            return r;
+        }
+    }
+    // 2) 手寫教案檔（?t= 避免 GitHub Pages 快取到舊版）
+    try {
+        const res = await fetch("lesson.json?t=" + Date.now());
+        if (res.ok) {
+            const j = await res.json();
+            if (j && j.stages && j.stages.length) {
+                logSystem(`📋 已載入 lesson.json 教案（單元：${j.unit || "未命名"}）。`);
+                return j;
+            }
+        }
+    } catch (e) { /* 沒有 lesson.json 就用預設 */ }
+    // 3) 內建預設
+    logSystem("📋 找不到教案，使用內建預設課程。");
+    return DEFAULT_LESSON;
+}
+
+// 教案項目 → 給老師看的文字（含中文意思與例句，老師講解時直接取用）
+function itemToText(it) {
+    if (typeof it === "string") return it;
+    let s = it.english || "";
+    if (it.chinese) s += ` (${it.chinese})`;
+    if (it.example) s += ` — example: "${it.example}"`;
+    return s;
+}
+
+// 單一階段 → 導演指令文字
+function buildStagePrompt(stage) {
+    let p = stage.goal || "";
+    if (stage.items && stage.items.length) {
+        p += " Target items for this stage (teach/review them ONE at a time): " +
+             stage.items.map(itemToText).join("; ") + ".";
+    }
+    if (stage.activity) p += " Activity: " + stage.activity;
+    return p;
+}
+
+// 教案 stages（每階段幾分鐘）→ 累計秒數時間表
+function buildTeachingFlow(lesson) {
+    let t = 0;
+    return lesson.stages.map((s, i) => {
+        const entry = {
+            time: t,
+            name: `階段 ${i + 1}：${s.label || s.name || "未命名"} (${s.minutes}分)`,
+            prompt: buildStagePrompt(s)
+        };
+        t += (s.minutes || 1) * 60;
+        return entry;
+    });
+}
+
+// Level 1-5 → 中英文配比指示
+function languagePolicy(level) {
+    switch (level) {
+        case 1: return "Speak about 70% Traditional Chinese (Taiwan usage): explain everything in Chinese, use English ONLY for the target words and sentence patterns, and have the student repeat after you.";
+        case 2: return "Speak roughly half Chinese, half English: set up situations and give explanations in Traditional Chinese, but ask questions in simple English and expect short English answers.";
+        case 3: return "Speak mostly English (about 70%): introduce new concepts in English first, then confirm once briefly in Traditional Chinese.";
+        case 4: return "Speak almost entirely English: use Traditional Chinese only when the student is clearly stuck.";
+        case 5: return "Speak English only, unless the student explicitly asks for Chinese.";
+        default: return languagePolicy(2);
+    }
+}
+
+// 依教案組裝完整 system prompt
+function buildSystemInstruction(lesson) {
+    const st = lesson.student || {};
+    const interests = (st.interests || []).join(", ");
+    return "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. " +
+        `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${st.level || 2} of 5. ` +
+        (interests ? `The student's interests are: ${interests} — use them in your examples and small talk. ` : "") +
+        `TODAY'S UNIT: ${lesson.unit || "general practice"}. Stay on this unit's topic and target items; do not wander to other material. ` +
+        "LANGUAGE POLICY: " + languagePolicy(st.level || 2) + " " +
+        "RESCUE RULE (overrides the ratio): if the student answers an English question in Chinese, says 「蛤？」or「什麼意思？」, or seems lost, immediately explain the last point in Traditional Chinese, then retry with SIMPLER English. " +
+        "TEACHING STYLE: " +
+        "(a) Say at most TWO short sentences per turn, then stop. Waiting silently is part of teaching. " +
+        "(b) Ask at most ONE short question, then STOP and wait for the student's real reply. " +
+        "(c) When the student makes a mistake, never say 'wrong': acknowledge their meaning, naturally restate the correct sentence, and invite them to try once more. " +
+        "STRICT RULES: " +
+        "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
+        "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them silently; never read or mention them. " +
+        "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
+        "(4) Keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages.";
+}
 
 function logSystem(msg) {
     sysLogBox.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
@@ -153,6 +259,12 @@ async function startSession() {
         const mode = document.querySelector('input[name="audioMode"]:checked').value;
         micStream = await acquireMicStream(mode);
         await setupAudioWorklet();
+
+        // 載入今日教案（GAS → lesson.json → 內建預設），並展開為階段時間表
+        LESSON = await loadLesson();
+        teachingFlow = buildTeachingFlow(LESSON);
+        const totalMin = LESSON.stages.reduce((a, s) => a + (s.minutes || 0), 0);
+        logSystem(`📋 課程結構：${teachingFlow.map(s => s.name).join(" → ")}（共 ${totalMin} 分鐘）`);
 
         // 有 GAS 後端：先換取本場課程的臨時憑證
         currentToken = null;
@@ -323,13 +435,8 @@ function sendSetupMessage() {
             }],
             systemInstruction: {
                 parts: [{
-                    text: "You are a friendly English tutor in a LIVE VOICE conversation with ONE student (a Mandarin speaker). Speak clearly and simply. " +
-                          "STRICT RULES: " +
-                          "(1) Ask at most ONE short question, then STOP and wait for the student's real reply. " +
-                          "(2) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
-                          "(3) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them silently; never read or mention them. " +
-                          "(4) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
-                          "(5) Keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages."
+                    // system prompt 依本堂教案動態組裝（學生檔案、語言配比、教學風格、既有嚴格規則）
+                    text: buildSystemInstruction(LESSON || DEFAULT_LESSON)
                 }]
             }
         }

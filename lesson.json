@@ -1,0 +1,43 @@
+{
+  "_說明": "手寫教案示範。之後由 GAS 慢腦自動產生同格式 JSON。stages 依序進行,每階段 minutes 分鐘。items 的 chinese/example 是給 AI 老師講解用的參考。改完記得 push,前端已加 ?t= 避免快取。",
+  "student": {
+    "name": "小明",
+    "level": 2,
+    "interests": ["恐龍", "腳踏車"]
+  },
+  "unit": "B3-U5 At the Grocery Store（超市購物）",
+  "stages": [
+    {
+      "label": "開場暖身",
+      "minutes": 2,
+      "goal": "Greet the student warmly BY NAME, make light small talk with ONE simple question (feel free to use their interests), then tell them today's topic is shopping at the grocery store."
+    },
+    {
+      "label": "複習",
+      "minutes": 3,
+      "goal": "Quickly review these previously learned items, ONE at a time. For each one: ask the student to say it or use it, wait for their answer, give gentle feedback.",
+      "items": [
+        { "english": "apple", "chinese": "蘋果", "example": "I eat an apple every day." },
+        { "english": "banana", "chinese": "香蕉", "example": "The banana is yellow." },
+        { "english": "How much is it?", "chinese": "這多少錢?", "example": "How much is it? It's ten dollars." }
+      ]
+    },
+    {
+      "label": "主題課程",
+      "minutes": 8,
+      "goal": "Teach today's new items ONE at a time: say the word, show it with show_image, give the Chinese meaning, let the student repeat it, then log it with log_vocabulary. After teaching 2-3 items, start the activity and weave the remaining items into it.",
+      "items": [
+        { "english": "grocery store", "chinese": "雜貨店、超市", "example": "I go to the grocery store with Mom." },
+        { "english": "shopping list", "chinese": "購物清單", "example": "Milk is on my shopping list." },
+        { "english": "I want to buy ...", "chinese": "我想買……(句型)", "example": "I want to buy two apples." },
+        { "english": "Here you are.", "chinese": "給你。(遞東西時說)", "example": "Here you are. Thank you!" }
+      ],
+      "activity": "Role-play: YOU are the shop clerk, the STUDENT is a customer buying fruit. Keep every exchange short (greet → what do you want to buy → how much → hand over → thank you). If the student freezes, feed them the line in Chinese first, then let them say it in English."
+    },
+    {
+      "label": "總結",
+      "minutes": 2,
+      "goal": "Wrap up: in simple terms (Chinese is fine here), remind the student of the 2-3 most important things they practiced today, praise ONE specific thing they did well, and say goodbye warmly."
+    }
+  ]
+}

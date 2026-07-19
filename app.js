@@ -157,6 +157,52 @@ async function loadLesson() {
     return DEFAULT_LESSON;
 }
 
+// ---------------- 週教案：決定今天上第幾天 ----------------
+// 教案含 week 陣列時：
+//   - 下拉選單選了特定天 → 用那一天（測試/補課用）
+//   - 選「自動」→ 依日期推進：換了新的一天就前進一天；
+//     同一天內重複開課，上的是同一天的課（練習同樣內容不跳課）。
+//   進度記在 localStorage，以單元名稱為 key，換單元自動從第 1 天開始。
+
+function resolveLessonForToday(json) {
+    if (!json.week || !json.week.length) return json; // 單日教案，直接用
+
+    const days = json.week;
+    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const progressKey = "week_progress::" + (json.unit || "default");
+    let chosen = null;
+
+    const daySelect = document.getElementById('daySelect');
+    const manual = daySelect ? daySelect.value : "auto";
+
+    if (manual !== "auto") {
+        const n = parseInt(manual, 10);
+        chosen = days.find(d => d.day === n) || days[Math.min(n, days.length) - 1];
+        logSystem(`📅 手動指定：第 ${chosen.day} 天（${chosen.focus || ""}）`);
+    } else {
+        let saved = null;
+        try { saved = JSON.parse(localStorage.getItem(progressKey)); } catch (e) {}
+        let dayNum;
+        if (saved && saved.date === today) {
+            dayNum = saved.day;               // 今天已上過：重複同一天
+        } else if (saved && saved.day) {
+            dayNum = Math.min(saved.day + 1, days.length); // 新的一天：前進
+        } else {
+            dayNum = 1;                        // 這個單元第一次上課
+        }
+        chosen = days.find(d => d.day === dayNum) || days[0];
+        logSystem(`📅 自動排課：第 ${chosen.day} 天 / 共 ${days.length} 天（${chosen.focus || ""}）` +
+                  (chosen.day === days.length ? " — 本單元最後一天！" : ""));
+    }
+
+    localStorage.setItem(progressKey, JSON.stringify({ date: today, day: chosen.day }));
+    return {
+        student: json.student,
+        unit: `${json.unit || ""} — Day ${chosen.day}${chosen.focus ? "（" + chosen.focus + "）" : ""}`,
+        stages: chosen.stages
+    };
+}
+
 // 教案項目 → 給老師看的文字（含中文意思與例句，老師講解時直接取用）
 function itemToText(it) {
     if (typeof it === "string") return it;
@@ -260,8 +306,8 @@ async function startSession() {
         micStream = await acquireMicStream(mode);
         await setupAudioWorklet();
 
-        // 載入今日教案（GAS → lesson.json → 內建預設），並展開為階段時間表
-        LESSON = await loadLesson();
+        // 載入今日教案（GAS → lesson.json → 內建預設），週教案先解析出今天上第幾天
+        LESSON = resolveLessonForToday(await loadLesson());
         teachingFlow = buildTeachingFlow(LESSON);
         const totalMin = LESSON.stages.reduce((a, s) => a + (s.minutes || 0), 0);
         logSystem(`📋 課程結構：${teachingFlow.map(s => s.name).join(" → ")}（共 ${totalMin} 分鐘）`);

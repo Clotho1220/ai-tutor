@@ -112,6 +112,44 @@ talkBtn.addEventListener('click', () => {
     }
 });
 
+// ---------------- 人員（每位學生各自記住設定與學習歷程） ----------------
+// 記住的東西：中英文比例程度、AI 聲音、正在上的單元、興趣、學過的單字、上到第幾天。
+const PROFILES_KEY = "profiles_v1";
+const PERSON_DEFAULTS = {
+    Rex:    { level: 3, voice: "Aoede", unit: null, interests: [] },  // 70% 英文
+    Jessie: { level: 2, voice: "Aoede", unit: null, interests: [] },  // 中英各半
+    Sandy:  { level: 2, voice: "Aoede", unit: null, interests: [] }   // 中英各半
+};
+
+function loadProfiles() {
+    let p = null;
+    try { p = JSON.parse(localStorage.getItem(PROFILES_KEY)); } catch (e) {}
+    if (!p || !p.people) p = { current: "Rex", people: {} };
+    // 補上缺少的人員與欄位（日後新增人員或欄位也能自動相容）
+    Object.keys(PERSON_DEFAULTS).forEach(name => {
+        p.people[name] = Object.assign({}, PERSON_DEFAULTS[name], p.people[name] || {});
+    });
+    if (!p.people[p.current]) p.current = "Rex";
+    return p;
+}
+
+function saveProfiles(p) {
+    try { localStorage.setItem(PROFILES_KEY, JSON.stringify(p)); } catch (e) {}
+}
+
+function currentPersonName() { return loadProfiles().current; }
+function currentPerson() { const p = loadProfiles(); return p.people[p.current]; }
+
+function updateCurrentPerson(patch) {
+    const p = loadProfiles();
+    Object.assign(p.people[p.current], patch);
+    saveProfiles(p);
+}
+
+// 每位人員各自的儲存空間（學習紀錄、週進度）
+function vocabKey() { return "vocab_log_v1::" + currentPersonName(); }
+function weekProgressKey(unitName) { return "week_progress::" + currentPersonName() + "::" + (unitName || "default"); }
+
 // 導演筆記前綴：明確告訴模型這不是學生說的話，禁止替學生回答
 const DIRECTOR_PREFIX = "[DIRECTOR NOTE - hidden instruction from the lesson system, NOT from the student. " +
     "The student has NOT spoken. Do not reply to this note, do not speak for the student, never mention it. Instruction: ";
@@ -187,7 +225,7 @@ function resolveLessonForToday(json) {
 
     const days = json.week;
     const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-    const progressKey = "week_progress::" + (json.unit || "default");
+    const progressKey = weekProgressKey(json.unit);   // 每位人員的進度各自獨立
     let chosen = null;
 
     const daySelect = document.getElementById('daySelect');
@@ -422,15 +460,16 @@ function buildWeeklyLessonFromUnit(unit, student) {
     return { student, unit: `${unit.book} Unit ${unit.num}: ${unit.title}`, week };
 }
 
-// 讀取已選定的課本單元（沒選就回 null）
+// 讀取目前人員選定的課本單元（沒選就回 null）
 async function readSelectedUnit() {
-    let sel = null;
-    try { sel = JSON.parse(localStorage.getItem(UNIT_KEY)); } catch (e) {}
+    const p = currentPerson();
+    const sel = p.unit;
     if (!sel || !sel.book || !sel.num) return null;
     await loadUnitsData();
     const unit = findUnit(sel.book, sel.num);
     if (!unit) return null;
-    return buildWeeklyLessonFromUnit(unit, { name: "同學", level: 1, interests: [] });
+    return buildWeeklyLessonFromUnit(unit,
+        { name: currentPersonName(), level: p.level, interests: p.interests || [] });
 }
 
 // 課本單元選單：冊別 → 單元 → 套用
@@ -457,21 +496,25 @@ async function readSelectedUnit() {
             : "";
     }
 
-    loadUnitsData().then(() => {
-        if (!UNITS_DATA || !UNITS_DATA.books) { status.textContent = "⚠️ 找不到 units.json"; return; }
-        bookSel.innerHTML = UNITS_DATA.books.map(b => `<option>${b.name}</option>`).join("");
-        let saved = null;
-        try { saved = JSON.parse(localStorage.getItem(UNIT_KEY)); } catch (e) {}
+    // 切換人員時，把單元選單同步成該人員正在上的單元
+    window.refreshUnitPickerForPerson = function () {
+        if (!UNITS_DATA || !UNITS_DATA.books) return;
+        const saved = currentPerson().unit;
         if (saved && saved.book) bookSel.value = saved.book;
         fillUnits();
         if (saved && saved.num) { unitSel.value = saved.num; showPreview(); }
-        if (saved && saved.book && saved.num) {
-            const u = findUnit(saved.book, saved.num);
-            if (u) {
-                status.style.color = "#4af626";
-                status.textContent = `✅ 目前使用：${saved.book} Unit ${saved.num} ${u.title}`;
-            }
-        }
+        const u = saved ? findUnit(saved.book, saved.num) : null;
+        status.style.color = u ? "#4af626" : "#aaa";
+        status.textContent = u
+            ? `✅ ${currentPersonName()} 目前使用：${saved.book} Unit ${saved.num} ${u.title}`
+            : `${currentPersonName()} 尚未選定單元（將使用內建的 lesson.json）。`;
+    };
+
+    loadUnitsData().then(() => {
+        if (!UNITS_DATA || !UNITS_DATA.books) { status.textContent = "⚠️ 找不到 units.json"; return; }
+        bookSel.innerHTML = UNITS_DATA.books.map(b => `<option>${b.name}</option>`).join("");
+        window.refreshUnitPickerForPerson();
+        if (window.refreshPersonSummary) window.refreshPersonSummary();
     });
 
     bookSel.addEventListener('change', fillUnits);
@@ -481,28 +524,29 @@ async function readSelectedUnit() {
         const num = parseInt(unitSel.value, 10);
         const u = findUnit(bookSel.value, num);
         if (!u) return;
-        localStorage.setItem(UNIT_KEY, JSON.stringify({ book: bookSel.value, num }));
+        updateCurrentPerson({ unit: { book: bookSel.value, num } });   // 單元記在人員身上
         localStorage.removeItem(MATERIAL_KEY);   // 與「貼上教材」互斥，避免兩個來源打架
         const mStatus = document.getElementById('materialStatus');
         if (mStatus) mStatus.textContent = "";
         status.style.color = "#4af626";
-        status.textContent = `✅ 已套用：${bookSel.value} Unit ${num} ${u.title}。下次按「開始連線」生效（第幾天可用上方排課選單指定）。`;
+        status.textContent = `✅ ${currentPersonName()} 已套用：${bookSel.value} Unit ${num} ${u.title}。下次按「開始連線」生效。`;
+        if (window.refreshPersonSummary) window.refreshPersonSummary();
     });
 
     clearBtn.addEventListener('click', () => {
-        localStorage.removeItem(UNIT_KEY);
+        updateCurrentPerson({ unit: null });
         status.style.color = "#aaa";
-        status.textContent = "已清除，將改用內建的 lesson.json。";
+        status.textContent = `已清除 ${currentPersonName()} 的單元，將改用內建的 lesson.json。`;
+        if (window.refreshPersonSummary) window.refreshPersonSummary();
     });
 })();
 
 // 畫面上設定的學生名字／興趣，覆蓋任何教案來源（lesson.json、自訂教材、內建預設）裡的學生設定
 function applyStudentOverride(lesson) {
     if (!lesson.student) lesson.student = {};
-    const n = (localStorage.getItem('student_name') || '').trim();
-    const i = (localStorage.getItem('student_interests') || '').trim();
-    if (n) lesson.student.name = n;
-    if (i) lesson.student.interests = i.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    const p = currentPerson();
+    lesson.student.name = currentPersonName();          // 學生名字＝目前選定的人員
+    lesson.student.interests = p.interests || [];
     return lesson;
 }
 
@@ -511,11 +555,8 @@ function readCustomMaterial() {
     try {
         const saved = JSON.parse(localStorage.getItem(MATERIAL_KEY));
         if (saved && saved.material && (saved.material.patterns.length || saved.material.words.length)) {
-            const student = {
-                name: saved.studentName || "同學",
-                level: 1,                       // 預設 70% 中文；畫面上的「程度」選單可即時覆蓋
-                interests: saved.interests || []
-            };
+            const p = currentPerson();
+            const student = { name: currentPersonName(), level: p.level, interests: p.interests || [] };
             return buildLessonFromMaterial(saved.material, student);
         }
     } catch (e) {}
@@ -525,7 +566,6 @@ function readCustomMaterial() {
 // 自訂教材面板：套用 / 清除 / 載入時回填狀態
 (function initMaterialPanel() {
     const input = document.getElementById('materialInput');
-    const nameEl = document.getElementById('studentName');
     const interestsEl = document.getElementById('studentInterests');
     const status = document.getElementById('materialStatus');
     const applyBtn = document.getElementById('applyMaterialBtn');
@@ -540,14 +580,17 @@ function readCustomMaterial() {
         }
     } catch (e) {}
 
-    // 學生名字／興趣：獨立記憶，適用於「所有」教案來源（不限自訂教材），打字即存
-    if (nameEl) {
-        nameEl.value = localStorage.getItem('student_name') || "";
-        nameEl.addEventListener('input', () => localStorage.setItem('student_name', nameEl.value.trim()));
-    }
+    // 興趣：記在目前人員身上，打字即存
     if (interestsEl) {
-        interestsEl.value = localStorage.getItem('student_interests') || "";
-        interestsEl.addEventListener('input', () => localStorage.setItem('student_interests', interestsEl.value.trim()));
+        window.refreshInterestsForPerson = () => {
+            interestsEl.value = (currentPerson().interests || []).join(", ");
+        };
+        window.refreshInterestsForPerson();
+        interestsEl.addEventListener('input', () => {
+            updateCurrentPerson({
+                interests: interestsEl.value.split(/[,，]/).map(s => s.trim()).filter(Boolean)
+            });
+        });
     }
 
     applyBtn.addEventListener('click', () => {
@@ -557,15 +600,12 @@ function readCustomMaterial() {
             status.textContent = "⚠️ 沒讀到句型或單字。請確認是從 Excel 複製的四欄表格（type/english/chinese/example）。";
             return;
         }
-        const payload = {
-            material: m,
-            studentName: (nameEl && nameEl.value.trim()) || "",
-            interests: (interestsEl && interestsEl.value.trim())
-                ? interestsEl.value.split(/[,，]/).map(s => s.trim()).filter(Boolean) : []
-        };
-        localStorage.setItem(MATERIAL_KEY, JSON.stringify(payload));
+        localStorage.setItem(MATERIAL_KEY, JSON.stringify({ material: m }));
+        updateCurrentPerson({ unit: null });   // 與「課本單元」互斥
+        if (window.refreshUnitPickerForPerson) window.refreshUnitPickerForPerson();
         status.style.color = "#4af626";
         status.textContent = "✅ 已套用！" + describeMaterial(m) + "。下次按「開始連線」生效。";
+        if (window.refreshPersonSummary) window.refreshPersonSummary();
     });
 
     clearBtn.addEventListener('click', () => {
@@ -588,14 +628,10 @@ function languagePolicy(level) {
     }
 }
 
-// 介面上的「程度」選單可即時覆蓋教案裡的 level（選 auto 時沿用教案設定，改動於下次連線生效）。
+// 程度改為記在「人員」身上（設定畫面的選單即時寫回該人員）
 function readLevelOverride(lessonLevel) {
-    const sel = document.getElementById('levelSelect');
-    if (sel && sel.value !== 'auto') {
-        const n = parseInt(sel.value, 10);
-        if (n >= 1 && n <= 5) return n;
-    }
-    return lessonLevel;
+    const lv = currentPerson().level;
+    return (lv >= 1 && lv <= 5) ? lv : lessonLevel;
 }
 
 // 依教案組裝完整 system prompt
@@ -637,6 +673,68 @@ function pastLearningSection() {
         "Do NOT list them all out loud, do not turn the lesson into a review of them, and never mention that you were given a list.";
 }
 
+// ---------------- 首頁：選人員、進出設定 ----------------
+const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "幾乎全英", 5: "全英文" };
+
+(function initHomeScreen() {
+    const levelSel = document.getElementById('levelSelect');
+    const summary = document.getElementById('personSummary');
+    const settingsBtn = document.getElementById('settingsBtn');
+    const closeBtn = document.getElementById('closeSettingsBtn');
+    const personBtns = [...document.querySelectorAll('.person-btn')];
+
+    // 首頁上那一行摘要：這個人正在上什麼、程度、聲音、學過幾個字
+    window.refreshPersonSummary = function () {
+        if (!summary) return;
+        const name = currentPersonName(), p = currentPerson();
+        let unitText = "尚未選定單元";
+        try { if (localStorage.getItem(MATERIAL_KEY)) unitText = "自訂教材"; } catch (e) {}
+        if (p.unit && p.unit.book) {
+            const u = UNITS_DATA ? findUnit(p.unit.book, p.unit.num) : null;
+            unitText = `${p.unit.book} Unit ${p.unit.num}${u ? "：" + u.title : ""}`;
+        }
+        const learned = loadVocabLog().length;
+        summary.innerHTML = `<b style="color:#4daafc;">${name}</b>　📖 ${unitText}<br>` +
+            `🈶 ${LEVEL_LABEL[p.level] || p.level}　🔊 ${p.voice}　📚 已學 ${learned} 個字`;
+    };
+
+    // 切換人員：所有設定與紀錄都跟著換
+    function selectPerson(name) {
+        const p = loadProfiles();
+        if (!p.people[name]) return;
+        p.current = name;
+        saveProfiles(p);
+        syncControlsToPerson();
+        personBtns.forEach(b => b.classList.toggle('active', b.dataset.person === name));
+        if (window.refreshUnitPickerForPerson) window.refreshUnitPickerForPerson();
+        if (window.refreshInterestsForPerson) window.refreshInterestsForPerson();
+        renderVocabPanel();
+        window.refreshPersonSummary();
+    }
+
+    // 把設定畫面的選單值對齊目前人員
+    function syncControlsToPerson() {
+        const p = currentPerson();
+        if (levelSel) levelSel.value = String(p.level);
+        if (voiceSelect) voiceSelect.value = p.voice;
+    }
+
+    personBtns.forEach(b => b.addEventListener('click', () => selectPerson(b.dataset.person)));
+    if (levelSel) levelSel.addEventListener('change', () => {
+        updateCurrentPerson({ level: parseInt(levelSel.value, 10) });
+        window.refreshPersonSummary();
+    });
+    if (voiceSelect) voiceSelect.addEventListener('change', () => {
+        updateCurrentPerson({ voice: voiceSelect.value });
+        window.refreshPersonSummary();
+    });
+    if (settingsBtn) settingsBtn.addEventListener('click', () => document.body.classList.add('settings-mode'));
+    if (closeBtn) closeBtn.addEventListener('click', () => document.body.classList.remove('settings-mode'));
+
+    // 開場：把畫面對齊上次使用的人員
+    selectPerson(currentPersonName());
+})();
+
 function logSystem(msg) {
     sysLogBox.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
     sysLogBox.scrollTop = sysLogBox.scrollHeight;
@@ -667,7 +765,7 @@ async function startSession() {
     userStopped = false; resumeHandle = null; reconnectAttempts = 0;
     isNewAiTurn = true; isNewUserTurn = true;
     aiSpeechBox.innerHTML = '';
-    userSpeechBox.innerHTML = '<span style="color:#888;">等待語音輸入...</span>';
+    if (userSpeechBox) userSpeechBox.innerHTML = '<span style="color:#888;">等待語音輸入...</span>';
     generatedImage.style.display = 'none';
     imageCaption.textContent = "等待 AI 呼叫 show_image ...";
     logSystem("正在請求麥克風權限...");
@@ -772,13 +870,13 @@ const VOCAB_KEY = "vocab_log_v1";
 
 function loadVocabLog() {
     try {
-        const a = JSON.parse(localStorage.getItem(VOCAB_KEY));
+        const a = JSON.parse(localStorage.getItem(vocabKey()));
         return Array.isArray(a) ? a : [];
     } catch (e) { return []; }
 }
 
 function saveVocabLog(list) {
-    try { localStorage.setItem(VOCAB_KEY, JSON.stringify(list)); } catch (e) {}
+    try { localStorage.setItem(vocabKey(), JSON.stringify(list)); } catch (e) {}
 }
 
 // 記錄一個單字：同一個字重複學會累加次數並更新日期，不重複佔位
@@ -825,7 +923,7 @@ function renderVocabPanel() {
         return;
     }
     const days = new Set(list.map(v => v.firstDate)).size;
-    sum.textContent = `共 ${list.length} 個單字，橫跨 ${days} 天上課。`;
+    sum.textContent = `${currentPersonName()}：共 ${list.length} 個單字，橫跨 ${days} 天上課。`;
     // 依「第一次學到的日期」分組，新的在上面
     const byDate = {};
     list.forEach(v => { (byDate[v.firstDate] = byDate[v.firstDate] || []).push(v); });
@@ -850,7 +948,7 @@ function renderVocabPanel() {
         const data = JSON.stringify(loadVocabLog(), null, 2);
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
-        a.download = `ai-tutor-學習紀錄-${new Date().toISOString().slice(0, 10)}.json`;
+        a.download = `ai-tutor-${currentPersonName()}-學習紀錄-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(a.href);
     });
@@ -886,8 +984,8 @@ function renderVocabPanel() {
     });
 
     clearBtn.addEventListener('click', () => {
-        if (!confirm("確定要清除全部學習紀錄嗎？建議先「匯出備份」。此動作無法復原。")) return;
-        localStorage.removeItem(VOCAB_KEY);
+        if (!confirm(`確定要清除 ${currentPersonName()} 的全部學習紀錄嗎？建議先「匯出備份」。此動作無法復原。`)) return;
+        localStorage.removeItem(vocabKey());
         renderVocabPanel();
     });
 
@@ -1142,7 +1240,7 @@ function handleServerMessage(response) {
     }
 
     // 3) 使用者語音逐字稿（伺服器端 STT，取代 webkitSpeechRecognition）
-    if (sc.inputTranscription && sc.inputTranscription.text) {
+    if (sc.inputTranscription && sc.inputTranscription.text && userSpeechBox) {
         if (isNewUserTurn) {
             userSpeechBox.innerHTML += `<br><b style="color:#4daafc;">[You]</b><br>`;
             isNewUserTurn = false;
@@ -1443,7 +1541,7 @@ function stopSession() {
     talkBtn.textContent = '🎙️ 按一下開始說話';
     stageIndicator.textContent = '⏳ 等待連線';
     logSystem("連線已中斷。");
-    userSpeechBox.innerHTML = "等待音訊輸入...";
+    if (userSpeechBox) userSpeechBox.innerHTML = "等待音訊輸入...";
 }
 
 // ---------------- 工具函式 ----------------

@@ -75,7 +75,28 @@
         body.student-mode #talkBtn { font-size:20px; padding:20px 56px; }
         #studentModeBtn { background:#28a745; }
 
-        /* 手機：單欄，順序 AI → 使用者 → 圖片 → Log（Log 墊底） */
+        /* ---------------- 首頁（極簡：選人 → 耳機/喇叭 → 開始連線） ---------------- */
+        #homeScreen { display:flex; flex-direction:column; align-items:center; gap:20px; padding-top:5vh; text-align:center; }
+        #homeTitle { font-size:26px; font-weight:800; letter-spacing:1px; }
+        .person-row { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+        .person-btn { background:#333; color:#ddd; border:2px solid #555; border-radius:20px;
+                      padding:18px 30px; font-size:22px; font-weight:bold; min-width:120px; }
+        .person-btn.active { background:#0e639c; color:#fff; border-color:#4daafc; box-shadow:0 0 0 3px rgba(77,170,252,0.25); }
+        #personSummary { font-size:14px; color:#aaa; line-height:1.7; max-width:min(92vw,460px); }
+        .audio-row { display:flex; gap:22px; font-size:17px; }
+        #actionBtn { font-size:20px; padding:16px 46px; border-radius:30px; }
+        #settingsBtn { background:transparent; color:#888; border:1px solid #555; border-radius:20px; padding:8px 20px; font-weight:normal; }
+
+        /* ---------------- 設定畫面（預設隱藏） ---------------- */
+        #settingsScreen { display:none; }
+        body.settings-mode #homeScreen { display:none; }
+        body.settings-mode #settingsScreen { display:block; }
+        body.student-mode #homeScreen, body.student-mode #settingsScreen { display:none; }
+        #closeSettingsBtn { background:#3c3c3c; border-radius:18px; padding:8px 18px; margin-bottom:14px; }
+        .settings-row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:14px; }
+        .settings-row label.field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:#aaa; }
+
+        /* 手機：單欄，圖片與 Log 高度收斂 */
         @media (max-width: 768px) {
             .dashboard-grid { grid-template-columns: 1fr; }
             .panel-chat .panel-content { height: 120px; }
@@ -83,41 +104,63 @@
             .panel-log .panel-content { height: 160px; }
         }
     </style></head><body>
-    <div class="control-bar">
-        <div class="control-group">
-            <strong>AI Tutor Dev</strong>
-            <span id="statusBadge">未連線</span>
-            <span id="stageIndicator" style="color: #4daafc; margin-left: 10px;">⏳ 等待連線</span>
+    <!-- ==================== 首頁：只留最必要的三件事 ==================== -->
+    <div id="homeScreen">
+        <div id="homeTitle">AI Tutor <span id="statusBadge">未連線</span></div>
+        <div class="person-row">
+            <button class="person-btn" data-person="Rex">Rex</button>
+            <button class="person-btn" data-person="Jessie">Jessie</button>
+            <button class="person-btn" data-person="Sandy">Sandy</button>
         </div>
-        <div class="control-group">
-            <input type="password" id="apiKeyInput" placeholder="Gemini API Key" style="background:#3c3c3c; color:#fff; border:1px solid #555; padding:6px 10px; border-radius:4px; width:150px;">
+        <div id="personSummary"></div>
+        <div class="audio-row">
             <label><input type="radio" name="audioMode" value="headphone"> 🎧 耳機</label>
             <label><input type="radio" name="audioMode" value="speaker" checked> 🔊 喇叭</label>
-            <select id="modelSelect" title="模型：實測 Live 3.1 最穩定，其餘選項已移除">
-                <option value="models/gemini-3.1-flash-live-preview">Live 3.1（新一代，低延遲）</option>
-            </select>
-            <select id="daySelect" title="週教案：上第幾天（自動＝依日期推進）">
-                <option value="auto">📅 自動排課</option>
-                <option value="1">第 1 天</option>
-                <option value="2">第 2 天</option>
-                <option value="3">第 3 天</option>
-                <option value="4">第 4 天</option>
-                <option value="5">第 5 天</option>
-            </select>
-            <select id="levelSelect" title="程度：中英文比例（越小越多中文，適合小小孩）">
-                <option value="auto">📖 依教案程度</option>
-                <option value="1">① 70% 中文（適合 6-8 歲）</option>
-                <option value="2">② 中英各半</option>
-                <option value="3">③ 70% 英文</option>
-                <option value="4">④ 幾乎全英</option>
-                <option value="5">⑤ 全英文</option>
-            </select>
-            <select id="voiceSelect"><option value="Aoede">Aoede</option><option value="Kore">Kore</option><option value="Puck">Puck</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option></select>
-            <button id="nextStageBtn" disabled>⏭ Next</button>
-            <button id="studentModeBtn">🧒 學生畫面</button>
-            <button id="actionBtn">開始連線</button>
         </div>
+        <button id="actionBtn">開始連線</button>
+        <button id="settingsBtn">⚙️ 設定</button>
+        <span id="stageIndicator" style="color:#4daafc; font-size:13px;"></span>
     </div>
+
+    <!-- ==================== 設定畫面：其餘全部收在這裡 ==================== -->
+    <div id="settingsScreen">
+        <button id="closeSettingsBtn">← 返回</button>
+        <div class="settings-row">
+            <label class="field">Gemini API Key
+                <input type="password" id="apiKeyInput" placeholder="貼上你的 API Key" style="background:#3c3c3c; color:#fff; border:1px solid #555; padding:6px 10px; border-radius:4px; width:190px;">
+            </label>
+            <label class="field">程度（中英文比例，記在目前人員身上）
+                <select id="levelSelect">
+                    <option value="1">① 70% 中文（適合 6-8 歲）</option>
+                    <option value="2">② 中英各半</option>
+                    <option value="3">③ 70% 英文</option>
+                    <option value="4">④ 幾乎全英</option>
+                    <option value="5">⑤ 全英文</option>
+                </select>
+            </label>
+            <label class="field">AI 聲音（記在目前人員身上）
+                <select id="voiceSelect"><option value="Aoede">Aoede</option><option value="Kore">Kore</option><option value="Puck">Puck</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option></select>
+            </label>
+            <label class="field">上第幾天
+                <select id="daySelect" title="自動＝依日期推進，同一天重複開課上同一天">
+                    <option value="auto">📅 自動排課</option>
+                    <option value="1">第 1 天</option>
+                    <option value="2">第 2 天</option>
+                    <option value="3">第 3 天</option>
+                    <option value="4">第 4 天</option>
+                    <option value="5">第 5 天</option>
+                </select>
+            </label>
+            <label class="field">模型
+                <select id="modelSelect" title="實測 Live 3.1 最穩定">
+                    <option value="models/gemini-3.1-flash-live-preview">Live 3.1（新一代，低延遲）</option>
+                </select>
+            </label>
+            <label class="field">上課中
+                <span><button id="nextStageBtn" disabled>⏭ 下一階段</button>
+                <button id="studentModeBtn">🧒 學生畫面</button></span>
+            </label>
+        </div>
     <details id="unitPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#f39c12;">📖 課本單元（Gogo English，共 18 個單元）</summary>
         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
@@ -134,21 +177,20 @@
         </div>
     </details>
     <details id="materialPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
-        <summary style="cursor:pointer; font-weight:bold; color:#4daafc;">📋 學生設定與自訂教材（名字、興趣、貼上課本單元）</summary>
+        <summary style="cursor:pointer; font-weight:bold; color:#4daafc;">📋 自訂教材（貼上課本以外的單元）</summary>
         <div style="margin-top:10px; font-size:13px; color:#aaa;">
             從 Excel 選取整張表格（type / english / chinese / example 四欄）複製，貼到下面框裡，按「套用教材」。認得 Theme／Sentence Pattern／Word 三種列，其他列會自動略過。
         </div>
         <textarea id="materialInput" placeholder="從 Excel 複製後直接貼上，例如：&#10;Theme&#9;Do you like science?&#9;談論喜歡的科目&#9;-&#10;Sentence Pattern&#9;Do you like ___?&#9;你喜歡…嗎？&#9;Do you like math?&#10;Word (Noun)&#9;science&#9;科學（名詞）&#9;I like science." style="width:100%; box-sizing:border-box; height:120px; margin-top:8px; background:#1e1e1e; color:#d4d4d4; border:1px solid #555; border-radius:4px; padding:8px; font-family:monospace; font-size:12px;"></textarea>
         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:8px;">
-            <input id="studentName" placeholder="學生名字（例：小明）" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; width:150px;">
-            <input id="studentInterests" placeholder="興趣，逗號分隔（例：恐龍, 腳踏車）" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; flex:1; min-width:180px;">
+            <input id="studentInterests" placeholder="目前人員的興趣，逗號分隔（例：恐龍, 腳踏車）" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; flex:1; min-width:200px;">
             <button id="applyMaterialBtn">套用教材</button>
             <button id="clearMaterialBtn" style="background:#666;">清除</button>
             <span id="materialStatus" style="font-size:13px; color:#aaa;"></span>
         </div>
     </details>
     <details id="vocabPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
-        <summary style="cursor:pointer; font-weight:bold; color:#4af626;">📚 學習紀錄（AI 會記得孩子學過的字）</summary>
+        <summary style="cursor:pointer; font-weight:bold; color:#4af626;">📚 學習紀錄（每位人員各自記錄，AI 會記得）</summary>
         <div id="vocabSummary" style="margin-top:10px; font-size:13px; color:#aaa;"></div>
         <div id="vocabList" style="margin-top:10px; max-height:260px; overflow-y:auto; font-size:13px; line-height:1.7;"></div>
         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
@@ -161,12 +203,12 @@
             紀錄存在這支手機／這個瀏覽器裡。換手機或清除瀏覽器資料前，請先「匯出備份」。
         </div>
     </details>
-    <div class="dashboard-grid">
-        <div class="panel panel-chat"><div class="panel-header"><span>🤖 AI Speech Transcript</span></div><div class="panel-content" id="aiSpeechBox"></div></div>
-        <div class="panel panel-chat"><div class="panel-header"><span>🗣️ User Input (Audio/Text)</span></div><div class="panel-content" id="userSpeechBox">等待音訊輸入...</div></div>
-        <div class="panel panel-image"><div class="panel-header"><span>🖼️ Generated Image (Tool Call)</span></div><div class="panel-content image-container"><img id="generatedImage" src="" alt="AI Image"><div id="imageCaption">等待 AI 觸發畫圖指令...</div></div></div>
-        <div class="panel panel-log"><div class="panel-header"><span>⚙️ System & Event Log</span></div><div class="panel-content" id="sysLogBox">準備就緒。</div></div>
-    </div>
+        <div class="dashboard-grid">
+            <div class="panel panel-chat"><div class="panel-header"><span>🤖 AI 逐字稿</span></div><div class="panel-content" id="aiSpeechBox"></div></div>
+            <div class="panel panel-image"><div class="panel-header"><span>🖼️ 生成的圖片</span></div><div class="panel-content image-container"><img id="generatedImage" src="" alt="AI Image"><div id="imageCaption">等待 AI 觸發畫圖指令...</div></div></div>
+            <div class="panel panel-log"><div class="panel-header"><span>⚙️ System &amp; Event Log</span></div><div class="panel-content" id="sysLogBox">準備就緒。</div></div>
+        </div>
+    </div><!-- /#settingsScreen -->
     <div id="studentView">
         <button id="exitStudentBtn" title="回到老師畫面">← 返回</button>
         <div id="svImagePlaceholder">🎈</div>
@@ -181,7 +223,7 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260725l"></script>
+    <script src="app.js?v=20260726a"></script>
     <script>
         // 註冊 Service Worker（只為了讓網頁可以「加到主畫面」變成 App；不做快取）
         if ('serviceWorker' in navigator) {

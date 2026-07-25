@@ -501,7 +501,9 @@ function connectWebSocket(isReconnect) {
         actionBtn.textContent = '結束連線'; actionBtn.disabled = false;
         talkBtn.disabled = false;
         nextStageBtn.disabled = false;
-        reconnectAttempts = 0;
+        // 注意：重連次數不在這裡歸零。連線握手成功不代表設定被接受——
+        // 若模型無效，伺服器會在 setup 後立刻踢斷，在這歸零會造成無限重連迴圈。
+        // 歸零改在收到 setupComplete（伺服器真正接受設定）時。
         sendSetupMessage();
         startLessonTimer();
         if (isReconnect) {
@@ -526,6 +528,13 @@ function connectWebSocket(isReconnect) {
         logSystem(`<span style="color:#ff8800;">WebSocket 關閉 (code=${e.code}${e.reason ? ', reason=' + e.reason : ''})</span>`);
         if (e.code === 1011) logSystem("（code 1011 = Gemini 伺服器內部錯誤，服務端偶發問題，靠重連恢復）");
         if (userStopped) { stopSession(); return; }
+        // 設定類錯誤（如模型不存在/不支援）：重連也不會好，直接停下並指引使用者，避免無限重連迴圈
+        if (e.code === 1008 && /not found|not supported/i.test(e.reason || "")) {
+            logSystem("<span style='color:#ff4444;'>❌ 你選的模型已失效（Google 下架或改名了）。請在上方「模型選擇」換一個（建議第一個「原生語音」），再按「開始連線」。</span>");
+            alert("這個模型已失效（Google 可能已下架或改名）。\n請在「模型選擇」換一個模型，建議選第一個「原生語音」，然後重新連線。");
+            stopSession();
+            return;
+        }
         // 保險絲：剛重送完就又被斷線，代表重送內容被伺服器拒絕（如 activity 狀態衝突），
         // 作廢這句避免無限迴圈，請使用者重講
         if (needsReplay === false && lastReplayTime && Date.now() - lastReplayTime < 4000) {
@@ -632,6 +641,7 @@ function sendSetupMessage() {
 function handleServerMessage(response) {
     // 0) 連線生命週期訊息
     if (response.setupComplete) {
+        reconnectAttempts = 0; // 伺服器接受設定，連線真正健康，重連次數才歸零
         // 重連完成後，重送斷線時遺失的那句話
         if (needsReplay && turnChunks.length > 0) {
             logSystem(`📤 重送剛才的語音（${turnChunks.length} 個片段，約 ${(turnChunks.length * 0.128).toFixed(1)} 秒）...`);

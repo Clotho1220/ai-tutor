@@ -302,6 +302,16 @@ function buildLessonFromMaterial(m, student) {
     };
 }
 
+// 畫面上設定的學生名字／興趣，覆蓋任何教案來源（lesson.json、自訂教材、內建預設）裡的學生設定
+function applyStudentOverride(lesson) {
+    if (!lesson.student) lesson.student = {};
+    const n = (localStorage.getItem('student_name') || '').trim();
+    const i = (localStorage.getItem('student_interests') || '').trim();
+    if (n) lesson.student.name = n;
+    if (i) lesson.student.interests = i.split(/[,，]/).map(s => s.trim()).filter(Boolean);
+    return lesson;
+}
+
 // 讀取已儲存的自訂教材，組成今日 lesson（沒有就回 null，讓程式退回 lesson.json）
 function readCustomMaterial() {
     try {
@@ -331,12 +341,20 @@ function readCustomMaterial() {
     try {
         const saved = JSON.parse(localStorage.getItem(MATERIAL_KEY));
         if (saved && saved.material) {
-            if (nameEl) nameEl.value = saved.studentName || "";
-            if (interestsEl) interestsEl.value = (saved.interests || []).join(", ");
             status.style.color = "#4af626";
             status.textContent = "✅ 目前使用自訂教材：" + describeMaterial(saved.material);
         }
     } catch (e) {}
+
+    // 學生名字／興趣：獨立記憶，適用於「所有」教案來源（不限自訂教材），打字即存
+    if (nameEl) {
+        nameEl.value = localStorage.getItem('student_name') || "";
+        nameEl.addEventListener('input', () => localStorage.setItem('student_name', nameEl.value.trim()));
+    }
+    if (interestsEl) {
+        interestsEl.value = localStorage.getItem('student_interests') || "";
+        interestsEl.addEventListener('input', () => localStorage.setItem('student_interests', interestsEl.value.trim()));
+    }
 
     applyBtn.addEventListener('click', () => {
         const m = parseMaterial(input.value);
@@ -448,7 +466,7 @@ async function startSession() {
         await setupAudioWorklet();
 
         // 載入今日教案（GAS → lesson.json → 內建預設），週教案先解析出今天上第幾天
-        LESSON = resolveLessonForToday(await loadLesson());
+        LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
         teachingFlow = buildTeachingFlow(LESSON);
         const totalMin = LESSON.stages.reduce((a, s) => a + (s.minutes || 0), 0);
         logSystem(`📋 課程結構：${teachingFlow.map(s => s.name).join(" → ")}（共 ${totalMin} 分鐘）`);
@@ -652,9 +670,9 @@ function handleServerMessage(response) {
             logSystem(`📤 重送剛才的語音（${turnChunks.length} 個片段，約 ${(turnChunks.length * 0.128).toFixed(1)} 秒）...`);
             lastReplayTime = Date.now();
             webSocket.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
-            for (let i = 0; i < turnChunks.length; i += 8) {
-                const batch = turnChunks.slice(i, i + 8).map(d => ({ mimeType: "audio/pcm;rate=16000", data: d }));
-                webSocket.send(JSON.stringify({ realtimeInput: { mediaChunks: batch } }));
+            // 新版 realtimeInput.audio 格式（media_chunks 已被新模型如 Live 3.1 淘汰，一次一塊）
+            for (const d of turnChunks) {
+                webSocket.send(JSON.stringify({ realtimeInput: { audio: { mimeType: "audio/pcm;rate=16000", data: d } } }));
             }
             if (!isTalking) {
                 // 這句話已講完：補上結束訊號，AI 會立即回應
@@ -915,7 +933,8 @@ async function setupAudioWorklet() {
         turnChunks.push(b64);
         if (webSocket && webSocket.readyState === WebSocket.OPEN) {
             webSocket.send(JSON.stringify({
-                realtimeInput: { mediaChunks: [{ mimeType: "audio/pcm;rate=16000", data: b64 }] }
+                // 新版 realtimeInput.audio 格式（新舊模型皆支援；media_chunks 已被 Live 3.1 淘汰）
+                realtimeInput: { audio: { mimeType: "audio/pcm;rate=16000", data: b64 } }
             }));
         }
     };

@@ -31,7 +31,9 @@ function readApiKey() {
 }
 
 let webSocket = null;
-let audioContext = null;
+let audioContext = null;       // 麥克風擷取用：固定 16kHz（Gemini 上行音訊規格）
+let playbackContext = null;    // AI 語音播放用：固定 24kHz（Gemini 下行音訊規格）
+                               // 兩者分開，避免把 24kHz 語音硬塞進 16kHz 環境逐塊重新取樣（音質失真、音色不穩）
 let audioWorkletNode = null;
 let micStream = null;
 
@@ -426,7 +428,7 @@ function buildSystemInstruction(lesson) {
         "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them silently; never read or mention them. " +
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
-        "(4) Keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages. " +
+        "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practicing it in new playful ways until the next DIRECTOR NOTE arrives.";
 }
 
@@ -440,8 +442,11 @@ function logSystem(msg) {
 actionBtn.addEventListener('click', async () => {
     if (!GAS_URL && !readApiKey()) { alert("請先在左上角欄位填入 Gemini API Key！"); apiKeyInput.focus(); return; }
     if (!webSocket && !micStream) {
-        if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: 16000 });
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!audioContext) audioContext = new AC({ sampleRate: 16000 });        // 上行：麥克風
+        if (!playbackContext) playbackContext = new AC({ sampleRate: 24000 });  // 下行：AI 語音
         if (audioContext.state === 'suspended') audioContext.resume();
+        if (playbackContext.state === 'suspended') playbackContext.resume();
         startSession();
     } else {
         userStopped = true; // 使用者主動結束，不要自動重連
@@ -667,6 +672,10 @@ function sendSetupMessage() {
             // 啟用 session resumption：伺服器會定期發恢復握把，
             // 意外斷線重連時帶上握把即可恢復 AI 的對話記憶
             sessionResumption: resumeHandle ? { handle: resumeHandle } : {},
+            // 上下文壓縮（滑動視窗）：純語音 session 預設 15 分鐘上限，
+            // 而一堂課約 15-16 分鐘，剛好撞線被強制中斷。啟用後可無限延長，
+            // 大幅減少重連次數（每次重連都可能讓音色重新飄一次）
+            contextWindowCompression: { slidingWindow: {} },
             // Push-to-talk 模式：關閉自動 VAD，
             // 改由前端發送 activityStart / activityEnd 手動標記說話起訖
             realtimeInputConfig: {
@@ -1012,7 +1021,7 @@ function getOutputNode() {
     const mode = document.querySelector('input[name="audioMode"]:checked').value;
     if (mode === 'speaker') {
         if (!mediaDest) {
-            mediaDest = audioContext.createMediaStreamDestination();
+            mediaDest = playbackContext.createMediaStreamDestination();
             speakerEl = new Audio();
             speakerEl.srcObject = mediaDest.stream;
             speakerEl.setAttribute('playsinline', '');
@@ -1023,23 +1032,23 @@ function getOutputNode() {
         }
         return mediaDest;
     }
-    return audioContext.destination;
+    return playbackContext.destination;
 }
 
 function playPcmChunk(arrayBuffer, sampleRate) {
-    if (!audioContext) return;
-    if (audioContext.state === 'suspended') audioContext.resume();
+    if (!playbackContext) return;
+    if (playbackContext.state === 'suspended') playbackContext.resume();
     const int16Array = new Int16Array(arrayBuffer);
     const float32Array = new Float32Array(int16Array.length);
     for (let i = 0; i < int16Array.length; i++) float32Array[i] = int16Array[i] / 32768.0;
-    const audioBuffer = audioContext.createBuffer(1, float32Array.length, sampleRate);
+    const audioBuffer = playbackContext.createBuffer(1, float32Array.length, sampleRate);
     audioBuffer.getChannelData(0).set(float32Array);
 
-    const source = audioContext.createBufferSource();
+    const source = playbackContext.createBufferSource();
     source.buffer = audioBuffer;
     source.connect(getOutputNode());
 
-    if (nextPlayTime < audioContext.currentTime) nextPlayTime = audioContext.currentTime + 0.05;
+    if (nextPlayTime < playbackContext.currentTime) nextPlayTime = playbackContext.currentTime + 0.05;
     source.start(nextPlayTime);
     nextPlayTime += audioBuffer.duration;
 
@@ -1064,8 +1073,9 @@ function stopSession() {
     if (audioWorkletNode) audioWorkletNode.disconnect();
     if (speakerEl) { speakerEl.pause(); speakerEl.srcObject = null; }
     if (audioContext) audioContext.close();
+    if (playbackContext) playbackContext.close();
     webSocket = null; micStream = null; audioWorkletNode = null; audioContext = null;
-    mediaDest = null; speakerEl = null; nextPlayTime = 0;
+    playbackContext = null; mediaDest = null; speakerEl = null; nextPlayTime = 0;
     statusBadge.textContent = '未連線'; statusBadge.style.background = '#5c4d0c'; statusBadge.style.color = '#ffcc00';
     actionBtn.textContent = '開始連線'; actionBtn.disabled = false;
     isTalking = false;

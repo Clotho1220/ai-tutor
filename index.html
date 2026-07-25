@@ -49,20 +49,20 @@
                        color:#333; padding:20px; padding-bottom:115px; flex-direction:column; align-items:center;
                        justify-content:center; gap:12px; text-align:center; overflow-y:auto; }
         body.student-mode #studentView { display:flex; }
-        #svImage { max-width:min(72vw,340px); max-height:36vh; border-radius:24px; display:none;
+        #svImage { max-width:min(64vw,300px); max-height:27vh; border-radius:24px; display:none;
                    box-shadow:0 6px 20px rgba(0,0,0,0.12); background:#fff; }
-        #svImagePlaceholder { font-size:88px; line-height:1; }
-        #svWord { font-size:46px; font-weight:800; color:#2b6cb0; word-break:break-word; }
+        #svImagePlaceholder { font-size:70px; line-height:1; }
+        #svWord { font-size:42px; font-weight:800; color:#2b6cb0; word-break:break-word; }
         #svMeaning { font-size:22px; color:#7a6a58; }
         #svSayBox { background:#ffffff; border-radius:18px; padding:12px 24px; box-shadow:0 4px 14px rgba(0,0,0,0.09); display:none; max-width:88vw; }
         #svSayLabel { font-size:15px; color:#e67e22; font-weight:bold; margin-bottom:4px; }
         #svSay { font-size:27px; font-weight:700; color:#c0392b; word-break:break-word; }
-        #exitStudentBtn { position:absolute; top:12px; right:12px; background:#f1e4d0; color:#8a7a64;
-                          border-radius:50%; width:36px; height:36px; padding:0; font-size:16px; font-weight:bold; }
+        #exitStudentBtn { position:absolute; top:12px; left:12px; background:#f1e4d0; color:#8a7a64;
+                          border-radius:18px; padding:8px 16px; font-size:15px; font-weight:bold; }
         /* AI 說話字幕（同步逐字稿） */
-        #svTranscript { background:rgba(255,255,255,0.85); border-radius:14px; padding:10px 18px; max-width:90vw;
-                        max-height:96px; overflow-y:auto; font-size:19px; line-height:1.5; color:#555;
-                        text-align:left; display:none; }
+        #svTranscript { background:rgba(255,255,255,0.9); border-radius:16px; padding:14px 20px; max-width:94vw;
+                        min-width:min(94vw,520px); max-height:210px; overflow-y:auto; font-size:24px;
+                        line-height:1.55; color:#4a4a4a; text-align:left; display:none; }
         body.student-mode #talkBtn { font-size:20px; padding:20px 56px; }
         #studentModeBtn { background:#28a745; }
 
@@ -82,12 +82,10 @@
         </div>
         <div class="control-group">
             <input type="password" id="apiKeyInput" placeholder="Gemini API Key" style="background:#3c3c3c; color:#fff; border:1px solid #555; padding:6px 10px; border-radius:4px; width:150px;">
-            <label><input type="radio" name="audioMode" value="headphone" checked> 🎧 耳機</label>
-            <label><input type="radio" name="audioMode" value="speaker"> 🔊 喇叭</label>
-            <select id="modelSelect" title="模型選擇（2026-07 依 Google 官方清單更新，舊的 half-cascade 已被下架）">
-                <option value="models/gemini-2.5-flash-native-audio-latest">原生語音 2.5（自然但音色會飄）</option>
+            <label><input type="radio" name="audioMode" value="headphone"> 🎧 耳機</label>
+            <label><input type="radio" name="audioMode" value="speaker" checked> 🔊 喇叭</label>
+            <select id="modelSelect" title="模型：實測 Live 3.1 最穩定，其餘選項已移除">
                 <option value="models/gemini-3.1-flash-live-preview">Live 3.1（新一代，低延遲）</option>
-                <option value="models/gemini-2.5-flash-native-audio-preview-12-2025">原生語音 2.5（12-2025 版）</option>
             </select>
             <select id="daySelect" title="週教案：上第幾天（自動＝依日期推進）">
                 <option value="auto">📅 自動排課</option>
@@ -132,7 +130,7 @@
         <div class="panel panel-log"><div class="panel-header"><span>⚙️ System & Event Log</span></div><div class="panel-content" id="sysLogBox">準備就緒。</div></div>
     </div>
     <div id="studentView">
-        <button id="exitStudentBtn" title="回到老師畫面">✕</button>
+        <button id="exitStudentBtn" title="回到老師畫面">← 返回</button>
         <div id="svImagePlaceholder">🎈</div>
         <img id="svImage" src="" alt="教學圖片">
         <div id="svWord">👂 聽老師說～</div>
@@ -145,4 +143,4 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260725g"></script></body></html>
+    <script src="app.js?v=20260725h"></script></body></html>

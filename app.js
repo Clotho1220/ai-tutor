@@ -455,6 +455,7 @@ actionBtn.addEventListener('click', async () => {
 });
 
 async function startSession() {
+    document.body.classList.add('student-mode'); // 上課即切到學生畫面（左上角「← 返回」可回老師畫面）
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
@@ -1066,6 +1067,7 @@ function stopAllPlayback() {
 
 function stopSession() {
     if (!webSocket && !micStream && !audioContext) return; // 已清理過，避免 onclose 重複觸發
+    document.body.classList.remove('student-mode'); // 下課回到老師畫面
     if (lessonTimer) clearInterval(lessonTimer);
     stopAllPlayback();
     if (webSocket && webSocket.readyState === WebSocket.OPEN) webSocket.close();

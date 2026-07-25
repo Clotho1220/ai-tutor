@@ -940,8 +940,17 @@ function connectWebSocket(isReconnect) {
 
     webSocket.onclose = (e) => {
         logSystem(`<span style="color:#ff8800;">WebSocket 關閉 (code=${e.code}${e.reason ? ', reason=' + e.reason : ''})</span>`);
-        if (e.code === 1011) logSystem("（code 1011 = Gemini 伺服器內部錯誤，服務端偶發問題，靠重連恢復）");
         if (userStopped) { stopSession(); return; }
+        // 額度／計費類：重連一萬次也沒用，直接停下並說清楚該去哪處理
+        if (/spending cap|quota|billing|exceeded|RESOURCE_EXHAUSTED/i.test(e.reason || "")) {
+            logSystem("<span style='color:#ff4444;'>❌ Google AI 專案已達本月支出上限（或額度用盡），Gemini 拒絕連線。" +
+                      "請到 AI Studio（https://ai.studio/spend）調整上限，或等下個月額度重置。這不是程式問題，重連無法解決。</span>");
+            alert("連線被 Google 拒絕：你的 AI Studio 專案已達本月支出上限（或額度用盡）。\n\n" +
+                  "請到 https://ai.studio/spend 查看與調整，或等待下個月重置。\n\n（這不是程式的問題，重連也無法解決。）");
+            stopSession();
+            return;
+        }
+        if (e.code === 1011) logSystem("（code 1011 = Gemini 伺服器端錯誤，通常是偶發問題，靠重連恢復）");
         // 設定類錯誤（如模型不存在/不支援）：重連也不會好，直接停下並指引使用者，避免無限重連迴圈
         if (e.code === 1008 && /not found|not supported/i.test(e.reason || "")) {
             logSystem("<span style='color:#ff4444;'>❌ 你選的模型已失效（Google 下架或改名了）。請在上方「模型選擇」換一個（建議第一個「原生語音」），再按「開始連線」。</span>");

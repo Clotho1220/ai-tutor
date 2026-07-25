@@ -44,6 +44,24 @@
             100% { box-shadow: 0 0 0 0 rgba(192,57,43,0); }
         }
 
+        /* ---------------- 學生畫面（明亮全螢幕，給孩子看） ---------------- */
+        #studentView { display:none; position:fixed; inset:0; z-index:50; background:linear-gradient(180deg,#fff8e7,#ffeef2);
+                       color:#333; padding:20px; padding-bottom:115px; flex-direction:column; align-items:center;
+                       justify-content:center; gap:12px; text-align:center; overflow-y:auto; }
+        body.student-mode #studentView { display:flex; }
+        #svImage { max-width:min(72vw,340px); max-height:36vh; border-radius:24px; display:none;
+                   box-shadow:0 6px 20px rgba(0,0,0,0.12); background:#fff; }
+        #svImagePlaceholder { font-size:88px; line-height:1; }
+        #svWord { font-size:46px; font-weight:800; color:#2b6cb0; word-break:break-word; }
+        #svMeaning { font-size:22px; color:#7a6a58; }
+        #svSayBox { background:#ffffff; border-radius:18px; padding:12px 24px; box-shadow:0 4px 14px rgba(0,0,0,0.09); display:none; max-width:88vw; }
+        #svSayLabel { font-size:15px; color:#e67e22; font-weight:bold; margin-bottom:4px; }
+        #svSay { font-size:27px; font-weight:700; color:#c0392b; word-break:break-word; }
+        #exitStudentBtn { position:absolute; top:12px; right:12px; background:#f1e4d0; color:#8a7a64;
+                          border-radius:50%; width:36px; height:36px; padding:0; font-size:16px; font-weight:bold; }
+        body.student-mode #talkBtn { font-size:20px; padding:20px 56px; }
+        #studentModeBtn { background:#28a745; }
+
         /* 手機：單欄，順序 AI → 使用者 → 圖片 → Log（Log 墊底） */
         @media (max-width: 768px) {
             .dashboard-grid { grid-template-columns: 1fr; }
@@ -85,6 +103,7 @@
             </select>
             <select id="voiceSelect"><option value="Aoede">Aoede</option><option value="Kore">Kore</option><option value="Puck">Puck</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option></select>
             <button id="nextStageBtn" disabled>⏭ Next</button>
+            <button id="studentModeBtn">🧒 學生畫面</button>
             <button id="actionBtn">開始連線</button>
         </div>
     </div>
@@ -108,6 +127,17 @@
         <div class="panel panel-image"><div class="panel-header"><span>🖼️ Generated Image (Tool Call)</span></div><div class="panel-content image-container"><img id="generatedImage" src="" alt="AI Image"><div id="imageCaption">等待 AI 觸發畫圖指令...</div></div></div>
         <div class="panel panel-log"><div class="panel-header"><span>⚙️ System & Event Log</span></div><div class="panel-content" id="sysLogBox">準備就緒。</div></div>
     </div>
+    <div id="studentView">
+        <button id="exitStudentBtn" title="回到老師畫面">✕</button>
+        <div id="svImagePlaceholder">🎈</div>
+        <img id="svImage" src="" alt="教學圖片">
+        <div id="svWord">👂 聽老師說～</div>
+        <div id="svMeaning"></div>
+        <div id="svSayBox">
+            <div id="svSayLabel">🗣️ 你說說看</div>
+            <div id="svSay"></div>
+        </div>
+    </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260725c"></script></body></html>
+    <script src="app.js?v=20260725d"></script></body></html>

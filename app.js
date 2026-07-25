@@ -426,7 +426,8 @@ function buildSystemInstruction(lesson) {
         "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them silently; never read or mention them. " +
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
-        "(4) Keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages.";
+        "(4) Keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages. " +
+        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practicing it in new playful ways until the next DIRECTOR NOTE arrives.";
 }
 
 function logSystem(msg) {
@@ -503,6 +504,38 @@ async function gasPost(data) {
 }
 
 // 單字寫入試算表（fire-and-forget，不阻塞對話）
+// ---------------- 學生畫面 ----------------
+// 明亮的全螢幕檢視，只顯示孩子需要的：大圖、單字、中文意思、「你說說看」例句。
+// 資料來源：AI 的 show_image / log_vocabulary 工具呼叫。
+(function initStudentView() {
+    const enterBtn = document.getElementById('studentModeBtn');
+    const exitBtn = document.getElementById('exitStudentBtn');
+    if (enterBtn) enterBtn.addEventListener('click', () => document.body.classList.add('student-mode'));
+    if (exitBtn) exitBtn.addEventListener('click', () => document.body.classList.remove('student-mode'));
+})();
+
+// 學生畫面顯示單字（log_vocabulary 完整覆蓋；show_image 只先換字）
+function studentShowWord(word, meaning, example) {
+    const w = document.getElementById('svWord');
+    if (!w) return;
+    if (word) w.textContent = word;
+    const m = document.getElementById('svMeaning');
+    if (m) m.textContent = meaning || "";
+    const box = document.getElementById('svSayBox'), s = document.getElementById('svSay');
+    if (box && s) {
+        if (example) { s.textContent = example; box.style.display = 'block'; }
+        else box.style.display = 'none';
+    }
+}
+
+// 學生畫面顯示圖片（與除錯面板共用同一張圖網址，瀏覽器快取只載一次）
+function studentShowImage(url) {
+    const img = document.getElementById('svImage'), ph = document.getElementById('svImagePlaceholder');
+    if (!img) return;
+    img.onload = () => { img.style.display = 'block'; if (ph) ph.style.display = 'none'; };
+    img.src = url;
+}
+
 function logVocabToSheet(word, meaning, example) {
     if (!GAS_URL) return;
     const stageName = currentStageIndex > 0 && teachingFlow[currentStageIndex - 1] ? teachingFlow[currentStageIndex - 1].name : "";
@@ -713,6 +746,7 @@ function handleServerMessage(response) {
                 });
             } else if (fc.name === "log_vocabulary") {
                 const a = fc.args || {};
+                studentShowWord(a.word || "", a.meaning || "", a.example || ""); // 學生畫面同步顯示
                 logVocabToSheet(a.word || "", a.meaning || "", a.example || "");
                 functionResponses.push({
                     id: fc.id,
@@ -788,6 +822,8 @@ function showImage(keyword) {
     imageCaption.textContent = "🎨 正在繪製：" + keyword + " ...";
     const prompt = "A simple, educational illustration of " + keyword + ", white background";
     const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=400&height=400&nologo=true`;
+    studentShowWord(keyword, "", null);   // 學生畫面先換上單字（log_vocabulary 稍後會補中文與例句）
+    studentShowImage(imageUrl);           // 學生畫面同步顯示圖片
     generatedImage.onload = () => { imageCaption.textContent = "AI 呼叫 show_image：" + keyword; };
     generatedImage.onerror = () => {
         if (!generatedImage.dataset.retried) {

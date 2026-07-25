@@ -75,11 +75,33 @@
                 <option value="4">第 4 天</option>
                 <option value="5">第 5 天</option>
             </select>
+            <select id="levelSelect" title="程度：中英文比例（越小越多中文，適合小小孩）">
+                <option value="auto">📖 依教案程度</option>
+                <option value="1">① 70% 中文（適合 6-8 歲）</option>
+                <option value="2">② 中英各半</option>
+                <option value="3">③ 70% 英文</option>
+                <option value="4">④ 幾乎全英</option>
+                <option value="5">⑤ 全英文</option>
+            </select>
             <select id="voiceSelect"><option value="Aoede">Aoede</option><option value="Kore">Kore</option><option value="Puck">Puck</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option></select>
             <button id="nextStageBtn" disabled>⏭ Next</button>
             <button id="actionBtn">開始連線</button>
         </div>
     </div>
+    <details id="materialPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
+        <summary style="cursor:pointer; font-weight:bold; color:#4daafc;">📋 自訂教材（貼上課本單元，讓 AI 照這個教）</summary>
+        <div style="margin-top:10px; font-size:13px; color:#aaa;">
+            從 Excel 選取整張表格（type / english / chinese / example 四欄）複製，貼到下面框裡，按「套用教材」。認得 Theme／Sentence Pattern／Word 三種列，其他列會自動略過。
+        </div>
+        <textarea id="materialInput" placeholder="從 Excel 複製後直接貼上，例如：&#10;Theme&#9;Do you like science?&#9;談論喜歡的科目&#9;-&#10;Sentence Pattern&#9;Do you like ___?&#9;你喜歡…嗎？&#9;Do you like math?&#10;Word (Noun)&#9;science&#9;科學（名詞）&#9;I like science." style="width:100%; box-sizing:border-box; height:120px; margin-top:8px; background:#1e1e1e; color:#d4d4d4; border:1px solid #555; border-radius:4px; padding:8px; font-family:monospace; font-size:12px;"></textarea>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:8px;">
+            <input id="studentName" placeholder="學生名字（例：小明）" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; width:150px;">
+            <input id="studentInterests" placeholder="興趣，逗號分隔（例：恐龍, 腳踏車）" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; flex:1; min-width:180px;">
+            <button id="applyMaterialBtn">套用教材</button>
+            <button id="clearMaterialBtn" style="background:#666;">清除</button>
+            <span id="materialStatus" style="font-size:13px; color:#aaa;"></span>
+        </div>
+    </details>
     <div class="dashboard-grid">
         <div class="panel panel-chat"><div class="panel-header"><span>🤖 AI Speech Transcript</span></div><div class="panel-content" id="aiSpeechBox"></div></div>
         <div class="panel panel-chat"><div class="panel-header"><span>🗣️ User Input (Audio/Text)</span></div><div class="panel-content" id="userSpeechBox">等待音訊輸入...</div></div>

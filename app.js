@@ -133,6 +133,12 @@ let LESSON = null;        // 本堂課的教案（startSession 時載入）
 let teachingFlow = [];    // 由教案展開的階段時間表（隱形導演使用）
 
 async function loadLesson() {
+    // 0) 老師在畫面上貼的自訂教材，優先於一切
+    const custom = readCustomMaterial();
+    if (custom) {
+        logSystem(`📋 使用自訂教材（單元：${custom.unit}）。`);
+        return custom;
+    }
     // 1) GAS 慢腦排課（後端尚未實作 getLesson 時會自然落空，往下走）
     if (GAS_URL) {
         const r = await gasPost({ action: "getLesson" });
@@ -237,6 +243,125 @@ function buildTeachingFlow(lesson) {
     });
 }
 
+// ---------------- 自訂教材（老師從 Excel 貼上課本單元表格） ----------------
+// 表格四欄：type / english / chinese / example。
+// 只認得 type 欄含 Theme / Sentence Pattern / Word 的列，標題列、表頭、雜訊列自動略過。
+const MATERIAL_KEY = "custom_material_v1";
+
+function parseMaterial(raw) {
+    let theme = "";
+    const patterns = [];
+    const words = [];
+    (raw || "").split(/\r?\n/).forEach(line => {
+        const cells = line.split("\t").map(c => c.trim());
+        if (cells.length < 2) return;
+        const type = (cells[0] || "").toLowerCase();
+        const english = cells[1] || "";
+        const chinese = (cells[2] || "").replace(/\*\*/g, "").trim();
+        let example = (cells[3] || "").trim();
+        if (example === "-" || example === "—") example = "";
+        if (!english) return;
+        if (type.includes("theme")) {
+            theme = english + (chinese ? "（" + chinese + "）" : "");
+        } else if (type.includes("sentence") || type.includes("pattern")) {
+            patterns.push({ english, chinese, example });
+        } else if (type.includes("word")) {
+            words.push({ english, chinese, example });
+        }
+    });
+    if (!patterns.length && !words.length) return null;
+    return { theme, patterns, words };
+}
+
+function describeMaterial(m) {
+    const t = m.theme ? "主題「" + (m.theme.length > 24 ? m.theme.slice(0, 24) + "…" : m.theme) + "」、" : "";
+    return t + m.patterns.length + " 個句型、" + m.words.length + " 個單字";
+}
+
+// 自訂教材 → 完整 lesson 物件（單堂約 16 分鐘，四階段）
+function buildLessonFromMaterial(m, student) {
+    const themeLine = m.theme || "today's textbook unit";
+    return {
+        student: student,
+        unit: m.theme || "自訂教材",
+        stages: [
+            { label: "開場暖身", minutes: 2,
+              goal: "Greet the student warmly BY NAME, make light small talk with ONE simple question (use their interests if any), then tell them in simple terms what today is about: " + themeLine + "." },
+            { label: "句型", minutes: 4,
+              goal: "Teach today's target sentence patterns ONE at a time: say it, explain what it means and when to use it, give the example, then have the student repeat. Wait after each.",
+              items: m.patterns },
+            { label: "單字與練習", minutes: 8,
+              goal: "Teach today's words ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. After a few words, drill the patterns by swapping these words in.",
+              items: m.words,
+              activity: "Role-play a natural everyday scene that fits today's theme, using the patterns and words. The student speaks the target lines; if they freeze, feed the line in Chinese first, then let them say it in English. Swap roles once so the student also answers." },
+            { label: "總結", minutes: 2,
+              goal: "Wrap up in simple terms (Traditional Chinese is fine): remind them of today's main pattern, praise ONE specific thing they did well, and say goodbye warmly." }
+        ]
+    };
+}
+
+// 讀取已儲存的自訂教材，組成今日 lesson（沒有就回 null，讓程式退回 lesson.json）
+function readCustomMaterial() {
+    try {
+        const saved = JSON.parse(localStorage.getItem(MATERIAL_KEY));
+        if (saved && saved.material && (saved.material.patterns.length || saved.material.words.length)) {
+            const student = {
+                name: saved.studentName || "同學",
+                level: 1,                       // 預設 70% 中文；畫面上的「程度」選單可即時覆蓋
+                interests: saved.interests || []
+            };
+            return buildLessonFromMaterial(saved.material, student);
+        }
+    } catch (e) {}
+    return null;
+}
+
+// 自訂教材面板：套用 / 清除 / 載入時回填狀態
+(function initMaterialPanel() {
+    const input = document.getElementById('materialInput');
+    const nameEl = document.getElementById('studentName');
+    const interestsEl = document.getElementById('studentInterests');
+    const status = document.getElementById('materialStatus');
+    const applyBtn = document.getElementById('applyMaterialBtn');
+    const clearBtn = document.getElementById('clearMaterialBtn');
+    if (!input || !applyBtn) return;
+
+    try {
+        const saved = JSON.parse(localStorage.getItem(MATERIAL_KEY));
+        if (saved && saved.material) {
+            if (nameEl) nameEl.value = saved.studentName || "";
+            if (interestsEl) interestsEl.value = (saved.interests || []).join(", ");
+            status.style.color = "#4af626";
+            status.textContent = "✅ 目前使用自訂教材：" + describeMaterial(saved.material);
+        }
+    } catch (e) {}
+
+    applyBtn.addEventListener('click', () => {
+        const m = parseMaterial(input.value);
+        if (!m) {
+            status.style.color = "#ff6b6b";
+            status.textContent = "⚠️ 沒讀到句型或單字。請確認是從 Excel 複製的四欄表格（type/english/chinese/example）。";
+            return;
+        }
+        const payload = {
+            material: m,
+            studentName: (nameEl && nameEl.value.trim()) || "",
+            interests: (interestsEl && interestsEl.value.trim())
+                ? interestsEl.value.split(/[,，]/).map(s => s.trim()).filter(Boolean) : []
+        };
+        localStorage.setItem(MATERIAL_KEY, JSON.stringify(payload));
+        status.style.color = "#4af626";
+        status.textContent = "✅ 已套用！" + describeMaterial(m) + "。下次按「開始連線」生效。";
+    });
+
+    clearBtn.addEventListener('click', () => {
+        localStorage.removeItem(MATERIAL_KEY);
+        input.value = "";
+        status.style.color = "#aaa";
+        status.textContent = "已清除自訂教材，將改用內建的 lesson.json。";
+    });
+})();
+
 // Level 1-5 → 中英文配比指示
 function languagePolicy(level) {
     switch (level) {
@@ -249,15 +374,26 @@ function languagePolicy(level) {
     }
 }
 
+// 介面上的「程度」選單可即時覆蓋教案裡的 level（選 auto 時沿用教案設定，改動於下次連線生效）。
+function readLevelOverride(lessonLevel) {
+    const sel = document.getElementById('levelSelect');
+    if (sel && sel.value !== 'auto') {
+        const n = parseInt(sel.value, 10);
+        if (n >= 1 && n <= 5) return n;
+    }
+    return lessonLevel;
+}
+
 // 依教案組裝完整 system prompt
 function buildSystemInstruction(lesson) {
     const st = lesson.student || {};
     const interests = (st.interests || []).join(", ");
+    const level = readLevelOverride(st.level || 2);
     return "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. " +
-        `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${st.level || 2} of 5. ` +
+        `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${level} of 5. ` +
         (interests ? `The student's interests are: ${interests} — use them in your examples and small talk. ` : "") +
         `TODAY'S UNIT: ${lesson.unit || "general practice"}. Stay on this unit's topic and target items; do not wander to other material. ` +
-        "LANGUAGE POLICY: " + languagePolicy(st.level || 2) + " " +
+        "LANGUAGE POLICY: " + languagePolicy(level) + " " +
         "RESCUE RULE (overrides the ratio): if the student answers an English question in Chinese, says 「蛤？」or「什麼意思？」, or seems lost, immediately explain the last point in Traditional Chinese, then retry with SIMPLER English. " +
         "TEACHING STYLE: " +
         "(a) Say at most TWO short sentences per turn, then stop. Waiting silently is part of teaching. " +

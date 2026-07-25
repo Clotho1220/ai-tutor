@@ -429,7 +429,18 @@ function buildSystemInstruction(lesson) {
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them silently; never read or mention them. " +
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
-        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practicing it in new playful ways until the next DIRECTOR NOTE arrives.";
+        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practicing it in new playful ways until the next DIRECTOR NOTE arrives." +
+        pastLearningSection();
+}
+
+// 過去幾天學過的字 → 寫進 system prompt，讓 AI 跨天記得孩子的學習歷程
+function pastLearningSection() {
+    const past = recentVocabForPrompt();
+    if (!past.length) return "";
+    const words = past.map(v => v.word + (v.meaning ? " (" + v.meaning + ")" : "")).join("; ");
+    return " PAST LESSONS — words this student has already learned with you on earlier days: " + words + ". " +
+        "You genuinely remember teaching these. Weave them back in naturally when they fit today's topic (a quick callback like 「你還記得 balloon 嗎？」 is great), and treat them as known vocabulary you can build on. " +
+        "Do NOT list them all out loud, do not turn the lesson into a review of them, and never mention that you were given a list.";
 }
 
 function logSystem(msg) {
@@ -559,6 +570,135 @@ function prefetchLessonImages(lesson) {
     });
     if (unique.length) logSystem(`🖼️ 已在背景預先繪製 ${unique.length} 個單字圖片（AI 教到時可即時顯示）。`);
 }
+
+// ---------------- 學習紀錄（跨天記憶的基礎） ----------------
+// AI 每教一個新字就會呼叫 log_vocabulary，這裡把它存進瀏覽器（localStorage）。
+// 下次上課時再把「學過哪些字」寫進 system prompt，AI 就真的記得孩子的學習歷程。
+const VOCAB_KEY = "vocab_log_v1";
+
+function loadVocabLog() {
+    try {
+        const a = JSON.parse(localStorage.getItem(VOCAB_KEY));
+        return Array.isArray(a) ? a : [];
+    } catch (e) { return []; }
+}
+
+function saveVocabLog(list) {
+    try { localStorage.setItem(VOCAB_KEY, JSON.stringify(list)); } catch (e) {}
+}
+
+// 記錄一個單字：同一個字重複學會累加次數並更新日期，不重複佔位
+function recordVocab(word, meaning, example) {
+    word = (word || "").trim();
+    if (!word) return;
+    const list = loadVocabLog();
+    const today = new Date().toISOString().slice(0, 10);
+    const unit = (LESSON && LESSON.unit) ? LESSON.unit : "";
+    const key = word.toLowerCase();
+    const hit = list.find(v => (v.word || "").toLowerCase() === key);
+    if (hit) {
+        hit.count = (hit.count || 1) + 1;
+        hit.lastDate = today;
+        if (meaning && !hit.meaning) hit.meaning = meaning;
+        if (example && !hit.example) hit.example = example;
+    } else {
+        list.push({ word, meaning: meaning || "", example: example || "",
+                    firstDate: today, lastDate: today, count: 1, unit });
+    }
+    saveVocabLog(list);
+    renderVocabPanel();
+    logSystem(`📚 已記錄單字：${word}${meaning ? "（" + meaning + "）" : ""}`);
+}
+
+// 供 system prompt 使用：最近學過的字（上限 40 個，避免指令過長）
+function recentVocabForPrompt() {
+    const today = new Date().toISOString().slice(0, 10);
+    const list = loadVocabLog()
+        .filter(v => v.lastDate !== today)          // 今天剛教的不算「以前學過」
+        .sort((a, b) => (b.lastDate || "").localeCompare(a.lastDate || ""))
+        .slice(0, 40);
+    return list;
+}
+
+function renderVocabPanel() {
+    const sum = document.getElementById('vocabSummary');
+    const box = document.getElementById('vocabList');
+    if (!sum || !box) return;
+    const list = loadVocabLog();
+    if (!list.length) {
+        sum.textContent = "還沒有紀錄。上課時 AI 教到新單字就會自動記在這裡。";
+        box.innerHTML = "";
+        return;
+    }
+    const days = new Set(list.map(v => v.firstDate)).size;
+    sum.textContent = `共 ${list.length} 個單字，橫跨 ${days} 天上課。`;
+    // 依「第一次學到的日期」分組，新的在上面
+    const byDate = {};
+    list.forEach(v => { (byDate[v.firstDate] = byDate[v.firstDate] || []).push(v); });
+    box.innerHTML = Object.keys(byDate).sort().reverse().map(date => {
+        const items = byDate[date].map(v =>
+            `<span style="display:inline-block; background:#333; border-radius:12px; padding:2px 10px; margin:2px 4px 2px 0;">
+                <b style="color:#4daafc;">${v.word}</b>${v.meaning ? ' <span style="color:#aaa;">' + v.meaning + '</span>' : ''}${v.count > 1 ? ' <span style="color:#f39c12;">×' + v.count + '</span>' : ''}
+             </span>`).join("");
+        return `<div style="margin-bottom:8px;"><span style="color:#4af626;">📅 ${date}</span><br>${items}</div>`;
+    }).join("");
+}
+
+// 匯出 / 還原 / 清除
+(function initVocabPanel() {
+    const exportBtn = document.getElementById('exportVocabBtn');
+    const importBtn = document.getElementById('importVocabBtn');
+    const importFile = document.getElementById('importVocabFile');
+    const clearBtn = document.getElementById('clearVocabBtn');
+    if (!exportBtn) return;
+
+    exportBtn.addEventListener('click', () => {
+        const data = JSON.stringify(loadVocabLog(), null, 2);
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
+        a.download = `ai-tutor-學習紀錄-${new Date().toISOString().slice(0, 10)}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+    });
+
+    importBtn.addEventListener('click', () => importFile.click());
+    importFile.addEventListener('change', () => {
+        const f = importFile.files && importFile.files[0];
+        if (!f) return;
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const incoming = JSON.parse(reader.result);
+                if (!Array.isArray(incoming)) throw new Error("格式不符");
+                // 與現有紀錄合併，同一個字取次數較多、日期較新的
+                const merged = loadVocabLog();
+                incoming.forEach(v => {
+                    const hit = merged.find(m => (m.word || "").toLowerCase() === (v.word || "").toLowerCase());
+                    if (hit) {
+                        hit.count = Math.max(hit.count || 1, v.count || 1);
+                        if ((v.firstDate || "") < (hit.firstDate || "9999")) hit.firstDate = v.firstDate;
+                        if ((v.lastDate || "") > (hit.lastDate || "")) hit.lastDate = v.lastDate;
+                        hit.meaning = hit.meaning || v.meaning || "";
+                        hit.example = hit.example || v.example || "";
+                    } else merged.push(v);
+                });
+                saveVocabLog(merged);
+                renderVocabPanel();
+                alert(`還原完成，目前共 ${merged.length} 個單字。`);
+            } catch (e) { alert("還原失敗：檔案格式不正確。"); }
+            importFile.value = "";
+        };
+        reader.readAsText(f);
+    });
+
+    clearBtn.addEventListener('click', () => {
+        if (!confirm("確定要清除全部學習紀錄嗎？建議先「匯出備份」。此動作無法復原。")) return;
+        localStorage.removeItem(VOCAB_KEY);
+        renderVocabPanel();
+    });
+
+    renderVocabPanel();
+})();
 
 function logVocabToSheet(word, meaning, example) {
     if (!GAS_URL) return;
@@ -775,7 +915,8 @@ function handleServerMessage(response) {
             } else if (fc.name === "log_vocabulary") {
                 const a = fc.args || {};
                 studentShowWord(a.word || "", a.meaning || "", a.example || ""); // 學生畫面同步顯示
-                logVocabToSheet(a.word || "", a.meaning || "", a.example || "");
+                recordVocab(a.word || "", a.meaning || "", a.example || "");     // 存進本機學習紀錄
+                logVocabToSheet(a.word || "", a.meaning || "", a.example || ""); // （選用）同步到 GAS 試算表
                 functionResponses.push({
                     id: fc.id,
                     name: fc.name,

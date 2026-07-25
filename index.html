@@ -59,6 +59,10 @@
         #svSay { font-size:27px; font-weight:700; color:#c0392b; word-break:break-word; }
         #exitStudentBtn { position:absolute; top:12px; right:12px; background:#f1e4d0; color:#8a7a64;
                           border-radius:50%; width:36px; height:36px; padding:0; font-size:16px; font-weight:bold; }
+        /* AI 說話字幕（同步逐字稿） */
+        #svTranscript { background:rgba(255,255,255,0.85); border-radius:14px; padding:10px 18px; max-width:90vw;
+                        max-height:96px; overflow-y:auto; font-size:19px; line-height:1.5; color:#555;
+                        text-align:left; display:none; }
         body.student-mode #talkBtn { font-size:20px; padding:20px 56px; }
         #studentModeBtn { background:#28a745; }
 
@@ -137,7 +141,8 @@
             <div id="svSayLabel">🗣️ 你說說看</div>
             <div id="svSay"></div>
         </div>
+        <div id="svTranscript"></div>
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260725d"></script></body></html>
+    <script src="app.js?v=20260725e"></script></body></html>

@@ -468,6 +468,7 @@ async function startSession() {
 
         // 載入今日教案（GAS → lesson.json → 內建預設），週教案先解析出今天上第幾天
         LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
+        prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
         const totalMin = LESSON.stages.reduce((a, s) => a + (s.minutes || 0), 0);
         logSystem(`📋 課程結構：${teachingFlow.map(s => s.name).join(" → ")}（共 ${totalMin} 分鐘）`);
@@ -534,6 +535,23 @@ function studentShowImage(url) {
     if (!img) return;
     img.onload = () => { img.style.display = 'block'; if (ph) ph.style.display = 'none'; };
     img.src = url;
+}
+
+// 開課時在背景預先繪製本課單字的圖片（同樣的網址進瀏覽器快取，
+// AI 課中呼叫 show_image 時圖片幾乎瞬間顯示，解決生圖跟不上教學節奏的問題）
+function prefetchLessonImages(lesson) {
+    const words = [];
+    (lesson.stages || []).forEach(s => (s.items || []).forEach(it => {
+        const w = (it.english || "").trim();
+        // 只預抓單字（跳過句型：太長、含 ? 或 [noun] 佔位符的不是可畫的名詞）
+        if (w && w.length <= 20 && !w.includes('?') && !w.includes('[') && !w.includes('/')) words.push(w);
+    }));
+    const unique = [...new Set(words)].slice(0, 12); // 上限 12 張，避免流量浪費
+    unique.forEach(w => {
+        const prompt = "A simple, educational illustration of " + w + ", white background";
+        new Image().src = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=400&height=400&nologo=true`;
+    });
+    if (unique.length) logSystem(`🖼️ 已在背景預先繪製 ${unique.length} 個單字圖片（AI 教到時可即時顯示）。`);
 }
 
 function logVocabToSheet(word, meaning, example) {
@@ -779,15 +797,22 @@ function handleServerMessage(response) {
         userSpeechBox.scrollTop = userSpeechBox.scrollHeight;
     }
 
-    // 4) AI 實際說出的逐字稿
+    // 4) AI 實際說出的逐字稿（除錯面板累積全程；學生畫面字幕只顯示當前這一輪）
     if (sc.outputTranscription && sc.outputTranscription.text) {
+        const svT = document.getElementById('svTranscript');
         if (isNewAiTurn) {
             const voiceName = voiceSelect.options[voiceSelect.selectedIndex].text;
             aiSpeechBox.innerHTML += `<br><b style="color:#f39c12;">[${voiceName}]</b><br>`;
             isNewAiTurn = false;
+            if (svT) svT.textContent = ""; // 新的一輪：字幕清空重來
         }
         aiSpeechBox.innerHTML += sc.outputTranscription.text;
         aiSpeechBox.scrollTop = aiSpeechBox.scrollHeight;
+        if (svT) {
+            svT.textContent += sc.outputTranscription.text;
+            svT.style.display = 'block';
+            svT.scrollTop = svT.scrollHeight;
+        }
     }
 
     // 5) 音訊播放

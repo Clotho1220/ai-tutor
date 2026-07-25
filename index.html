@@ -118,6 +118,21 @@
             <button id="actionBtn">開始連線</button>
         </div>
     </div>
+    <details id="unitPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
+        <summary style="cursor:pointer; font-weight:bold; color:#f39c12;">📖 課本單元（Gogo English，共 18 個單元）</summary>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
+            <select id="bookSelect" title="選擇冊別"></select>
+            <select id="unitSelect" title="選擇單元" style="max-width:260px;"></select>
+            <button id="applyUnitBtn">使用這個單元</button>
+            <button id="clearUnitBtn" style="background:#666;">清除</button>
+        </div>
+        <div id="unitPreview" style="margin-top:8px; font-size:13px; color:#aaa;"></div>
+        <div id="unitStatus" style="margin-top:6px; font-size:13px; color:#aaa;"></div>
+        <div style="margin-top:8px; font-size:12px; color:#888;">
+            選定後每個單元會自動展開成 5 天：前 4 天分批教句型與單字（每天複習前幾天的），第 5 天總複習。
+            要上第幾天，用上方「排課」選單指定，或讓它自動依日期推進。
+        </div>
+    </details>
     <details id="materialPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#4daafc;">📋 學生設定與自訂教材（名字、興趣、貼上課本單元）</summary>
         <div style="margin-top:10px; font-size:13px; color:#aaa;">
@@ -166,7 +181,7 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260725i"></script>
+    <script src="app.js?v=20260725j"></script>
     <script>
         // 註冊 Service Worker（只為了讓網頁可以「加到主畫面」變成 App；不做快取）
         if ('serviceWorker' in navigator) {

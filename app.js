@@ -142,6 +142,12 @@ async function loadLesson() {
         logSystem(`📋 使用自訂教材（單元：${custom.unit}）。`);
         return custom;
     }
+    // 0.5) 從課本單元庫挑的單元（自動展開成 5 天）
+    const picked = await readSelectedUnit();
+    if (picked) {
+        logSystem(`📖 使用課本單元：${picked.unit}（自動展開 5 天）。`);
+        return picked;
+    }
     // 1) GAS 慢腦排課（後端尚未實作 getLesson 時會自然落空，往下走）
     if (GAS_URL) {
         const r = await gasPost({ action: "getLesson" });
@@ -265,11 +271,12 @@ function parseMaterial(raw) {
         let example = (cells[3] || "").trim();
         if (example === "-" || example === "—") example = "";
         if (!english) return;
-        if (type.includes("theme")) {
+        // 同時認得英文標籤（Theme / Sentence Pattern / Word）與中文標籤（主題情境 / 目標句型 / 目標單字）
+        if (type.includes("theme") || type.includes("主題")) {
             theme = english + (chinese ? "（" + chinese + "）" : "");
-        } else if (type.includes("sentence") || type.includes("pattern")) {
+        } else if (type.includes("sentence") || type.includes("pattern") || type.includes("句型")) {
             patterns.push({ english, chinese, example });
-        } else if (type.includes("word")) {
+        } else if (type.includes("word") || type.includes("單字")) {
             words.push({ english, chinese, example });
         }
     });
@@ -303,6 +310,189 @@ function buildLessonFromMaterial(m, student) {
         ]
     };
 }
+
+// ---------------- 課本單元庫（units.json → 自動展開成 5 天課表） ----------------
+// units.json 由 build-units.py 從 Lesson data.xlsx 產生（Gogo English 各冊）。
+// 老師只要在畫面上挑「哪一冊、哪一單元」，程式就把句型與單字分散到 5 天，
+// 並自動安排間隔重複的複習（第 N 天回收第 1~N-1 天教過的內容）。
+const UNIT_KEY = "selected_unit_v1";
+let UNITS_DATA = null;
+
+async function loadUnitsData() {
+    if (UNITS_DATA) return UNITS_DATA;
+    try {
+        const res = await fetch("units.json?t=" + Date.now());
+        if (res.ok) UNITS_DATA = await res.json();
+    } catch (e) {}
+    return UNITS_DATA;
+}
+
+function findUnit(bookName, num) {
+    if (!UNITS_DATA || !UNITS_DATA.books) return null;
+    const b = UNITS_DATA.books.find(x => x.name === bookName);
+    return b ? b.units.find(u => u.num === num) : null;
+}
+
+// 第 N 天的複習內容：昨天教的全收，更早的每天各挑一個（手動版間隔重複）
+function reviewItemsFor(dayIdx, dayItems) {
+    if (dayIdx < 1) return [];
+    const items = [...dayItems[dayIdx - 1]];
+    for (let k = 0; k < dayIdx - 1; k++) {
+        if (dayItems[k].length) items.push(dayItems[k][0]);
+    }
+    return items.slice(0, 5);
+}
+
+// 單元 → 5 天週教案（沿用 lesson.json 的 week 格式，交給既有的排課機制處理）
+function buildWeeklyLessonFromUnit(unit, student) {
+    const TEACH_DAYS = 4;                       // 前 4 天教新東西，第 5 天總複習
+    const P = unit.patterns || [], W = unit.words || [];
+    const chunk = (arr, n) => {
+        const per = Math.ceil(arr.length / n) || 1;
+        return Array.from({ length: n }, (_, i) => arr.slice(i * per, (i + 1) * per));
+    };
+    const dayPatterns = chunk(P, TEACH_DAYS);
+    const dayWords = chunk(W, TEACH_DAYS);
+    const dayItems = Array.from({ length: TEACH_DAYS }, (_, i) => [...dayPatterns[i], ...dayWords[i]]);
+    const themeLine = unit.theme || unit.title;
+    const week = [];
+
+    for (let i = 0; i < TEACH_DAYS; i++) {
+        const items = dayItems[i];
+        const hasNew = items.length > 0;
+        const focus = hasNew
+            ? items.map(it => it.english).join("、").slice(0, 60)
+            : "延伸練習本單元句型";
+        const stages = [];
+
+        stages.push({
+            label: "開場暖身", minutes: 2,
+            goal: (i === 0
+                ? `Greet the student warmly BY NAME, make light small talk with ONE simple question (use their interests), then tell them what this week is about: ${themeLine}. `
+                : `Greet the student BY NAME, ONE short small-talk question, then remind them briefly what we learned last time and introduce today's focus. `) +
+                `Today's focus: ${focus}.`
+        });
+
+        if (i > 0) {
+            stages.push({
+                label: "複習", minutes: 3,
+                goal: "Review these items from previous days ONE at a time: prompt the student to use each one in a sentence, wait for their answer, gently fix mistakes by restating.",
+                items: reviewItemsFor(i, dayItems)
+            });
+        }
+
+        stages.push({
+            label: "主題課程", minutes: i === 0 ? 11 : 8,
+            goal: hasNew
+                ? "Teach today's items ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. Then drill the pattern by swapping in different words. Then run the activity."
+                : "No new items today. Deepen what the student already learned this week: drill the unit's patterns in fresh, playful situations, and push for slightly longer answers. Then run the activity.",
+            items: hasNew ? items : P,
+            activity: `Role-play a natural everyday scene that fits this unit's topic (${themeLine}), using today's patterns and words. The student speaks the target lines; if they freeze, feed the line in Chinese first, then let them say it in English. Swap roles once so the student also has to answer.`
+        });
+
+        stages.push({
+            label: "總結", minutes: 2,
+            goal: "Wrap up in simple terms (Traditional Chinese is fine): remind them of today's main pattern, praise ONE specific thing they did well, and say goodbye warmly."
+        });
+
+        week.push({ day: i + 1, focus, stages });
+    }
+
+    // 第 5 天：總複習 + 綜合角色扮演
+    const allWordsSample = W.slice(0, 6);
+    week.push({
+        day: 5, focus: "總複習：本單元所有句型與單字",
+        stages: [
+            { label: "開場暖身", minutes: 2,
+              goal: `Greet the student BY NAME warmly, and tell them today is the FINAL DAY of this unit: a big game using everything we learned this week about ${themeLine}.` },
+            { label: "快問快答複習", minutes: 4,
+              goal: "Rapid review quiz, ONE at a time, keep the pace light and fun: prompt the student to produce each pattern or word, wait, gently fix by restating.",
+              items: [...P, ...allWordsSample] },
+            { label: "綜合角色扮演", minutes: 7,
+              goal: "Run one big final activity that uses EVERYTHING from this week. Keep it playful and let the student do most of the talking.",
+              items: P,
+              activity: `A big role-play built on this unit's topic (${themeLine}). The student must naturally use ALL the patterns learned this week. Then SWAP ROLES for one short round so the student asks the questions. Make it fun.` },
+            { label: "本週總結", minutes: 2,
+              goal: "Celebrate finishing the whole unit! In Traditional Chinese, remind them of the patterns learned this week, praise TWO specific improvements you noticed, and say a warm goodbye." }
+        ]
+    });
+
+    return { student, unit: `${unit.book} Unit ${unit.num}: ${unit.title}`, week };
+}
+
+// 讀取已選定的課本單元（沒選就回 null）
+async function readSelectedUnit() {
+    let sel = null;
+    try { sel = JSON.parse(localStorage.getItem(UNIT_KEY)); } catch (e) {}
+    if (!sel || !sel.book || !sel.num) return null;
+    await loadUnitsData();
+    const unit = findUnit(sel.book, sel.num);
+    if (!unit) return null;
+    return buildWeeklyLessonFromUnit(unit, { name: "同學", level: 1, interests: [] });
+}
+
+// 課本單元選單：冊別 → 單元 → 套用
+(function initUnitPicker() {
+    const bookSel = document.getElementById('bookSelect');
+    const unitSel = document.getElementById('unitSelect');
+    const applyBtn = document.getElementById('applyUnitBtn');
+    const clearBtn = document.getElementById('clearUnitBtn');
+    const preview = document.getElementById('unitPreview');
+    const status = document.getElementById('unitStatus');
+    if (!bookSel || !unitSel) return;
+
+    function fillUnits() {
+        const b = UNITS_DATA.books.find(x => x.name === bookSel.value);
+        unitSel.innerHTML = (b ? b.units : []).map(u =>
+            `<option value="${u.num}">Unit ${u.num}: ${u.title}</option>`).join("");
+        showPreview();
+    }
+
+    function showPreview() {
+        const u = findUnit(bookSel.value, parseInt(unitSel.value, 10));
+        preview.innerHTML = u
+            ? `${u.desc ? u.desc + "<br>" : ""}<span style="color:#4daafc;">${u.patterns.length} 個句型、${u.words.length} 個單字</span> → 自動展開成 5 天（第 5 天總複習）`
+            : "";
+    }
+
+    loadUnitsData().then(() => {
+        if (!UNITS_DATA || !UNITS_DATA.books) { status.textContent = "⚠️ 找不到 units.json"; return; }
+        bookSel.innerHTML = UNITS_DATA.books.map(b => `<option>${b.name}</option>`).join("");
+        let saved = null;
+        try { saved = JSON.parse(localStorage.getItem(UNIT_KEY)); } catch (e) {}
+        if (saved && saved.book) bookSel.value = saved.book;
+        fillUnits();
+        if (saved && saved.num) { unitSel.value = saved.num; showPreview(); }
+        if (saved && saved.book && saved.num) {
+            const u = findUnit(saved.book, saved.num);
+            if (u) {
+                status.style.color = "#4af626";
+                status.textContent = `✅ 目前使用：${saved.book} Unit ${saved.num} ${u.title}`;
+            }
+        }
+    });
+
+    bookSel.addEventListener('change', fillUnits);
+    unitSel.addEventListener('change', showPreview);
+
+    applyBtn.addEventListener('click', () => {
+        const num = parseInt(unitSel.value, 10);
+        const u = findUnit(bookSel.value, num);
+        if (!u) return;
+        localStorage.setItem(UNIT_KEY, JSON.stringify({ book: bookSel.value, num }));
+        localStorage.removeItem(MATERIAL_KEY);   // 與「貼上教材」互斥，避免兩個來源打架
+        const mStatus = document.getElementById('materialStatus');
+        if (mStatus) mStatus.textContent = "";
+        status.style.color = "#4af626";
+        status.textContent = `✅ 已套用：${bookSel.value} Unit ${num} ${u.title}。下次按「開始連線」生效（第幾天可用上方排課選單指定）。`;
+    });
+
+    clearBtn.addEventListener('click', () => {
+        localStorage.removeItem(UNIT_KEY);
+        status.style.color = "#aaa";
+        status.textContent = "已清除，將改用內建的 lesson.json。";
+    });
+})();
 
 // 畫面上設定的學生名字／興趣，覆蓋任何教案來源（lesson.json、自訂教材、內建預設）裡的學生設定
 function applyStudentOverride(lesson) {

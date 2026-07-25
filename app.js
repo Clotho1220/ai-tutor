@@ -51,6 +51,7 @@ let waitingFirstAudio = false; // 延遲量測：是否正在等待 AI 本輪第
 let lessonTimer = null;
 let elapsedTime = 0;
 let currentStageIndex = 0;
+let pendingDirectorNote = null; // 已送出但 AI 尚未回應的導演指令；若此時斷線，重連後重送（否則新階段開場會消失）
 
 let userStopped = false;       // 使用者主動按「結束連線」（區別於意外斷線）
 let resumeHandle = null;       // Live API session resumption 握把，重連時恢復對話記憶
@@ -152,8 +153,9 @@ async function loadLesson() {
         const res = await fetch("lesson.json?t=" + Date.now());
         if (res.ok) {
             const j = await res.json();
-            if (j && j.stages && j.stages.length) {
-                logSystem(`📋 已載入 lesson.json 教案（單元：${j.unit || "未命名"}）。`);
+            // 接受兩種格式：單日教案（stages）或週教案（week，稍後由 resolveLessonForToday 挑出今天）
+            if (j && ((j.stages && j.stages.length) || (j.week && j.week.length))) {
+                logSystem(`📋 已載入 lesson.json 教案（單元：${j.unit || "未命名"}${j.week ? "，週教案 " + j.week.length + " 天" : ""}）。`);
                 return j;
             }
         }
@@ -398,7 +400,10 @@ function buildSystemInstruction(lesson) {
         "TEACHING STYLE: " +
         "(a) Say at most TWO short sentences per turn, then stop. Waiting silently is part of teaching. " +
         "(b) Ask at most ONE short question, then STOP and wait for the student's real reply. " +
-        "(c) When the student makes a mistake, never say 'wrong': acknowledge their meaning, naturally restate the correct sentence, and invite them to try once more. " +
+        "(c) RECAST RULE — after the student replies, model good English based on what they actually said: " +
+        "if they replied in CHINESE, praise briefly, then show them how to say it in simple English and have them repeat (e.g. student says 「我很好！」 → say: Good! And you can say: \"I am fine!\" Try it!); " +
+        "if they replied in ENGLISH with mistakes, never say 'wrong': acknowledge their meaning, naturally restate the corrected sentence, and invite them to try once more; " +
+        "if their English was already CORRECT, praise them — and at most TWICE per lesson, also show ONE alternative way to say the same thing (e.g. Great! You can also say: \"I'm doing great!\"). After you have done this twice in a lesson, just praise and move on. " +
         "STRICT RULES: " +
         "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them silently; never read or mention them. " +
@@ -428,7 +433,7 @@ actionBtn.addEventListener('click', async () => {
 async function startSession() {
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
-    elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null;
+    elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
     userStopped = false; resumeHandle = null; reconnectAttempts = 0;
     isNewAiTurn = true; isNewUserTurn = true;
     aiSpeechBox.innerHTML = '';
@@ -660,6 +665,13 @@ function handleServerMessage(response) {
             // 若 isTalking 仍為 true，代表使用者還在講，後續音訊由 worklet 接力即時上傳
             needsReplay = false;
         }
+        // 導演指令送出後、AI 還沒回應就斷線 → 指令已遺失，重連後重送（否則新階段永遠沒有開場）
+        if (pendingDirectorNote) {
+            logSystem("🎬 重連後重送導演指令（上一階段轉場在斷線中遺失）。");
+            webSocket.send(JSON.stringify({
+                clientContent: { turns: [{ role: "user", parts: [{ text: pendingDirectorNote }] }], turnComplete: true }
+            }));
+        }
     }
     if (response.sessionResumptionUpdate) {
         const u = response.sessionResumptionUpdate;
@@ -728,6 +740,7 @@ function handleServerMessage(response) {
 
     // 5) 音訊播放
     if (sc.modelTurn && sc.modelTurn.parts) {
+        pendingDirectorNote = null; // AI 已開始回應，導演指令確定送達
         for (const part of sc.modelTurn.parts) {
             if (part.inlineData && part.inlineData.mimeType.includes('audio/pcm')) {
                 if (waitingFirstAudio && lastUserSpeechTime) {
@@ -811,16 +824,18 @@ function sendStageTransition(trigger) {
     if (trigger === 'opening') {
         instruction = stage.prompt;
     } else if (trigger === 'graceful') {
-        instruction = "Time to move to the next stage. First reply briefly to what the student just said, wrap up the current topic in ONE sentence, then smoothly transition. Next stage: " + stage.prompt;
+        instruction = "Time to move to the next stage. First reply briefly to what the student just said, wrap up the current topic in ONE sentence, then CLEARLY announce the shift to the student in simple Traditional Chinese (e.g. 「好～接下來我們要來複習囉！」) so they know a new part of the lesson is starting. Then begin the next stage: " + stage.prompt;
     } else {
-        instruction = "Time to move to the next stage. Wrap up the current topic in ONE natural sentence, then smoothly transition. Next stage: " + stage.prompt;
+        instruction = "Time to move to the next stage. Wrap up the current topic in ONE natural sentence, then CLEARLY announce the shift to the student in simple Traditional Chinese (e.g. 「好～接下來我們要來複習囉！」) so they know a new part of the lesson is starting. Then begin the next stage: " + stage.prompt;
     }
 
     const label = { opening: '開場', graceful: '自然切換', timeout: '逾時強制', manual: '手動 Next' }[trigger] || trigger;
     logSystem(`🎬 導演指令（${label}）→ ${stage.name}`);
+    const noteText = DIRECTOR_PREFIX + instruction + "]";
     webSocket.send(JSON.stringify({
-        clientContent: { turns: [{ role: "user", parts: [{ text: DIRECTOR_PREFIX + instruction + "]" }] }], turnComplete: true }
+        clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
     }));
+    pendingDirectorNote = noteText; // AI 開始回應時清除；若回應前斷線，重連後重送
     currentStageIndex++;
     stagePendingSince = null;
 }

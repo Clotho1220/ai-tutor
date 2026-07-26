@@ -45,6 +45,8 @@ let speakerEl = null;          // 喇叭模式：隱藏的 <audio> 元素
 let isNewAiTurn = true;
 let isNewUserTurn = true;
 let directorLeak = false;      // 本輪 AI 是否開始唸出（或自行捏造）導演筆記 → 立即消音並隱藏字幕
+let aiTurnActive = false;      // AI 這一輪是否還在說（尚未收到 turnComplete）
+let dropStaleAudio = false;    // 學生插話後，丟棄伺服器仍在送的「上一輪」殘留語音
 const DIRECTOR_LEAK_RE = /\[?\s*DIRECTOR\s*NOTE/i;
 
 let isTalking = false;         // Push-to-talk：目前是否正在說話（上傳麥克風）
@@ -87,6 +89,9 @@ talkBtn.addEventListener('click', () => {
         // 開始說話需要活著的連線（重連中請稍等 1-2 秒）
         if (!webSocket || webSocket.readyState !== WebSocket.OPEN) return;
         stopAllPlayback(); // 使用者要說話了，立刻讓 AI 安靜
+        // 伺服器不知道我們讓它閉嘴了，仍會把這一輪剩下的語音送完。
+        // 那些殘留音訊若照播，聽起來就像 AI 還停在上一個單字 → 一律丟棄，直到本輪結束。
+        if (aiTurnActive) dropStaleAudio = true;
         turnChunks = [];   // 開始新的一句，清空暫存
         needsReplay = false;
         webSocket.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
@@ -762,6 +767,7 @@ async function startSession() {
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
+    aiTurnActive = false; dropStaleAudio = false; studentImgSeq = 0;
     userStopped = false; resumeHandle = null; reconnectAttempts = 0;
     isNewAiTurn = true; isNewUserTurn = true;
     aiSpeechBox.innerHTML = '';
@@ -838,12 +844,25 @@ function studentShowWord(word, meaning, example) {
     }
 }
 
-// 學生畫面顯示圖片（與除錯面板共用同一張圖網址，瀏覽器快取只載一次）
+// 學生畫面顯示圖片。
+// 重點：新單字一出現就立刻收掉舊圖並顯示「畫圖中」，
+// 否則孩子會看到「新的字配舊的圖」（例如字是 pencil、圖還是 notebook）。
+let studentImgSeq = 0;
 function studentShowImage(url) {
     const img = document.getElementById('svImage'), ph = document.getElementById('svImagePlaceholder');
     if (!img) return;
-    img.onload = () => { img.style.display = 'block'; if (ph) ph.style.display = 'none'; };
-    img.src = url;
+    const mySeq = ++studentImgSeq;
+    img.style.display = 'none';                 // 立刻收掉上一張，絕不讓舊圖配新字
+    if (ph) { ph.textContent = '🎨'; ph.style.display = 'block'; }
+    const loader = new Image();
+    loader.onload = () => {
+        if (mySeq !== studentImgSeq) return;    // 已經換到更新的字了，這張過期圖直接丟掉
+        img.src = url;
+        img.style.display = 'block';
+        if (ph) ph.style.display = 'none';
+    };
+    loader.onerror = () => { if (ph && mySeq === studentImgSeq) ph.textContent = '🖼️'; };
+    loader.src = url;
 }
 
 // 開課時在背景預先繪製本課單字的圖片（同樣的網址進瀏覽器快取，
@@ -1250,7 +1269,7 @@ function handleServerMessage(response) {
     }
 
     // 4) AI 實際說出的逐字稿（除錯面板累積全程；學生畫面字幕只顯示當前這一輪）
-    if (sc.outputTranscription && sc.outputTranscription.text) {
+    if (sc.outputTranscription && sc.outputTranscription.text && !dropStaleAudio) {
         const svT = document.getElementById('svTranscript');
         if (isNewAiTurn) {
             const voiceName = voiceSelect.options[voiceSelect.selectedIndex].text;
@@ -1281,6 +1300,8 @@ function handleServerMessage(response) {
     // 5) 音訊播放
     if (sc.modelTurn && sc.modelTurn.parts) {
         pendingDirectorNote = null; // AI 已開始回應，導演指令確定送達
+        aiTurnActive = true;
+        if (dropStaleAudio) return; // 學生已插話，這些是上一輪的殘留語音，不播
         for (const part of sc.modelTurn.parts) {
             if (part.inlineData && part.inlineData.mimeType.includes('audio/pcm')) {
                 if (waitingFirstAudio && lastUserSpeechTime) {
@@ -1297,6 +1318,8 @@ function handleServerMessage(response) {
     if (sc.turnComplete) {
         isNewAiTurn = true;
         isNewUserTurn = true;
+        aiTurnActive = false;
+        dropStaleAudio = false;   // 上一輪確定結束，下一輪的語音正常播放
     }
 }
 

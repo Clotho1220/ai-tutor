@@ -189,6 +189,18 @@
             <span id="materialStatus" style="font-size:13px; color:#aaa;"></span>
         </div>
     </details>
+    <details id="syncPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
+        <summary style="cursor:pointer; font-weight:bold; color:#9b59b6;">☁️ 跨手機同步（Google 試算表）</summary>
+        <div style="margin-top:10px; font-size:13px; color:#aaa;">
+            填入後，這支手機的學習紀錄與課程進度會和其他手機共用同一份。設定方式見專案裡的 SETUP-SYNC.md。
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
+            <input id="syncUrl" placeholder="Apps Script 網址（.../exec）" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; flex:1; min-width:240px;">
+            <input id="syncSecret" type="password" placeholder="通關密語" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; width:150px;">
+            <button id="syncNowBtn">🔄 立即同步</button>
+        </div>
+        <div id="syncStatus" style="margin-top:8px; font-size:13px; color:#aaa;"></div>
+    </details>
     <details id="vocabPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#4af626;">📚 學習紀錄（每位人員各自記錄，AI 會記得）</summary>
         <div id="vocabSummary" style="margin-top:10px; font-size:13px; color:#aaa;"></div>
@@ -223,7 +235,7 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260726b"></script>
+    <script src="app.js?v=20260726c"></script>
     <script>
         // 註冊 Service Worker（只為了讓網頁可以「加到主畫面」變成 App；不做快取）
         if ('serviceWorker' in navigator) {

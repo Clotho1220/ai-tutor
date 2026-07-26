@@ -147,8 +147,9 @@ function currentPerson() { const p = loadProfiles(); return p.people[p.current];
 
 function updateCurrentPerson(patch) {
     const p = loadProfiles();
-    Object.assign(p.people[p.current], patch);
+    Object.assign(p.people[p.current], patch, { updatedAt: Date.now() });
     saveProfiles(p);
+    if (typeof scheduleSync === 'function') scheduleSync();
 }
 
 // 每位人員各自的儲存空間（學習紀錄、週進度）
@@ -257,6 +258,7 @@ function resolveLessonForToday(json) {
     }
 
     localStorage.setItem(progressKey, JSON.stringify({ date: today, day: chosen.day }));
+    if (typeof scheduleSync === 'function') scheduleSync();   // 上課進度也要跨手機接得上
     return {
         student: json.student,
         unit: `${json.unit || ""} — Day ${chosen.day}${chosen.focus ? "（" + chosen.focus + "）" : ""}`,
@@ -678,6 +680,155 @@ function pastLearningSection() {
         "Do NOT list them all out loud, do not turn the lesson into a review of them, and never mention that you were given a list.";
 }
 
+// ---------------- 跨手機同步（Google 試算表後端，見 sync.gs / SETUP-SYNC.md） ----------------
+// 網址與通關密語存在本機（不寫進程式碼，因為倉庫是公開的）。
+// 合併原則：單字取聯集（次數取大、首次取早），設定類以較新的更新時間為準。
+const SYNC_URL_KEY = "sync_url";
+const SYNC_SECRET_KEY = "sync_secret";
+let syncTimer = null;
+
+function syncConfigured() {
+    return !!(localStorage.getItem(SYNC_URL_KEY) || "").trim();
+}
+
+function syncStatus(msg, color) {
+    const el = document.getElementById('syncStatus');
+    if (el) { el.textContent = msg; el.style.color = color || "#aaa"; }
+}
+
+async function syncCall(action, data) {
+    const url = (localStorage.getItem(SYNC_URL_KEY) || "").trim();
+    if (!url) return null;
+    // 不自訂 header，讓它維持「簡單請求」，避開 Apps Script 的 CORS 預檢問題
+    const res = await fetch(url, {
+        method: "POST",
+        body: JSON.stringify({ action, secret: localStorage.getItem(SYNC_SECRET_KEY) || "", data })
+    });
+    const j = await res.json();
+    if (!j.ok) throw new Error(j.error || "同步失敗");
+    return j.data;
+}
+
+// 本機所有人員的資料 → 上傳用的格式
+function collectLocalState() {
+    const p = loadProfiles();
+    const vocab = [];
+    const profiles = {};
+    Object.keys(p.people).forEach(name => {
+        const person = p.people[name];
+        profiles[name] = {
+            level: person.level, voice: person.voice, unit: person.unit,
+            interests: person.interests || [],
+            progress: readAllProgressFor(name),
+            updatedAt: person.updatedAt || 0
+        };
+        let list = [];
+        try { list = JSON.parse(localStorage.getItem("vocab_log_v1::" + name)) || []; } catch (e) {}
+        list.forEach(v => vocab.push(Object.assign({ person: name }, v)));
+    });
+    return { vocab, profiles };
+}
+
+// 某位人員所有單元的「上到第幾天」進度
+function readAllProgressFor(name) {
+    const prefix = "week_progress::" + name + "::";
+    const out = {};
+    Object.keys(localStorage).forEach(k => {
+        if (k.indexOf(prefix) === 0) {
+            try { out[k.slice(prefix.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+        }
+    });
+    return out;
+}
+
+// 伺服器回傳的合併結果 → 寫回本機
+function applyRemoteState(remote) {
+    if (!remote) return;
+    // 單字：依人員分組覆蓋（伺服器已完成聯集合併）
+    const byPerson = {};
+    (remote.vocab || []).forEach(v => {
+        if (!v.person) return;
+        (byPerson[v.person] = byPerson[v.person] || []).push({
+            word: v.word, meaning: v.meaning, example: v.example,
+            firstDate: v.firstDate, lastDate: v.lastDate, count: v.count, unit: v.unit
+        });
+    });
+    Object.keys(byPerson).forEach(name => {
+        localStorage.setItem("vocab_log_v1::" + name, JSON.stringify(byPerson[name]));
+    });
+
+    // 設定與進度
+    const p = loadProfiles();
+    Object.keys(remote.profiles || {}).forEach(name => {
+        const r = remote.profiles[name];
+        if (!p.people[name] || !r) return;
+        const localAt = Number(p.people[name].updatedAt || 0);
+        if (Number(r.updatedAt || 0) >= localAt) {
+            p.people[name].level = r.level != null ? r.level : p.people[name].level;
+            p.people[name].voice = r.voice || p.people[name].voice;
+            p.people[name].unit = r.unit !== undefined ? r.unit : p.people[name].unit;
+            p.people[name].interests = r.interests || p.people[name].interests;
+            p.people[name].updatedAt = r.updatedAt || 0;
+        }
+        Object.keys(r.progress || {}).forEach(unitName => {
+            const k = "week_progress::" + name + "::" + unitName;
+            const incoming = r.progress[unitName];
+            let cur = null;
+            try { cur = JSON.parse(localStorage.getItem(k)); } catch (e) {}
+            // 進度取「日期較新」的那一份，避免另一支手機把進度倒退
+            if (!cur || (incoming && String(incoming.date) >= String(cur.date))) {
+                localStorage.setItem(k, JSON.stringify(incoming));
+            }
+        });
+    });
+    saveProfiles(p);
+}
+
+async function syncNow(silent) {
+    if (!syncConfigured()) return;
+    try {
+        if (!silent) syncStatus("同步中…", "#f39c12");
+        const merged = await syncCall("push", collectLocalState());
+        applyRemoteState(merged);
+        renderVocabPanel();
+        if (window.refreshUnitPickerForPerson) window.refreshUnitPickerForPerson();
+        if (window.refreshInterestsForPerson) window.refreshInterestsForPerson();
+        if (window.refreshPersonSummary) window.refreshPersonSummary();
+        const stamp = new Date().toLocaleTimeString();
+        syncStatus(`✅ 已同步（${stamp}）`, "#4af626");
+        logSystem(`☁️ 學習紀錄已與試算表同步。`);
+    } catch (e) {
+        syncStatus("⚠️ 同步失敗：" + e.message, "#ff6b6b");
+        logSystem(`<span style="color:#ff8800;">☁️ 同步失敗：${e.message}</span>`);
+    }
+}
+
+// 資料有變動就排程上傳（合併多次變動，避免每記一個字就打一次）
+function scheduleSync() {
+    if (!syncConfigured()) return;
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => syncNow(true), 3000);
+}
+
+(function initSyncPanel() {
+    const urlEl = document.getElementById('syncUrl');
+    const secretEl = document.getElementById('syncSecret');
+    const btn = document.getElementById('syncNowBtn');
+    if (!urlEl) return;
+    urlEl.value = localStorage.getItem(SYNC_URL_KEY) || "";
+    secretEl.value = localStorage.getItem(SYNC_SECRET_KEY) || "";
+    urlEl.addEventListener('input', () => localStorage.setItem(SYNC_URL_KEY, urlEl.value.trim()));
+    secretEl.addEventListener('input', () => localStorage.setItem(SYNC_SECRET_KEY, secretEl.value.trim()));
+    btn.addEventListener('click', () => syncNow(false));
+
+    if (syncConfigured()) {
+        syncStatus("開啟中，正在取回最新紀錄…", "#f39c12");
+        syncNow(true);          // 一進 App 就先對齊一次
+    } else {
+        syncStatus("尚未設定，紀錄只存在這支手機。", "#888");
+    }
+})();
+
 // ---------------- 首頁：選人員、進出設定 ----------------
 const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "幾乎全英", 5: "全英文" };
 
@@ -918,6 +1069,7 @@ function recordVocab(word, meaning, example) {
     }
     saveVocabLog(list);
     renderVocabPanel();
+    scheduleSync();          // 有設定同步的話，稍後一併上傳
     logSystem(`📚 已記錄單字：${word}${meaning ? "（" + meaning + "）" : ""}`);
 }
 

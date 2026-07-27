@@ -356,7 +356,9 @@ function buildLessonFromMaterial(m, student) {
               goal: "Teach today's target sentence patterns ONE at a time: say it, explain what it means and when to use it, give the example, then have the student repeat. Wait after each.",
               items: m.patterns },
             { label: "單字與練習", minutes: 8,
-              goal: "Teach today's words ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. After a few words, drill the patterns by swapping these words in.",
+              goal: "Teach today's words ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. After a few words, drill the patterns by swapping these words in. " +
+                    "Before the stage ends, get the student to say something of their OWN with today's pattern — their real answer or opinion, not a repeat. Then judge it and let them hear the correct full sentence: " +
+                    "Chinese answer → give them the English and have them say it; mistakes → restate correctly and have them try again; correct → say so and why, then ask for one more.",
               items: m.words,
               activity: "Role-play a natural everyday scene that fits today's theme, using the patterns and words. The student speaks the target lines; if they freeze, feed the line in Chinese first, then let them say it in English. Swap roles once so the student also answers." },
             { label: "總結", minutes: 2,
@@ -437,9 +439,11 @@ function buildWeeklyLessonFromUnit(unit, student) {
 
         stages.push({
             label: "主題課程", minutes: i === 0 ? 11 : 8,
-            goal: hasNew
+            goal: (hasNew
                 ? "Teach today's items ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. Then drill the pattern by swapping in different words. Then run the activity."
-                : "No new items today. Deepen what the student already learned this week: drill the unit's patterns in fresh, playful situations, and push for slightly longer answers. Then run the activity.",
+                : "No new items today. Deepen what the student already learned this week: drill the unit's patterns in fresh, playful situations, and push for slightly longer answers. Then run the activity.") +
+                " Before this stage ends, leave time for the student to say something of their OWN using today's pattern — their real answer, choice or opinion, not a repeat after you. " +
+                "Judge what they produce and make sure they hear the correct full sentence: answered in Chinese → give them the English and have them say it; mistakes → restate it correctly and have them try again; correct → tell them it was right and why, then ask for one more.",
             items: hasNew ? items : P,
             activity: `Role-play a natural everyday scene that fits this unit's topic (${themeLine}), using today's patterns and words. The student speaks the target lines; if they freeze, feed the line in Chinese first, then let them say it in English. Swap roles once so the student also has to answer.`
         });
@@ -492,9 +496,12 @@ function buildNewsLesson(student) {
             { label: "挑選議題", minutes: 3,
               goal: "Use the google_search tool to find real news published in the LAST 7 DAYS, searching both Taiwanese and international sources. Choose FIVE substantive stories worth an adult's attention, mixing domestic and international, and varying the fields (current affairs, business, technology, science, culture, sport). " +
                     "Call show_topics with five short headlines, read them out numbered, and ask which one they want to get into. WAIT for their choice. Then summarise that story accurately in a few sentences and call show_image for its central subject." },
-            { label: "討論", minutes: 8,
-              goal: "Have a real discussion. Ask for their view, push gently for reasons, offer a counterpoint to keep it interesting, and let them do most of the talking. " +
-                    "As natural openings appear, introduce useful higher-level vocabulary, collocations or idioms from THIS topic — call log_vocabulary for each, and show_image for concrete nouns. Correct meaningful errors after they finish a thought, not mid-sentence." },
+            { label: "單字與句型", minutes: 2,
+              goal: "Pull the language out of the story before discussing it: pick exactly TWO high-value words or collocations and ONE sentence pattern useful for expressing a view on this kind of topic (e.g. 'What concerns me about X is...', 'It could go either way, but...'). " +
+                    "Give each briefly with a natural example, call log_vocabulary for both words and show_image for any concrete subject. Do not over-explain — a line each is enough." },
+            { label: "討論", minutes: 6,
+              goal: "Now a real discussion, and they should do most of the talking. Ask for their view on the story, push for reasons, offer a counterpoint to keep it alive, and encourage them to work in today's pattern and words. " +
+                    "After each substantial turn, give a short assessment before moving on: what was accurate, the natural phrasing for the one error most worth fixing, and where useful a more idiomatic alternative — then follow up with a question that makes them elaborate." },
             { label: "總結", minutes: 2,
               goal: "Close the session: recap the discussion in a sentence or two, restate the useful expressions that came up, note ONE specific thing about their English that worked well and ONE concrete thing to work on, then say goodbye." }
         ] : [
@@ -504,8 +511,13 @@ function buildNewsLesson(student) {
               goal: "Use the google_search tool to find real news published in the LAST 7 DAYS — search both Taiwan (國內) and international sources. Choose FIVE stories that are genuinely fun and safe for a young child, mixing local and international ones. " +
                     "Call show_topics with five very short titles so the child can SEE them, then read them out as '一、二、三...' and ask which one they want to hear about. WAIT for the child to choose — do not pick for them. " +
                     "Once they choose, tell that story simply in a few short sentences and call show_image for the main thing in it (the animal, the place, the object)." },
-            { label: "討論與練習", minutes: 7,
-              goal: "Discuss the story with the student. Ask what they think, whether they would like it, what they would do. Teach 3-5 useful English words that come naturally out of THIS story (call show_image for concrete nouns and log_vocabulary for each new word), and get the student to use them in a short sentence. Keep it a conversation, not a quiz — one question at a time, and wait." },
+            { label: "單字與句型", minutes: 3,
+              goal: "This is an ENGLISH lesson built on the story, so now pull the language out of it. Choose exactly TWO useful words and ONE simple sentence pattern that come naturally from this story. " +
+                    "Teach the two words one at a time (show_image for each concrete noun, log_vocabulary for both), then teach the pattern and have the student say it once with help. Keep the story as the context throughout." },
+            { label: "說出你的想法", minutes: 4,
+              goal: "Now the most important part: get the student to say their OWN opinion about the story in English — what they think of it, whether they like it, what they would do. Encourage them to use today's pattern and words, but any attempt counts. " +
+                    "Wait for a real answer. Then judge what they said and make sure they hear the correct full sentence: if they answered in Chinese, give them the English sentence and have them say it themselves; " +
+                    "if their English had mistakes, restate it correctly and have them try again; if it was correct, tell them so and say briefly what was good, then ask for one more sentence. Aim for at least three sentences that they built themselves." },
             { label: "總結", minutes: 2,
               goal: "Wrap up in simple terms (Traditional Chinese is fine): retell today's story in one sentence, remind them of the new words, praise ONE specific thing they did well, and say goodbye warmly." }
         ]
@@ -720,13 +732,19 @@ function buildSystemInstruction(lesson) {
               "(b) Ask ONE substantive, open-ended question at a time, then wait. Follow up on what they actually said rather than moving down a checklist. " +
               "(c) CORRECTION: do not interrupt mid-thought. When they finish, if there was a meaningful error, briefly give the natural way to say it and, when useful, one line on why — then carry on with the conversation. " +
               "Let trivial slips go; prioritise fluency. When their English is already good, occasionally offer a more idiomatic or precise alternative (a better verb, a natural collocation) so they keep levelling up. " +
-              "Skip childish praise — no 'good job!' after every sentence. Respond to the CONTENT of what they said like a real conversation partner, and keep the register adult. "
+              "Skip childish praise — no 'good job!' after every sentence. Respond to the CONTENT of what they said like a real conversation partner, and keep the register adult. " +
+              "(d) PRODUCTION PRACTICE — this is the core of the session, not an optional extra: keep pushing them to express their OWN opinions and reasoning in English, at length, in their own words. " +
+              "After each substantial turn, give a short concrete assessment before moving on: say what worked, give the natural phrasing for the one error most worth fixing, and where useful offer a more idiomatic alternative. Then ask a follow-up that makes them elaborate. "
             : "(a) Say at most TWO short sentences per turn, then stop. Waiting silently is part of teaching. " +
               "(b) Ask at most ONE short question, then STOP and wait for the student's real reply. " +
               "(c) RECAST RULE — after the student replies, model good English based on what they actually said: " +
               "if they replied in CHINESE, praise briefly, then show them how to say it in simple English and have them repeat (e.g. student says 「我很好！」 → say: Good! And you can say: \"I am fine!\" Try it!); " +
               "if they replied in ENGLISH with mistakes, never say 'wrong': acknowledge their meaning, naturally restate the corrected sentence, and invite them to try once more; " +
-              "if their English was already CORRECT, praise them — and at most TWICE per lesson, also show ONE alternative way to say the same thing (e.g. Great! You can also say: \"I'm doing great!\"). After you have done this twice in a lesson, just praise and move on. ") +
+              "if their English was already CORRECT, praise them — and at most TWICE per lesson, also show ONE alternative way to say the same thing (e.g. Great! You can also say: \"I'm doing great!\"). After you have done this twice in a lesson, just praise and move on. " +
+              "(d) PRODUCTION PRACTICE — the most important part of every lesson: do not let the student only repeat after you. Several times per lesson, get them to build their OWN sentence — ask what they think, what they like, which one they would choose, what they would do. " +
+              "Then judge what they actually produced and always let them hear the correct full sentence: if they answered in Chinese, say the English sentence for them slowly and have them say it themselves; " +
+              "if their English had a mistake, give the corrected sentence naturally (never say 'wrong') and have them try once more; if it was correct, tell them clearly that it was right, say in a few words what made it good, then invite one more sentence. " +
+              "A young learner should finish every lesson having spoken several sentences that they built themselves. ") +
         "STRICT RULES: " +
         "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them SILENTLY. " +
@@ -992,6 +1010,7 @@ actionBtn.addEventListener('click', async () => {
 });
 
 async function startSession() {
+    resetStudentView();                          // 清掉上一場殘留的議題／圖片／字幕
     document.body.classList.add('student-mode'); // 上課即切到學生畫面（左上角「← 返回」可回老師畫面）
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
@@ -1085,6 +1104,28 @@ function studentShowTopics(topics) {
 function studentHideTopics() {
     const box = document.getElementById('svTopics');
     if (box) box.style.display = 'none';
+}
+
+// 開始新課程時把學生畫面清乾淨。
+// 少了這一步，上一場的議題卡片／圖片／字幕會殘留到下一場（甚至跨人員），
+// 造成畫面內容和 AI 正在講的完全對不起來。
+function resetStudentView() {
+    const box = document.getElementById('svTopics');
+    if (box) { box.innerHTML = ""; box.style.display = 'none'; }
+    const w = document.getElementById('svWord');
+    if (w) w.textContent = "👂 聽老師說～";
+    const m = document.getElementById('svMeaning');
+    if (m) m.textContent = "";
+    const say = document.getElementById('svSayBox');
+    if (say) say.style.display = 'none';
+    const t = document.getElementById('svTranscript');
+    if (t) { t.textContent = ""; t.style.display = 'none'; }
+    const img = document.getElementById('svImage');
+    if (img) { img.style.display = 'none'; img.src = ""; }
+    const ph = document.getElementById('svImagePlaceholder');
+    if (ph) { ph.textContent = '🎈'; ph.style.display = 'block'; }
+    studentImgWord = "";
+    studentImgSeq = 0;
 }
 
 // 收起學生畫面的圖片。icon：'🎨' 表示正在畫，'✨' 表示這個字沒有配圖

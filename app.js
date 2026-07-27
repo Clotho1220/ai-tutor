@@ -918,7 +918,7 @@ async function startSession() {
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
-    aiTurnActive = false; dropStaleAudio = false; studentImgSeq = 0;
+    aiTurnActive = false; dropStaleAudio = false; studentImgSeq = 0; studentImgWord = "";
     userStopped = false; resumeHandle = null; reconnectAttempts = 0;
     isNewAiTurn = true; isNewUserTurn = true;
     aiSpeechBox.innerHTML = '';
@@ -981,11 +981,31 @@ async function gasPost(data) {
     if (exitBtn) exitBtn.addEventListener('click', () => document.body.classList.remove('student-mode'));
 })();
 
+// 目前畫面上那張圖是屬於哪個單字的（含正在載入中的）。
+// 用來擋掉「新的字配舊的圖」：log_vocabulary 只換字不換圖，
+// 若不比對，動詞之類沒有配圖的字就會沿用上一個字的圖片。
+let studentImgWord = "";
+const normWord = w => String(w || "").toLowerCase().replace(/\([^)]*\)/g, "").trim();
+
+// 收起學生畫面的圖片。icon：'🎨' 表示正在畫，'✨' 表示這個字沒有配圖
+function hideStudentImage(icon) {
+    const img = document.getElementById('svImage'), ph = document.getElementById('svImagePlaceholder');
+    if (img) img.style.display = 'none';
+    if (ph) { ph.textContent = icon || '✨'; ph.style.display = 'block'; }
+}
+
 // 學生畫面顯示單字（log_vocabulary 完整覆蓋；show_image 只先換字）
 function studentShowWord(word, meaning, example) {
     const w = document.getElementById('svWord');
     if (!w) return;
-    if (word) w.textContent = word;
+    if (word) {
+        w.textContent = word;
+        // 換到了另一個單字，而這個字目前沒有對應的圖 → 立刻收掉舊圖
+        if (normWord(word) !== normWord(studentImgWord)) {
+            studentImgWord = "";
+            hideStudentImage('✨');
+        }
+    }
     const m = document.getElementById('svMeaning');
     if (m) m.textContent = meaning || "";
     const box = document.getElementById('svSayBox'), s = document.getElementById('svSay');
@@ -999,12 +1019,13 @@ function studentShowWord(word, meaning, example) {
 // 重點：新單字一出現就立刻收掉舊圖並顯示「畫圖中」，
 // 否則孩子會看到「新的字配舊的圖」（例如字是 pencil、圖還是 notebook）。
 let studentImgSeq = 0;
-function studentShowImage(url) {
+function studentShowImage(url, keyword) {
     const img = document.getElementById('svImage'), ph = document.getElementById('svImagePlaceholder');
     if (!img) return;
     const mySeq = ++studentImgSeq;
-    img.style.display = 'none';                 // 立刻收掉上一張，絕不讓舊圖配新字
-    if (ph) { ph.textContent = '🎨'; ph.style.display = 'block'; }
+    studentImgWord = keyword || "";   // 立刻宣告這張圖屬於哪個字（含載入中），
+                                      // 否則同一批工具呼叫裡的 log_vocabulary 會誤判成換字而把它收掉
+    hideStudentImage('🎨');           // 立刻收掉上一張，絕不讓舊圖配新字
     const loader = new Image();
     loader.onload = () => {
         if (mySeq !== studentImgSeq) return;    // 已經換到更新的字了，這張過期圖直接丟掉
@@ -1485,8 +1506,8 @@ function showImage(keyword) {
     imageCaption.textContent = "🎨 正在繪製：" + keyword + " ...";
     const prompt = "A simple, educational illustration of " + keyword + ", white background";
     const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=400&height=400&nologo=true`;
-    studentShowWord(keyword, "", null);   // 學生畫面先換上單字（log_vocabulary 稍後會補中文與例句）
-    studentShowImage(imageUrl);           // 學生畫面同步顯示圖片
+    studentShowWord(keyword, "", null);      // 學生畫面先換上單字（log_vocabulary 稍後會補中文與例句）
+    studentShowImage(imageUrl, keyword);     // 圖片與單字綁在一起，避免字圖不同步
     generatedImage.onload = () => { imageCaption.textContent = "AI 呼叫 show_image：" + keyword; };
     generatedImage.onerror = () => {
         if (!generatedImage.dataset.retried) {

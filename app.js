@@ -182,6 +182,12 @@ let LESSON = null;        // 本堂課的教案（startSession 時載入）
 let teachingFlow = [];    // 由教案展開的階段時間表（隱形導演使用）
 
 async function loadLesson() {
+    // 0) 時事討論模式：跳過課本、教材與學習進度
+    if (currentMode() === 'news') {
+        const p = currentPerson();
+        logSystem("📰 時事討論模式：AI 會用 Google 搜尋找近一週的新聞。");
+        return buildNewsLesson({ name: currentPersonName(), level: p.level, interests: p.interests || [] });
+    }
     // 0) 老師在畫面上貼的自訂教材，優先於一切
     const custom = readCustomMaterial();
     if (custom) {
@@ -467,6 +473,32 @@ function buildWeeklyLessonFromUnit(unit, student) {
     return { student, unit: `${unit.book} Unit ${unit.num}: ${unit.title}`, week };
 }
 
+// ---------------- 時事討論模式 ----------------
+// 與課本完全脫鉤：不看單元、不看學過的字、不接續進度，
+// 由 AI 用 Google 搜尋找出近一週的新聞，挑適合孩子的來聊。
+const MODE_KEY = "lesson_mode";               // 'lesson'（課程）或 'news'（時事）
+function currentMode() { return localStorage.getItem(MODE_KEY) === 'news' ? 'news' : 'lesson'; }
+
+function buildNewsLesson(student) {
+    return {
+        student,
+        mode: "news",
+        unit: "📰 時事討論（近一週新聞）",
+        stages: [
+            { label: "開場暖身", minutes: 2,
+              goal: "Greet the student warmly BY NAME and ask ONE light question about their day. Then tell them that today is different: instead of the textbook, you two are going to chat about something that really happened in the world this week." },
+            { label: "挑選議題", minutes: 4,
+              goal: "Use the google_search tool to find real news published in the LAST 7 DAYS — search both Taiwan (國內) and international sources. Choose FIVE stories that are genuinely fun and safe for a young child, mixing local and international ones. " +
+                    "Call show_topics with five very short titles so the child can SEE them, then read them out as '一、二、三...' and ask which one they want to hear about. WAIT for the child to choose — do not pick for them. " +
+                    "Once they choose, tell that story simply in a few short sentences and call show_image for the main thing in it (the animal, the place, the object)." },
+            { label: "討論與練習", minutes: 7,
+              goal: "Discuss the story with the student. Ask what they think, whether they would like it, what they would do. Teach 3-5 useful English words that come naturally out of THIS story (call show_image for concrete nouns and log_vocabulary for each new word), and get the student to use them in a short sentence. Keep it a conversation, not a quiz — one question at a time, and wait." },
+            { label: "總結", minutes: 2,
+              goal: "Wrap up in simple terms (Traditional Chinese is fine): retell today's story in one sentence, remind them of the new words, praise ONE specific thing they did well, and say goodbye warmly." }
+        ]
+    };
+}
+
 // 讀取目前人員選定的課本單元（沒選就回 null）
 async function readSelectedUnit() {
     const p = currentPerson();
@@ -649,7 +681,13 @@ function buildSystemInstruction(lesson) {
     return "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. " +
         `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${level} of 5. ` +
         (interests ? `The student's interests are: ${interests} — use them in your examples and small talk. ` : "") +
-        `TODAY'S UNIT: ${lesson.unit || "general practice"}. Stay on this unit's topic and target items; do not wander to other material. ` +
+        (lesson.mode === "news"
+            ? "TODAY'S LESSON IS A NEWS CHAT, not a textbook unit. Your job is to find something that really happened in the world in the LAST 7 DAYS using the google_search tool, and talk about it with the child. " +
+              "Search in both Chinese (台灣新聞) and English (world news) so you can offer a local story and an international one. Only use stories you actually found in search results — never invent news, and never present something old as if it were new. " +
+              "NEWS SAFETY — non-negotiable: this is a 6-8 year old child. Choose ONLY stories that are safe and delightful for a young child: animals, nature, space, science, inventions, sports, food, festivals, or kids doing something remarkable. " +
+              "NEVER pick, describe, or even mention stories involving war, death, violence, crime, accidents, disasters, serious illness, or political conflict. If a search result is unsuitable, silently discard it and look for another. " +
+              "If the child brings up something frightening they heard elsewhere, say kindly and briefly that it is a topic for grown-ups, then guide them back to today's story. "
+            : `TODAY'S UNIT: ${lesson.unit || "general practice"}. Stay on this unit's topic and target items; do not wander to other material. `) +
         "LANGUAGE POLICY: " + languagePolicy(level) + " " +
         "RESCUE RULE (overrides the ratio): if the student answers an English question in Chinese, says 「蛤？」or「什麼意思？」, or seems lost, immediately explain the last point in Traditional Chinese, then retry with SIMPLER English. " +
         "TEACHING STYLE: " +
@@ -667,7 +705,7 @@ function buildSystemInstruction(lesson) {
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practicing it in new playful ways until the next DIRECTOR NOTE arrives." +
-        pastLearningSection();
+        (lesson.mode === "news" ? "" : pastLearningSection());   // 時事模式不接續學習進度
 }
 
 // 過去幾天學過的字 → 寫進 system prompt，讓 AI 跨天記得孩子的學習歷程
@@ -838,6 +876,15 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
     const settingsBtn = document.getElementById('settingsBtn');
     const closeBtn = document.getElementById('closeSettingsBtn');
     const personBtns = [...document.querySelectorAll('.person-btn')];
+    const modeBtns = [...document.querySelectorAll('.mode-btn')];
+
+    function selectMode(mode) {
+        localStorage.setItem(MODE_KEY, mode === 'news' ? 'news' : 'lesson');
+        modeBtns.forEach(b => b.classList.toggle('active', b.dataset.mode === currentMode()));
+        if (window.refreshPersonSummary) window.refreshPersonSummary();
+    }
+    modeBtns.forEach(b => b.addEventListener('click', () => selectMode(b.dataset.mode)));
+    selectMode(currentMode());
 
     // 首頁上那一行摘要：這個人正在上什麼、程度、聲音、學過幾個字
     window.refreshPersonSummary = function () {
@@ -849,6 +896,7 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
             const u = UNITS_DATA ? findUnit(p.unit.book, p.unit.num) : null;
             unitText = `${p.unit.book} Unit ${p.unit.num}${u ? "：" + u.title : ""}`;
         }
+        if (currentMode() === 'news') unitText = "時事討論（AI 找近一週新聞，給 5 個議題選）";
         const learned = loadVocabLog().length;
         summary.innerHTML = `<b style="color:#4daafc;">${name}</b>　📖 ${unitText}<br>` +
             `🈶 ${LEVEL_LABEL[p.level] || p.level}　🔊 ${p.voice}　📚 已學 ${learned} 個字`;
@@ -987,6 +1035,28 @@ async function gasPost(data) {
 let studentImgWord = "";
 const normWord = w => String(w || "").toLowerCase().replace(/\([^)]*\)/g, "").trim();
 
+// 學生畫面：顯示可選的議題清單（時事討論用，讓孩子看著挑）
+function studentShowTopics(topics) {
+    const box = document.getElementById('svTopics');
+    if (!box || !Array.isArray(topics) || !topics.length) return;
+    box.innerHTML = topics.slice(0, 5).map((t, i) =>
+        `<div class="topic"><span class="num">${i + 1}</span><span>${String(t)}</span></div>`).join("");
+    box.style.display = 'flex';
+    const w = document.getElementById('svWord');
+    if (w) w.textContent = "想聊哪一個？";
+    const m = document.getElementById('svMeaning');
+    if (m) m.textContent = "";
+    const say = document.getElementById('svSayBox');
+    if (say) say.style.display = 'none';
+    hideStudentImage('📰');
+    studentImgWord = "";
+}
+
+function studentHideTopics() {
+    const box = document.getElementById('svTopics');
+    if (box) box.style.display = 'none';
+}
+
 // 收起學生畫面的圖片。icon：'🎨' 表示正在畫，'✨' 表示這個字沒有配圖
 function hideStudentImage(icon) {
     const img = document.getElementById('svImage'), ph = document.getElementById('svImagePlaceholder');
@@ -999,6 +1069,7 @@ function studentShowWord(word, meaning, example) {
     const w = document.getElementById('svWord');
     if (!w) return;
     if (word) {
+        studentHideTopics();          // 開始教單字了，收起議題清單
         w.textContent = word;
         // 換到了另一個單字，而這個字目前沒有對應的圖 → 立刻收掉舊圖
         if (normWord(word) !== normWord(studentImgWord)) {
@@ -1315,8 +1386,8 @@ function sendSetupMessage() {
             realtimeInputConfig: {
                 automaticActivityDetection: { disabled: true }
             },
-            // 正規 function calling：生圖改為結構化工具呼叫
-            tools: [{
+            // 工具：時事模式才開 Google 搜尋（一般課程不需要，也避免它跑去搜尋離題）
+            tools: (LESSON && LESSON.mode === 'news' ? [{ googleSearch: {} }] : []).concat([{
                 functionDeclarations: [{
                     name: "show_image",
                     description: "Show the student an educational illustration of a concrete noun. Call this every time you mention or teach a visual, concrete noun (e.g. 'apple', 'UFO', 'elephant'). Call it BEFORE or WHILE you talk about the noun.",
@@ -1339,8 +1410,22 @@ function sendSetupMessage() {
                         },
                         required: ["word", "meaning"]
                     }
+                }, {
+                    name: "show_topics",
+                    description: "Display a short numbered list of choices on the student's screen so the child can SEE them and pick one. Use this in the news chat when offering today's story options — a young child cannot remember five options by ear.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            topics: {
+                                type: "ARRAY",
+                                description: "Exactly 5 very short titles (max ~12 characters each), written in the language the child understands best.",
+                                items: { type: "STRING" }
+                            }
+                        },
+                        required: ["topics"]
+                    }
                 }]
-            }],
+            }]),
             systemInstruction: {
                 parts: [{
                     // system prompt 依本堂教案動態組裝（學生檔案、語言配比、教學風格、既有嚴格規則）
@@ -1405,6 +1490,14 @@ function handleServerMessage(response) {
                     name: fc.name,
                     response: { result: { status: "image displayed to student" } }
                 });
+            } else if (fc.name === "show_topics") {
+                const list = (fc.args && fc.args.topics) || [];
+                studentShowTopics(list);
+                logSystem(`📰 [toolCall] show_topics：${list.join(" / ")}`);
+                functionResponses.push({
+                    id: fc.id, name: fc.name,
+                    response: { result: { status: "topics displayed to student" } }
+                });
             } else if (fc.name === "log_vocabulary") {
                 const a = fc.args || {};
                 studentShowWord(a.word || "", a.meaning || "", a.example || ""); // 學生畫面同步顯示
@@ -1417,7 +1510,7 @@ function handleServerMessage(response) {
                 });
             }
         }
-        if (functionResponses.length > 0) {
+        if (functionResponses.length > 0 && webSocket && webSocket.readyState === WebSocket.OPEN) {
             webSocket.send(JSON.stringify({ toolResponse: { functionResponses } }));
         }
     }

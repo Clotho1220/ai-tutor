@@ -121,9 +121,10 @@ talkBtn.addEventListener('click', () => {
 // 記住的東西：中英文比例程度、AI 聲音、正在上的單元、興趣、學過的單字、上到第幾天。
 const PROFILES_KEY = "profiles_v1";
 const PERSON_DEFAULTS = {
-    Rex:    { level: 3, voice: "Aoede", unit: null, interests: [] },  // 70% 英文
-    Jessie: { level: 2, voice: "Aoede", unit: null, interests: [] },  // 中英各半
-    Sandy:  { level: 2, voice: "Aoede", unit: null, interests: [] }   // 中英各半
+    Rex:    { level: 3, voice: "Aoede", unit: null, interests: [] },              // 70% 英文
+    Jessie: { level: 2, voice: "Aoede", unit: null, interests: [] },              // 中英各半
+    Sandy:  { level: 2, voice: "Aoede", unit: null, interests: [] },              // 中英各半
+    Clotho: { level: 5, voice: "Aoede", unit: null, interests: [], adult: true }  // 成人模式：全英文
 };
 
 function loadProfiles() {
@@ -186,7 +187,7 @@ async function loadLesson() {
     if (currentMode() === 'news') {
         const p = currentPerson();
         logSystem("📰 時事討論模式：AI 會用 Google 搜尋找近一週的新聞。");
-        return buildNewsLesson({ name: currentPersonName(), level: p.level, interests: p.interests || [] });
+        return buildNewsLesson({ name: currentPersonName(), level: p.level, interests: p.interests || [], adult: !!p.adult });
     }
     // 0) 老師在畫面上貼的自訂教材，優先於一切
     const custom = readCustomMaterial();
@@ -480,11 +481,23 @@ const MODE_KEY = "lesson_mode";               // 'lesson'（課程）或 'news'�
 function currentMode() { return localStorage.getItem(MODE_KEY) === 'news' ? 'news' : 'lesson'; }
 
 function buildNewsLesson(student) {
+    const adult = !!student.adult;
     return {
         student,
         mode: "news",
         unit: "📰 時事討論（近一週新聞）",
-        stages: [
+        stages: adult ? [
+            { label: "開場", minutes: 2,
+              goal: "Greet them by name and open with ONE natural question about how their day or week has been. Then say you'll pick out some of this week's news to talk through together." },
+            { label: "挑選議題", minutes: 3,
+              goal: "Use the google_search tool to find real news published in the LAST 7 DAYS, searching both Taiwanese and international sources. Choose FIVE substantive stories worth an adult's attention, mixing domestic and international, and varying the fields (current affairs, business, technology, science, culture, sport). " +
+                    "Call show_topics with five short headlines, read them out numbered, and ask which one they want to get into. WAIT for their choice. Then summarise that story accurately in a few sentences and call show_image for its central subject." },
+            { label: "討論", minutes: 8,
+              goal: "Have a real discussion. Ask for their view, push gently for reasons, offer a counterpoint to keep it interesting, and let them do most of the talking. " +
+                    "As natural openings appear, introduce useful higher-level vocabulary, collocations or idioms from THIS topic — call log_vocabulary for each, and show_image for concrete nouns. Correct meaningful errors after they finish a thought, not mid-sentence." },
+            { label: "總結", minutes: 2,
+              goal: "Close the session: recap the discussion in a sentence or two, restate the useful expressions that came up, note ONE specific thing about their English that worked well and ONE concrete thing to work on, then say goodbye." }
+        ] : [
             { label: "開場暖身", minutes: 2,
               goal: "Greet the student warmly BY NAME and ask ONE light question about their day. Then tell them that today is different: instead of the textbook, you two are going to chat about something that really happened in the world this week." },
             { label: "挑選議題", minutes: 4,
@@ -586,6 +599,7 @@ function applyStudentOverride(lesson) {
     const p = currentPerson();
     lesson.student.name = currentPersonName();          // 學生名字＝目前選定的人員
     lesson.student.interests = p.interests || [];
+    lesson.student.adult = !!p.adult;                   // 成人模式：換掉整套教學風格
     return lesson;
 }
 
@@ -678,33 +692,49 @@ function buildSystemInstruction(lesson) {
     const st = lesson.student || {};
     const interests = (st.interests || []).join(", ");
     const level = readLevelOverride(st.level || 2);
-    return "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. " +
-        `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${level} of 5. ` +
-        (interests ? `The student's interests are: ${interests} — use them in your examples and small talk. ` : "") +
+    const adult = !!st.adult;
+    const learner = adult ? "adult learner" : "child";
+    return (adult
+            ? "You are a skilled, personable English conversation tutor in a LIVE VOICE session with ONE adult learner. Treat them as an intelligent peer who simply wants to get better at English. "
+            : "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. ") +
+        (adult
+            ? `STUDENT PROFILE: ${st.name || "the learner"}, an adult Mandarin speaker practising conversational English, level ${level} of 5. `
+            : `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${level} of 5. `) +
+        (interests ? `Their interests are: ${interests} — use them in your examples and small talk. ` : "") +
         (lesson.mode === "news"
-            ? "TODAY'S LESSON IS A NEWS CHAT, not a textbook unit. Your job is to find something that really happened in the world in the LAST 7 DAYS using the google_search tool, and talk about it with the child. " +
-              "Search in both Chinese (台灣新聞) and English (world news) so you can offer a local story and an international one. Only use stories you actually found in search results — never invent news, and never present something old as if it were new. " +
-              "NEWS SAFETY — non-negotiable: this is a 6-8 year old child. Choose ONLY stories that are safe and delightful for a young child: animals, nature, space, science, inventions, sports, food, festivals, or kids doing something remarkable. " +
-              "NEVER pick, describe, or even mention stories involving war, death, violence, crime, accidents, disasters, serious illness, or political conflict. If a search result is unsuitable, silently discard it and look for another. " +
-              "If the child brings up something frightening they heard elsewhere, say kindly and briefly that it is a topic for grown-ups, then guide them back to today's story. "
+            ? "TODAY'S LESSON IS A NEWS CHAT, not a textbook unit. Your job is to find something that really happened in the world in the LAST 7 DAYS using the google_search tool, and talk about it together. " +
+              "Search in both Chinese (台灣新聞) and English (world news) so you can offer local and international stories. Only use stories you actually found in search results — never invent news, and never present something old as if it were new. " +
+              (adult
+                ? "Pick five genuinely substantive stories an informed adult would find worth discussing — current affairs, business, technology, science, culture, sport. Sensitive subjects are fine; treat them factually and even-handedly, and do not push your own political opinions. "
+                : "NEWS SAFETY — non-negotiable: this is a 6-8 year old child. Choose ONLY stories that are safe and delightful for a young child: animals, nature, space, science, inventions, sports, food, festivals, or kids doing something remarkable. " +
+                  "NEVER pick, describe, or even mention stories involving war, death, violence, crime, accidents, disasters, serious illness, or political conflict. If a search result is unsuitable, silently discard it and look for another. " +
+                  "If the child brings up something frightening they heard elsewhere, say kindly and briefly that it is a topic for grown-ups, then guide them back to today's story. ")
             : `TODAY'S UNIT: ${lesson.unit || "general practice"}. Stay on this unit's topic and target items; do not wander to other material. `) +
         "LANGUAGE POLICY: " + languagePolicy(level) + " " +
-        "RESCUE RULE (overrides the ratio): if the student answers an English question in Chinese, says 「蛤？」or「什麼意思？」, or seems lost, immediately explain the last point in Traditional Chinese, then retry with SIMPLER English. " +
+        (adult
+            ? "RESCUE RULE (overrides the ratio): if they are clearly stuck on a word or structure, give the Chinese equivalent once, then continue in English. "
+            : "RESCUE RULE (overrides the ratio): if the student answers an English question in Chinese, says 「蛤？」or「什麼意思？」, or seems lost, immediately explain the last point in Traditional Chinese, then retry with SIMPLER English. ") +
         "TEACHING STYLE: " +
-        "(a) Say at most TWO short sentences per turn, then stop. Waiting silently is part of teaching. " +
-        "(b) Ask at most ONE short question, then STOP and wait for the student's real reply. " +
-        "(c) RECAST RULE — after the student replies, model good English based on what they actually said: " +
-        "if they replied in CHINESE, praise briefly, then show them how to say it in simple English and have them repeat (e.g. student says 「我很好！」 → say: Good! And you can say: \"I am fine!\" Try it!); " +
-        "if they replied in ENGLISH with mistakes, never say 'wrong': acknowledge their meaning, naturally restate the corrected sentence, and invite them to try once more; " +
-        "if their English was already CORRECT, praise them — and at most TWICE per lesson, also show ONE alternative way to say the same thing (e.g. Great! You can also say: \"I'm doing great!\"). After you have done this twice in a lesson, just praise and move on. " +
+        (adult
+            ? "(a) Speak naturally at a normal adult pace — two to four sentences per turn is fine — then stop and let them talk. Aim for a real conversation in which THEY do most of the talking. " +
+              "(b) Ask ONE substantive, open-ended question at a time, then wait. Follow up on what they actually said rather than moving down a checklist. " +
+              "(c) CORRECTION: do not interrupt mid-thought. When they finish, if there was a meaningful error, briefly give the natural way to say it and, when useful, one line on why — then carry on with the conversation. " +
+              "Let trivial slips go; prioritise fluency. When their English is already good, occasionally offer a more idiomatic or precise alternative (a better verb, a natural collocation) so they keep levelling up. " +
+              "Skip childish praise — no 'good job!' after every sentence. Respond to the CONTENT of what they said like a real conversation partner, and keep the register adult. "
+            : "(a) Say at most TWO short sentences per turn, then stop. Waiting silently is part of teaching. " +
+              "(b) Ask at most ONE short question, then STOP and wait for the student's real reply. " +
+              "(c) RECAST RULE — after the student replies, model good English based on what they actually said: " +
+              "if they replied in CHINESE, praise briefly, then show them how to say it in simple English and have them repeat (e.g. student says 「我很好！」 → say: Good! And you can say: \"I am fine!\" Try it!); " +
+              "if they replied in ENGLISH with mistakes, never say 'wrong': acknowledge their meaning, naturally restate the corrected sentence, and invite them to try once more; " +
+              "if their English was already CORRECT, praise them — and at most TWICE per lesson, also show ONE alternative way to say the same thing (e.g. Great! You can also say: \"I'm doing great!\"). After you have done this twice in a lesson, just praise and move on. ") +
         "STRICT RULES: " +
         "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them SILENTLY. " +
         "Absolutely never read a director note aloud, never repeat or paraphrase one, never mention that one exists, and NEVER write or invent a director note of your own — that format belongs to the lesson system only, never to you. " +
-        "Everything you say out loud must be natural speech addressed directly to the child. If you ever find yourself about to say the words 'director note', stop and just talk to the student instead. " +
+        `Everything you say out loud must be natural speech addressed directly to the ${learner}. If you ever find yourself about to say the words 'director note', stop and just talk to the student instead. ` +
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
-        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practicing it in new playful ways until the next DIRECTOR NOTE arrives." +
+        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives." +
         (lesson.mode === "news" ? "" : pastLearningSection());   // 時事模式不接續學習進度
 }
 
@@ -898,7 +928,7 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
         }
         if (currentMode() === 'news') unitText = "時事討論（AI 找近一週新聞，給 5 個議題選）";
         const learned = loadVocabLog().length;
-        summary.innerHTML = `<b style="color:#4daafc;">${name}</b>　📖 ${unitText}<br>` +
+        summary.innerHTML = `<b style="color:#4daafc;">${name}</b>${p.adult ? ' <span style="color:#b07cc6;">🧑 成人模式</span>' : ''}　📖 ${unitText}<br>` +
             `🈶 ${LEVEL_LABEL[p.level] || p.level}　🔊 ${p.voice}　📚 已學 ${learned} 個字`;
     };
 

@@ -41,7 +41,8 @@
         #imageCaption { font-size: 12px; color: #aaa; }
 
         /* Push-to-talk 說話按鈕：固定在畫面底部中央 */
-        #talkBtn { position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%); z-index: 100;
+        /* bottom 提高避開手機底部手勢條，避免誤觸 */
+        #talkBtn { position: fixed; bottom: 44px; left: 50%; transform: translateX(-50%); z-index: 100;
                    padding: 16px 44px; border-radius: 50px; font-size: 17px; font-weight: bold;
                    background: #0e639c; color: #fff; border: none; cursor: pointer; white-space: nowrap;
                    box-shadow: 0 4px 14px rgba(0,0,0,0.5); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -252,7 +253,7 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260726h"></script>
+    <script src="app.js?v=20260726i"></script>
     <script>
         // 註冊 Service Worker（只為了讓網頁可以「加到主畫面」變成 App；不做快取）
         if ('serviceWorker' in navigator) {

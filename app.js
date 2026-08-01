@@ -759,6 +759,7 @@ function buildSystemInstruction(lesson) {
         "first, react to WHAT they said in one short sentence; " +
         "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it; " +
         "third, hand the turn back with ONE question. " +
+        "CRITICAL: the moment you invite them to say or repeat a sentence (e.g. 'You can say: ... Try it!'), your turn ENDS THERE — stop speaking and wait silently for their attempt. Do NOT continue with the topic, do NOT ask a different question, do NOT answer for them. Step three only happens AFTER they have tried. " +
         "NEVER skip step two, and never launch into another block of narration without completing this loop first." +
         (lesson.mode === "news" ? "" : pastLearningSection());   // 時事模式不接續學習進度
 }

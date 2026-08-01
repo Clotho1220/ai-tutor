@@ -495,22 +495,23 @@ function buildNewsLesson(student) {
               goal: "Greet them by name and open with ONE natural question about how their day or week has been. Then say you'll pick out some of this week's news to talk through together." },
             { label: "挑選議題", minutes: 3,
               goal: "Use the google_search tool to find real news published in the LAST 7 DAYS, searching both Taiwanese and international sources. Choose FIVE substantive stories worth an adult's attention, mixing domestic and international, and varying the fields (current affairs, business, technology, science, culture, sport). " +
-                    "Call show_topics with five short headlines, read them out numbered, and ask which one they want to get into. WAIT for their choice. Then summarise that story accurately in a few sentences and call show_image for its central subject." },
+                    "Call show_topics with five short headlines, read them out numbered, and ask which one they want to get into. WAIT for their choice. Then summarise that story accurately in at most FOUR sentences, call show_image for its central subject, and immediately ask for their first reaction — do not keep reporting." },
             { label: "單字與句型", minutes: 2,
               goal: "Pull the language out of the story before discussing it: pick exactly TWO high-value words or collocations and ONE sentence pattern useful for expressing a view on this kind of topic (e.g. 'What concerns me about X is...', 'It could go either way, but...'). " +
                     "Give each briefly with a natural example, call log_vocabulary for both words and show_image for any concrete subject. Do not over-explain — a line each is enough." },
-            { label: "討論", minutes: 6,
+            { label: "討論", minutes: 5,
               goal: "Now a real discussion, and they should do most of the talking. Ask for their view on the story, push for reasons, offer a counterpoint to keep it alive, and encourage them to work in today's pattern and words. " +
+                    "Keep your own turns SHORT — a reaction, the feedback loop, one question. " +
                     "After each substantial turn, give a short assessment before moving on: what was accurate, the natural phrasing for the one error most worth fixing, and where useful a more idiomatic alternative — then follow up with a question that makes them elaborate." },
             { label: "總結", minutes: 2,
               goal: "Close the session: recap the discussion in a sentence or two, restate the useful expressions that came up, note ONE specific thing about their English that worked well and ONE concrete thing to work on, then say goodbye." }
         ] : [
             { label: "開場暖身", minutes: 2,
               goal: "Greet the student warmly BY NAME and ask ONE light question about their day. Then tell them that today is different: instead of the textbook, you two are going to chat about something that really happened in the world this week." },
-            { label: "挑選議題", minutes: 4,
+            { label: "挑選議題", minutes: 3,
               goal: "Use the google_search tool to find real news published in the LAST 7 DAYS — search both Taiwan (國內) and international sources. Choose FIVE stories that are genuinely fun and safe for a young child, mixing local and international ones. " +
                     "Call show_topics with five very short titles so the child can SEE them, then read them out as '一、二、三...' and ask which one they want to hear about. WAIT for the child to choose — do not pick for them. " +
-                    "Once they choose, tell that story simply in a few short sentences and call show_image for the main thing in it (the animal, the place, the object)." },
+                    "Once they choose, tell that story in at most FOUR short sentences and call show_image for the main thing in it (the animal, the place, the object). Then immediately ask the child ONE simple question about it — do not keep narrating." },
             { label: "單字與句型", minutes: 3,
               goal: "This is an ENGLISH lesson built on the story, so now pull the language out of it. Choose exactly TWO useful words and ONE simple sentence pattern that come naturally from this story. " +
                     "Teach the two words one at a time (show_image for each concrete noun, log_vocabulary for both), then teach the pattern and have the student say it once with help. Keep the story as the context throughout." },
@@ -715,6 +716,7 @@ function buildSystemInstruction(lesson) {
         (interests ? `Their interests are: ${interests} — use them in your examples and small talk. ` : "") +
         (lesson.mode === "news"
             ? "TODAY'S LESSON IS A NEWS CHAT, not a textbook unit. Your job is to find something that really happened in the world in the LAST 7 DAYS using the google_search tool, and talk about it together. " +
+              "LANGUAGE FIRST — you are an English tutor using news as material, NOT a news anchor: never narrate more than three or four short sentences in a row. After that, STOP and make the " + learner + " talk — ask what they think, then run the feedback loop on whatever they say. The story exists so THEY can practise speaking, not so you can report it. " +
               "Search in both Chinese (台灣新聞) and English (world news) so you can offer local and international stories. Only use stories you actually found in search results — never invent news, and never present something old as if it were new. " +
               (adult
                 ? "Pick five genuinely substantive stories an informed adult would find worth discussing — current affairs, business, technology, science, culture, sport. Sensitive subjects are fine; treat them factually and even-handedly, and do not push your own political opinions. "
@@ -752,7 +754,12 @@ function buildSystemInstruction(lesson) {
         `Everything you say out loud must be natural speech addressed directly to the ${learner}. If you ever find yourself about to say the words 'director note', stop and just talk to the student instead. ` +
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
-        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives." +
+        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
+        "(6) MANDATORY FEEDBACK LOOP — after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
+        "first, react to WHAT they said in one short sentence; " +
+        "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it; " +
+        "third, hand the turn back with ONE question. " +
+        "NEVER skip step two, and never launch into another block of narration without completing this loop first." +
         (lesson.mode === "news" ? "" : pastLearningSection());   // 時事模式不接續學習進度
 }
 

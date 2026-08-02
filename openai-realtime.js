@@ -11,9 +11,6 @@
         let stream = null;
         let track = null;
         let audioElement = null;
-        let outputContext = null;
-        let outputSource = null;
-        let outputDestination = null;
         let active = false;
         let talking = false;
         let handlers = {};
@@ -79,19 +76,33 @@
             });
         }
 
+        async function acquireMicrophone(audioMode) {
+            const base = { echoCancellation: true, noiseSuppression: true, autoGainControl: true };
+            let micStream = await global.navigator.mediaDevices.getUserMedia({ audio: base });
+            if (audioMode !== "speaker") return micStream;
+
+            const devices = await global.navigator.mediaDevices.enumerateDevices();
+            const microphones = devices.filter(device => device.kind === "audioinput");
+            const speakerphone = microphones.find(device => /speakerphone|speaker|擴音|喇叭/i.test(device.label || ""));
+            micStream.getTracks().forEach(item => item.stop());
+            if (speakerphone) {
+                emit("onAudioRoute", { route: "speakerphone-microphone", label: speakerphone.label });
+                return global.navigator.mediaDevices.getUserMedia({
+                    audio: Object.assign({}, base, { deviceId: { exact: speakerphone.deviceId } })
+                });
+            }
+            emit("onAudioRoute", { route: "speaker-fallback-no-aec", microphones: microphones.map(item => item.label || "(no label)") });
+            return global.navigator.mediaDevices.getUserMedia({
+                audio: { echoCancellation: false, noiseSuppression: true, autoGainControl: true }
+            });
+        }
+
         async function connect(settings) {
             if (active) throw new Error("OpenAI Realtime session 已經啟動");
             if (!settings || !settings.tokenEndpoint) throw new Error("尚未設定短效憑證後端網址");
             if (!PeerConnection) throw new Error("這個瀏覽器不支援 WebRTC");
             handlers = settings;
             emit("onState", { state: "connecting" });
-
-            // Android 只允許在使用者手勢仍有效時啟動 Web Audio；必須放在第一個 await 之前。
-            if (settings.audioMode === "speaker" && (global.AudioContext || global.webkitAudioContext)) {
-                const AudioContextCtor = global.AudioContext || global.webkitAudioContext;
-                outputContext = new AudioContextCtor();
-                if (outputContext.state === "suspended") outputContext.resume().catch(() => {});
-            }
 
             const clientSecret = await requestClientSecret(settings);
             peer = new PeerConnection();
@@ -106,25 +117,15 @@
             audioElement.setAttribute && audioElement.setAttribute("playsinline", "");
             peer.addEventListener("track", event => {
                 const remoteStream = event.streams[0];
-                if (settings.audioMode === "speaker" && outputContext && outputContext.state === "running") {
-                    outputSource = outputContext.createMediaStreamSource(remoteStream);
-                    outputDestination = outputContext.createMediaStreamDestination();
-                    outputSource.connect(outputDestination);
-                    audioElement.srcObject = outputDestination.stream;
-                    if (outputContext.state === "suspended") outputContext.resume().catch(() => {});
-                } else {
-                    // 媒體路徑若沒有成功啟動，退回 WebRTC 直接播放，避免整堂課完全無聲。
-                    audioElement.srcObject = remoteStream;
-                }
+                audioElement.srcObject = remoteStream;
                 const playResult = audioElement.play && audioElement.play();
-                if (playResult && typeof playResult.catch === "function") playResult.catch(() => {});
+                if (playResult && typeof playResult.then === "function") {
+                    playResult.then(() => emit("onAudioRoute", { route: "webrtc-direct-playing", audioMode: settings.audioMode }))
+                        .catch(error => emit("onError", new Error("GPT 音訊播放失敗：" + error.message)));
+                }
             });
 
-            stream = await global.navigator.mediaDevices.getUserMedia({
-                audio: settings.audioMode === "speaker"
-                    ? { echoCancellation: false, noiseSuppression: true, autoGainControl: true }
-                    : { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
-            });
+            stream = await acquireMicrophone(settings.audioMode);
             track = stream.getAudioTracks()[0];
             if (!track) throw new Error("找不到麥克風音軌");
             track.enabled = false; // Push-to-talk：連線後先保持靜音
@@ -215,10 +216,7 @@
                 try { audioElement.pause(); } catch (error) {}
                 audioElement.srcObject = null;
             }
-            if (outputSource) try { outputSource.disconnect(); } catch (error) {}
-            if (outputContext) try { outputContext.close(); } catch (error) {}
             peer = null; channel = null; stream = null; track = null; audioElement = null;
-            outputContext = null; outputSource = null; outputDestination = null;
             emit("onState", { state: "closed" });
         }
 

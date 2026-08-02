@@ -9,8 +9,8 @@
     const index = await fetch('../index.html?test=' + Date.now()).then(response => response.text());
     check("uses current GPT realtime model", /gpt-realtime/.test(source) && !/gpt-realtime-2\.1/.test(source));
     check("uses WebRTC calls endpoint", /https:\/\/api\.openai\.com\/v1\/realtime\/calls/.test(source));
-    check("speaker mode uses media audio routing", /createMediaStreamDestination/.test(source) && /echoCancellation:\s*false/.test(source));
-    check("speaker routing starts before credentials await", source.indexOf('outputContext = new AudioContextCtor') < source.indexOf('await requestClientSecret'));
+    check("speaker mode selects speakerphone microphone when available", /speakerphone\|speaker\|擴音\|喇叭/.test(source));
+    check("audio always falls back to direct WebRTC playback", /audioElement\.srcObject\s*=\s*remoteStream/.test(source));
     check("uses the current realtime transcription model", /gpt-4o-mini-transcribe/.test(source));
     check("browser requests only a short-lived client secret", /openaiClientSecret/.test(source) && !/OPENAI_API_KEY/.test(source));
     check("backend reads API key from Script Properties", /getScriptProperties\(\)\.getProperty\('OPENAI_API_KEY'\)/.test(backend));

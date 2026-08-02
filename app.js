@@ -1268,6 +1268,11 @@ async function startOpenAISession() {
             onState(detail) {
                 sessionDiagnostics.record("openai_state", { state: detail.state });
             },
+            onAudioRoute(detail) {
+                sessionDiagnostics.record("openai_audio_route", detail);
+                if (detail.route === 'speakerphone-microphone') logSystem(`🔊 GPT 已選擇擴音麥克風：${detail.label}`);
+                if (detail.route === 'speaker-fallback-no-aec') logSystem("🔊 找不到獨立擴音麥克風，GPT 改用直接播放備援。");
+            },
             onTranscript(detail) {
                 if (detail.role === 'student') {
                     currentUserTurnTranscript = detail.final ? detail.text : currentUserTurnTranscript + detail.text;

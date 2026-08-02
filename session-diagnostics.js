@@ -24,10 +24,14 @@
         }
 
         function sanitize(value, depth) {
-            if (depth > 4) return "[TRUNCATED]";
+            // A saved session is several levels deep (session → events → event → details → context).
+            // Keep those diagnostic values while still bounding unexpectedly recursive payloads.
+            if (depth > 8) return "[TRUNCATED]";
             if (value == null || typeof value === "boolean" || typeof value === "number") return value;
             if (typeof value === "string") return safeString(value);
-            if (Array.isArray(value)) return value.slice(0, 50).map(item => sanitize(item, depth + 1));
+            // Event history is intentionally allowed to reach maxEvents.  A generic 50-item
+            // sanitizer used to silently discard the end of every exported lesson.
+            if (Array.isArray(value)) return value.slice(0, maxEvents).map(item => sanitize(item, depth + 1));
             if (typeof value !== "object") return safeString(value);
 
             const out = {};

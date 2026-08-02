@@ -6,10 +6,18 @@
     const CUE_RE = /(you can(?: also)? say|try saying|say this|say:|a better way to say(?: it)? is|the natural (?:way|phrasing) is|it's better to say|你可以(?:這樣)?說|英文(?:可以)?說|更自然(?:的說法)?是|正確(?:的說法)?是)/i;
     const ALTERNATIVE_RE = /(you can also say|another way|more natural|more idiomatic|也可以說|另一種|更自然)/i;
     const PRACTICE_INVITE_RE = /(please\s+repeat|repeat\s+(?:after me|it|this)|try\s+(?:it|saying)|your\s+turn|can\s+you\s+say|say\s+it|跟我說|說說看|試著說|再說一次|念一次|要不要試試|換你說)/i;
-    const STRONG_REPEAT_RE = /(please\s+repeat|repeat\s+after\s+me|try\s+it|say\s+it\s+again|跟我說|再說一次|念一次|試試看這句|要不要試試)/i;
+    const STRONG_REPEAT_RE = /(please\s+repeat|repeat\s+(?:after\s+me|it|this)|try\s+(?:it|saying)|your\s+turn|say\s+it\s+again|跟我說|說說看|再說一次|念一次|試試看(?:這句)?|要不要試試|換你說)/i;
+    // 只放「通常出現在示範句之後」的交棒語。像 "repeat after me"、"try saying"
+    // 也可能出現在示範句之前，若在串流中提早截斷，反而會讓孩子聽不到目標句。
+    const STREAM_REPEAT_RE = /(try\s+it|say\s+it\s+again|再\s*說\s*一次|念\s*一次|試試\s*看(?:\s*這\s*句)?|要\s*不要\s*試試|換\s*你\s*說)/i;
 
     function clean(value) {
-        return String(value == null ? "" : value).replace(/[“”]/g, '"').replace(/\s+/g, " ").trim();
+        return String(value == null ? "" : value)
+            .replace(/[“”]/g, '"')
+            // Gemini 的中文逐字稿偶爾會在中文字之間插入空白（例如「試試 看」）。
+            .replace(/([\u3400-\u9fff])\s+(?=[\u3400-\u9fff])/g, "$1")
+            .replace(/\s+/g, " ")
+            .trim();
     }
 
     function englishWordCount(value) {
@@ -69,6 +77,40 @@
         return PRACTICE_INVITE_RE.test(clean(aiText));
     }
 
+    function createTurnBoundary() {
+        let text = "";
+        let detected = false;
+
+        function observe(chunk) {
+            if (!chunk || detected) return { detected: false };
+            // 保留原始逐字稿的字元位置，讓學生字幕能精準裁在邀請語結尾；
+            // 中文模式本身允許 Gemini 在每個字之間插入空白。
+            text = (text + String(chunk)).replace(/[“”]/g, '"').slice(-6000);
+            const match = STREAM_REPEAT_RE.exec(text);
+            if (!match) return { detected: false };
+            detected = true;
+            return {
+                detected: true,
+                invitationEnd: match.index + match[0].length,
+                phrase: match[0]
+            };
+        }
+
+        function completeTurn() {
+            const wasDetected = detected;
+            text = "";
+            detected = false;
+            return wasDetected;
+        }
+
+        function reset() {
+            text = "";
+            detected = false;
+        }
+
+        return Object.freeze({ observe, completeTurn, reset });
+    }
+
     function analyze(input) {
         const userText = clean(input && input.userText);
         const aiText = clean(input && input.aiText);
@@ -89,5 +131,5 @@
         };
     }
 
-    global.PracticeObserver = { analyze, asksForPractice };
+    global.PracticeObserver = { analyze, asksForPractice, createTurnBoundary };
 })(window);

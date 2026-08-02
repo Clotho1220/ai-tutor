@@ -39,11 +39,21 @@
     }) === null);
     check("detects Chinese and English repeat invitations", PracticeObserver.asksForPractice("要不要試試看這句話？") && PracticeObserver.asksForPractice("Please repeat."));
 
+    const boundary = PracticeObserver.createTurnBoundary();
+    check("ordinary follow-up does not stop the turn", !boundary.observe("Great answer. Who is this?").detected);
+    check("detects an English practice boundary across chunks",
+        !boundary.observe("You can say: I am happy. Try ").detected && boundary.observe("it! Who is this?").detected);
+    check("reports that the completed turn contained a practice boundary", boundary.completeTurn());
+    check("detects spaced Chinese transcription from Gemini", boundary.observe("你可以說：我很好。試試 看！下一題").detected);
+    boundary.reset();
+
     const appSource = await fetch('../app.js?practice-observer-test=' + Date.now()).then(response => response.text());
     const indexSource = await fetch('../index.html?practice-observer-test=' + Date.now()).then(response => response.text());
     check("observer loads before app", indexSource.indexOf('src="practice-observer.js') < indexSource.indexOf('src="app.js'));
     check("Live setup no longer declares log_practice", !/name:\s*"log_practice"/.test(appSource));
     check("turnComplete records observed feedback", /PracticeObserver\.analyze\(\{[\s\S]{0,180}userText:[\s\S]{0,180}aiText:/.test(appSource));
+    check("student transcript ignores chunks after a closed practice boundary",
+        /boundaryAlreadyClosed\s*=\s*suppressAudioAfterFarewell\s*\|\|\s*suppressAudioAfterPractice/.test(appSource));
 
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');

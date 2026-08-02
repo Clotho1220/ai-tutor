@@ -40,12 +40,15 @@ if (!window.StageTransitionGate) throw new Error("stage-transition.js 未載入"
 const stageTransitionGate = window.StageTransitionGate.create({ requiredRounds: 2 });
 if (!window.PracticeObserver) throw new Error("practice-observer.js 未載入");
 if (!window.SessionDiagnostics) throw new Error("session-diagnostics.js 未載入");
+if (!window.LessonEndingGuard) throw new Error("lesson-ending.js 未載入");
 const sessionDiagnostics = window.SessionDiagnostics.create({
     storage: localStorage,
     maxSessions: 3,
     maxEvents: 600,
     maxTextLength: 2000
 });
+const lessonEndingGuard = window.LessonEndingGuard.create();
+const practiceTurnBoundary = window.PracticeObserver.createTurnBoundary();
 
 // PWA 安裝所需。放在外部腳本中，讓 CSP 可以禁止 inline JavaScript。
 if ('serviceWorker' in navigator) {
@@ -87,6 +90,9 @@ let lessonTimer = null;
 let elapsedTime = 0;
 let currentStageIndex = 0;
 let pendingDirectorNote = null; // 已送出但 AI 尚未回應的導演指令；若此時斷線，重連後重送（否則新階段開場會消失）
+let suppressAudioAfterFarewell = false; // 結語已出現後，丟棄模型仍生成的問題或多餘內容
+let suppressAudioAfterPractice = false; // 「Try it／試試看」後必須交棒給學生，後續內容一律不播
+let lessonFinishTimer = null;   // 等最後一句已排程音訊播完再真正結束連線
 
 let userStopped = false;       // 使用者主動按「結束連線」（區別於意外斷線）
 let resumeHandle = null;       // Live API session resumption 握把，重連時恢復對話記憶
@@ -1161,6 +1167,12 @@ async function startSession() {
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
+    suppressAudioAfterFarewell = false;
+    suppressAudioAfterPractice = false;
+    if (lessonFinishTimer) clearTimeout(lessonFinishTimer);
+    lessonFinishTimer = null;
+    lessonEndingGuard.resetSession();
+    practiceTurnBoundary.reset();
     stageTransitionGate.consume();
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
@@ -1743,6 +1755,40 @@ function beginTrackedAiTurn() {
     activeAiTurnUserTranscript = activeAiResponseStudentGeneration !== null ? currentUserTurnTranscript : "";
 }
 
+function sendEarlyFarewellRecovery() {
+    if (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped) return;
+    const activeStage = teachingFlow[Math.max(0, currentStageIndex - 1)];
+    const stagePrompt = activeStage ? activeStage.prompt : "Continue the current lesson activity.";
+    const noteText = DIRECTOR_PREFIX +
+        "The lesson is NOT finished. Your previous response ended too early. Start a fresh, short teacher turn. " +
+        "Say only 「我們還沒下課喔，繼續來練習！」, continue the CURRENT stage, ask at most ONE short question, then WAIT. " +
+        "Do not say goodbye or mention this director note. Current stage: " + stagePrompt + "]";
+    sessionDiagnostics.record("early_farewell_recovery_sent", {
+        stageIndex: Math.max(0, currentStageIndex - 1),
+        stage: activeStage ? activeStage.name : "unknown"
+    });
+    pendingDirectorNote = noteText;
+    webSocket.send(JSON.stringify({
+        clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
+    }));
+}
+
+function scheduleLessonCompletion() {
+    if (lessonFinishTimer || userStopped) return;
+    const queuedAudioMs = playbackContext
+        ? Math.max(0, Math.ceil((nextPlayTime - playbackContext.currentTime) * 1000))
+        : 0;
+    const delayMs = Math.min(8000, Math.max(350, queuedAudioMs + 250));
+    sessionDiagnostics.record("lesson_completion_scheduled", { delayMs });
+    talkBtn.disabled = true;
+    nextStageBtn.disabled = true;
+    stageIndicator.textContent = "✅ 本堂課完成";
+    lessonFinishTimer = setTimeout(() => {
+        lessonFinishTimer = null;
+        stopSession("lesson_completed");
+    }, delayMs);
+}
+
 function handleServerMessage(response, socket, socketToken) {
     if (!liveSession.isCurrent(socket, socketToken)) return;
     // 0) 連線生命週期訊息
@@ -1833,6 +1879,9 @@ function handleServerMessage(response, socket, socketToken) {
         }
     }
 
+    let farewellJustDetected = null;
+    let practiceJustDetected = null;
+
     // 4) AI 實際說出的逐字稿（除錯面板累積全程；學生畫面字幕只顯示當前這一輪）
     if (sc.outputTranscription && sc.outputTranscription.text && !dropStaleAudio) {
         if (isNewAiTurn) {
@@ -1856,6 +1905,25 @@ function handleServerMessage(response, socket, socketToken) {
         // 一偵測到就立刻停止播放（孩子不會聽到後半段）並把字幕裁掉（孩子看不到）。
         const transcriptBefore = studentView.transcriptText();
         const transcriptCandidate = transcriptBefore + sc.outputTranscription.text;
+        farewellJustDetected = lessonEndingGuard.observe(sc.outputTranscription.text);
+        practiceJustDetected = practiceTurnBoundary.observe(sc.outputTranscription.text);
+        if (practiceJustDetected.detected) {
+            sessionDiagnostics.record("practice_turn_boundary_detected", {
+                phrase: practiceJustDetected.phrase,
+                responseToTurn: activeAiResponseStudentGeneration
+            });
+            logSystem("🛑 偵測到複誦邀請；已把說話權交給學生，後續問題不再播放。");
+        }
+        if (farewellJustDetected.detected) {
+            sessionDiagnostics.record("farewell_detected", {
+                phrase: farewellJustDetected.phrase,
+                finalStage: farewellJustDetected.finalStage,
+                stageIndex: Math.max(0, currentStageIndex - 1)
+            });
+            logSystem(farewellJustDetected.finalStage
+                ? "✅ 偵測到正式下課結語；結語後的額外問題將不再播放。"
+                : "⚠️ AI 提早說了再見；已阻止後續內容，將拉回目前階段。");
+        }
         if (!directorLeak && DIRECTOR_LEAK_RE.test(transcriptCandidate)) {
             directorLeak = true;
             sessionDiagnostics.record("director_note_leak_detected", {});
@@ -1864,39 +1932,55 @@ function handleServerMessage(response, socket, socketToken) {
             if (cut >= 0) studentView.truncateTranscript(Math.min(cut, transcriptBefore.length));
             logSystem("<span style='color:#ff8800;'>⚠️ AI 開始唸出導演筆記，已中斷播放並隱藏字幕。</span>");
         }
-        if (!directorLeak) studentView.appendTranscript(sc.outputTranscription.text);
+        const boundaryAlreadyClosed = suppressAudioAfterFarewell || suppressAudioAfterPractice;
+        if (!directorLeak && !boundaryAlreadyClosed) {
+            studentView.appendTranscript(sc.outputTranscription.text);
+            if (farewellJustDetected.detected) {
+                studentView.truncateTranscript(farewellJustDetected.farewellEnd);
+            }
+            if (practiceJustDetected.detected) {
+                studentView.truncateTranscript(practiceJustDetected.invitationEnd);
+            }
+        }
     }
 
     // 5) 音訊播放
     if (sc.modelTurn && sc.modelTurn.parts) {
         pendingDirectorNote = null; // AI 已開始回應，導演指令確定送達
         aiTurnActive = true;
-        if (dropStaleAudio) return; // 學生已插話，這些是上一輪的殘留語音，不播
-        beginTrackedAiTurn();
-        for (const part of sc.modelTurn.parts) {
-            if (part.inlineData && part.inlineData.mimeType.includes('audio/pcm')) {
-                if (waitingFirstAudio && lastUserSpeechTime) {
-                    const latencyMs = Math.round(performance.now() - lastUserSpeechTime);
-                    sessionDiagnostics.record("first_audio_latency", {
-                        milliseconds: latencyMs,
-                        turn: studentTurnGeneration
-                    });
-                    logSystem(`⏱️ 回應延遲約 ${(latencyMs / 1000).toFixed(1)} 秒`);
-                    waitingFirstAudio = false;
-                    turnChunks = [];    // AI 已開始回應，這句話確定送達，釋放暫存
-                    needsReplay = false;
+        if (!dropStaleAudio && !suppressAudioAfterFarewell && !suppressAudioAfterPractice) {
+            beginTrackedAiTurn();
+            for (const part of sc.modelTurn.parts) {
+                if (part.inlineData && part.inlineData.mimeType.includes('audio/pcm')) {
+                    if (waitingFirstAudio && lastUserSpeechTime) {
+                        const latencyMs = Math.round(performance.now() - lastUserSpeechTime);
+                        sessionDiagnostics.record("first_audio_latency", {
+                            milliseconds: latencyMs,
+                            turn: studentTurnGeneration
+                        });
+                        logSystem(`⏱️ 回應延遲約 ${(latencyMs / 1000).toFixed(1)} 秒`);
+                        waitingFirstAudio = false;
+                        turnChunks = [];    // AI 已開始回應，這句話確定送達，釋放暫存
+                        needsReplay = false;
+                    }
+                    playPcmChunk(base64ToArrayBuffer(part.inlineData.data), 24000);
                 }
-                playPcmChunk(base64ToArrayBuffer(part.inlineData.data), 24000);
             }
         }
     }
+    // 同一個伺服器事件裡的音訊通常包含剛辨識到的結語，允許它播完；
+    // 從下一個事件起才丟棄模型接著生成的問題。
+    if (farewellJustDetected && farewellJustDetected.detected) suppressAudioAfterFarewell = true;
+    if (practiceJustDetected && practiceJustDetected.detected) suppressAudioAfterPractice = true;
 
     if (sc.turnComplete) {
         const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
             activeAiResponseStudentGeneration === pendingStudentResponseGeneration;
         const completedUserTranscript = activeAiTurnUserTranscript;
         const completedAiTranscript = currentAiTurnTranscript;
-        const practiceRequested = window.PracticeObserver.asksForPractice(completedAiTranscript);
+        const practiceBoundaryDetected = practiceTurnBoundary.completeTurn();
+        const practiceRequested = practiceBoundaryDetected || window.PracticeObserver.asksForPractice(completedAiTranscript);
+        const endingAction = lessonEndingGuard.completeTurn();
         sessionDiagnostics.record("ai_turn_completed", {
             responseToTurn: activeAiResponseStudentGeneration,
             userTranscriptLength: completedUserTranscript.length,
@@ -1911,6 +1995,8 @@ function handleServerMessage(response, socket, socketToken) {
         activeAiResponseStudentGeneration = null;
         activeAiTurnUserTranscript = "";
         currentAiTurnTranscript = "";
+        suppressAudioAfterFarewell = false;
+        suppressAudioAfterPractice = false;
         if (completesCurrentStudentTurn) {
             pendingStudentResponseGeneration = null;
             const observedFeedback = window.PracticeObserver.analyze({
@@ -1922,10 +2008,15 @@ function handleServerMessage(response, socket, socketToken) {
                     observedFeedback.kind, observedFeedback.focus);
             }
         }
-        if (completesCurrentStudentTurn && stagePendingSince !== null &&
+        if (endingAction === "continue" && completesCurrentStudentTurn && stagePendingSince !== null &&
             stageTransitionGate.completeAiTurn({ practiceRequested })) {
             logSystem("✅ 學生已完成回饋與練習回合，現在以獨立回合切換階段。");
             sendStageTransition('after-feedback');
+        }
+        if (endingAction === "finish") {
+            scheduleLessonCompletion();
+        } else if (endingAction === "recover") {
+            sendEarlyFarewellRecovery();
         }
     }
 }
@@ -2019,6 +2110,7 @@ function sendStageTransition(trigger) {
     if (!webSocket || webSocket.readyState !== WebSocket.OPEN) return;
     if (currentStageIndex >= teachingFlow.length) { logSystem("已是最後一個階段。"); return; }
     const stage = teachingFlow[currentStageIndex];
+    lessonEndingGuard.enterStage(currentStageIndex === teachingFlow.length - 1);
     stageIndicator.textContent = `⏳ 目前：${stage.name}`;
 
     let instruction;
@@ -2203,6 +2295,8 @@ function stopSession(reason) {
     webSocket = null;
     document.body.classList.remove('student-mode'); // 下課回到老師畫面
     if (lessonTimer) clearInterval(lessonTimer);
+    if (lessonFinishTimer) clearTimeout(lessonFinishTimer);
+    lessonFinishTimer = null;
     stopAllPlayback();
     if (socketToClose && (socketToClose.readyState === WebSocket.OPEN || socketToClose.readyState === WebSocket.CONNECTING)) {
         socketToClose.close();
@@ -2225,6 +2319,10 @@ function stopSession(reason) {
     currentUserTurnTranscript = "";
     activeAiTurnUserTranscript = "";
     currentAiTurnTranscript = "";
+    suppressAudioAfterFarewell = false;
+    suppressAudioAfterPractice = false;
+    lessonEndingGuard.resetSession();
+    practiceTurnBoundary.reset();
     talkBtn.disabled = true;
     nextStageBtn.disabled = true;
     talkBtn.classList.remove('talking');

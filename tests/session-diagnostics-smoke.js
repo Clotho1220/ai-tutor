@@ -54,6 +54,23 @@
 
     const reloaded = SessionDiagnostics.create({ storage, nowFn: () => clock, maxSessions: 2 });
     check("completed diagnostics survive a reload", reloaded.inspect().savedSessions === 1);
+
+    const longStorage = new FakeStorage();
+    const longDiagnostics = SessionDiagnostics.create({
+        storage: longStorage,
+        nowFn: () => clock,
+        maxSessions: 1,
+        maxEvents: 80
+    });
+    longDiagnostics.start({ person: "Rex" });
+    for (let index = 0; index < 74; index += 1) {
+        longDiagnostics.record("long_session_event", { context: { turn: index } });
+    }
+    longDiagnostics.finish("test");
+    const longExport = longDiagnostics.exportPayload().sessions[0];
+    check("exports the full configured event history beyond 50 items", longExport.events.length === 76);
+    check("preserves nested turn values after storage reload", longExport.events[60].details.context.turn === 59);
+
     reloaded.start({ person: "Jessie" });
     reloaded.record("image_status", { keyword: "notebook", status: "slow", base64: "RAW_IMAGE" });
     const activeExport = reloaded.exportPayload();

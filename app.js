@@ -30,6 +30,14 @@ function readApiKey() {
     return GEMINI_API_KEY;
 }
 
+if (!window.SafeDOM) throw new Error("dom-utils.js 未載入");
+const { clear: clearNode, text: setText, appendText, element: makeElement, legacyMarkupToText } = window.SafeDOM;
+
+// PWA 安裝所需。放在外部腳本中，讓 CSP 可以禁止 inline JavaScript。
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+
 let webSocket = null;
 let audioContext = null;       // 麥克風擷取用：固定 16kHz（Gemini 上行音訊規格）
 let playbackContext = null;    // AI 語音播放用：固定 24kHz（Gemini 下行音訊規格）
@@ -549,16 +557,25 @@ async function readSelectedUnit() {
 
     function fillUnits() {
         const b = UNITS_DATA.books.find(x => x.name === bookSel.value);
-        unitSel.innerHTML = (b ? b.units : []).map(u =>
-            `<option value="${u.num}">Unit ${u.num}: ${u.title}</option>`).join("");
+        clearNode(unitSel);
+        (b ? b.units : []).forEach(u => {
+            unitSel.appendChild(makeElement('option', { value: u.num, text: `Unit ${u.num}: ${u.title}` }));
+        });
         showPreview();
     }
 
     function showPreview() {
         const u = findUnit(bookSel.value, parseInt(unitSel.value, 10));
-        preview.innerHTML = u
-            ? `${u.desc ? u.desc + "<br>" : ""}<span style="color:#4daafc;">${u.patterns.length} 個句型、${u.words.length} 個單字</span> → 自動展開成 5 天（第 5 天總複習）`
-            : "";
+        clearNode(preview);
+        if (!u) return;
+        if (u.desc) {
+            preview.appendChild(document.createTextNode(u.desc));
+            preview.appendChild(document.createElement('br'));
+        }
+        preview.appendChild(makeElement('span', {
+            text: `${u.patterns.length} 個句型、${u.words.length} 個單字`, color: '#4daafc'
+        }));
+        appendText(preview, ' → 自動展開成 5 天（第 5 天總複習）');
     }
 
     // 切換人員時，把單元選單同步成該人員正在上的單元
@@ -577,7 +594,8 @@ async function readSelectedUnit() {
 
     loadUnitsData().then(() => {
         if (!UNITS_DATA || !UNITS_DATA.books) { status.textContent = "⚠️ 找不到 units.json"; return; }
-        bookSel.innerHTML = UNITS_DATA.books.map(b => `<option>${b.name}</option>`).join("");
+        clearNode(bookSel);
+        UNITS_DATA.books.forEach(b => bookSel.appendChild(makeElement('option', { value: b.name, text: b.name })));
         window.refreshUnitPickerForPerson();
         if (window.refreshPersonSummary) window.refreshPersonSummary();
     });
@@ -954,8 +972,12 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
         }
         if (currentMode() === 'news') unitText = "時事討論（AI 找近一週新聞，給 5 個議題選）";
         const learned = loadVocabLog().length;
-        summary.innerHTML = `<b style="color:#4daafc;">${name}</b>${p.adult ? ' <span style="color:#b07cc6;">🧑 成人模式</span>' : ''}　📖 ${unitText}<br>` +
-            `🈶 ${LEVEL_LABEL[p.level] || p.level}　🔊 ${p.voice}　📚 已學 ${learned} 個字`;
+        clearNode(summary);
+        summary.appendChild(makeElement('b', { text: name, color: '#4daafc' }));
+        if (p.adult) summary.appendChild(makeElement('span', { text: ' 🧑 成人模式', color: '#b07cc6' }));
+        appendText(summary, `　📖 ${unitText}`);
+        summary.appendChild(document.createElement('br'));
+        appendText(summary, `🈶 ${LEVEL_LABEL[p.level] || p.level}　🔊 ${p.voice}　📚 已學 ${learned} 個字`);
     };
 
     // 切換人員：所有設定與紀錄都跟著換
@@ -996,7 +1018,11 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
 })();
 
 function logSystem(msg) {
-    sysLogBox.innerHTML += `[${new Date().toLocaleTimeString()}] ${msg}<br>`;
+    const row = makeElement('div', {
+        text: `[${new Date().toLocaleTimeString()}] ${legacyMarkupToText(msg)}`
+    });
+    if (/color\s*:\s*#ff/i.test(String(msg))) row.style.color = '#ff8800';
+    sysLogBox.appendChild(row);
     sysLogBox.scrollTop = sysLogBox.scrollHeight;
 }
 
@@ -1026,8 +1052,8 @@ async function startSession() {
     aiTurnActive = false; dropStaleAudio = false; studentImgSeq = 0; studentImgWord = "";
     userStopped = false; resumeHandle = null; reconnectAttempts = 0;
     isNewAiTurn = true; isNewUserTurn = true;
-    aiSpeechBox.innerHTML = '';
-    if (userSpeechBox) userSpeechBox.innerHTML = '<span style="color:#888;">等待語音輸入...</span>';
+    clearNode(aiSpeechBox);
+    if (userSpeechBox) setText(userSpeechBox, '等待語音輸入...');
     generatedImage.style.display = 'none';
     imageCaption.textContent = "等待 AI 呼叫 show_image ...";
     logSystem("正在請求麥克風權限...");
@@ -1096,8 +1122,13 @@ const normWord = w => String(w || "").toLowerCase().replace(/\([^)]*\)/g, "").tr
 function studentShowTopics(topics) {
     const box = document.getElementById('svTopics');
     if (!box || !Array.isArray(topics) || !topics.length) return;
-    box.innerHTML = topics.slice(0, 5).map((t, i) =>
-        `<div class="topic"><span class="num">${i + 1}</span><span>${String(t)}</span></div>`).join("");
+    clearNode(box);
+    topics.slice(0, 5).forEach((topic, i) => {
+        const card = makeElement('div', { className: 'topic' });
+        card.appendChild(makeElement('span', { className: 'num', text: i + 1 }));
+        card.appendChild(makeElement('span', { text: topic }));
+        box.appendChild(card);
+    });
     box.style.display = 'flex';
     const w = document.getElementById('svWord');
     if (w) w.textContent = "想聊哪一個？";
@@ -1119,7 +1150,7 @@ function studentHideTopics() {
 // 造成畫面內容和 AI 正在講的完全對不起來。
 function resetStudentView() {
     const box = document.getElementById('svTopics');
-    if (box) { box.innerHTML = ""; box.style.display = 'none'; }
+    if (box) { clearNode(box); box.style.display = 'none'; }
     const w = document.getElementById('svWord');
     if (w) w.textContent = "👂 聽老師說～";
     const m = document.getElementById('svMeaning');
@@ -1261,7 +1292,7 @@ function renderVocabPanel() {
     const list = loadVocabLog();
     if (!list.length) {
         sum.textContent = "還沒有紀錄。上課時 AI 教到新單字就會自動記在這裡。";
-        box.innerHTML = "";
+        clearNode(box);
         return;
     }
     const days = new Set(list.map(v => v.firstDate)).size;
@@ -1269,13 +1300,25 @@ function renderVocabPanel() {
     // 依「第一次學到的日期」分組，新的在上面
     const byDate = {};
     list.forEach(v => { (byDate[v.firstDate] = byDate[v.firstDate] || []).push(v); });
-    box.innerHTML = Object.keys(byDate).sort().reverse().map(date => {
-        const items = byDate[date].map(v =>
-            `<span style="display:inline-block; background:#333; border-radius:12px; padding:2px 10px; margin:2px 4px 2px 0;">
-                <b style="color:#4daafc;">${v.word}</b>${v.meaning ? ' <span style="color:#aaa;">' + v.meaning + '</span>' : ''}${v.count > 1 ? ' <span style="color:#f39c12;">×' + v.count + '</span>' : ''}
-             </span>`).join("");
-        return `<div style="margin-bottom:8px;"><span style="color:#4af626;">📅 ${date}</span><br>${items}</div>`;
-    }).join("");
+    clearNode(box);
+    Object.keys(byDate).sort().reverse().forEach(date => {
+        const group = makeElement('div');
+        group.style.marginBottom = '8px';
+        group.appendChild(makeElement('span', { text: `📅 ${date}`, color: '#4af626' }));
+        group.appendChild(document.createElement('br'));
+        byDate[date].forEach(v => {
+            const chip = makeElement('span');
+            Object.assign(chip.style, {
+                display: 'inline-block', background: '#333', borderRadius: '12px',
+                padding: '2px 10px', margin: '2px 4px 2px 0'
+            });
+            chip.appendChild(makeElement('b', { text: v.word, color: '#4daafc' }));
+            if (v.meaning) chip.appendChild(makeElement('span', { text: ` ${v.meaning}`, color: '#aaa' }));
+            if (v.count > 1) chip.appendChild(makeElement('span', { text: ` ×${v.count}`, color: '#f39c12' }));
+            group.appendChild(chip);
+        });
+        box.appendChild(group);
+    });
 }
 
 // 匯出 / 還原 / 清除
@@ -1606,10 +1649,12 @@ function handleServerMessage(response) {
     // 3) 使用者語音逐字稿（伺服器端 STT，取代 webkitSpeechRecognition）
     if (sc.inputTranscription && sc.inputTranscription.text && userSpeechBox) {
         if (isNewUserTurn) {
-            userSpeechBox.innerHTML += `<br><b style="color:#4daafc;">[You]</b><br>`;
+            userSpeechBox.appendChild(document.createElement('br'));
+            userSpeechBox.appendChild(makeElement('b', { text: '[You]', color: '#4daafc' }));
+            userSpeechBox.appendChild(document.createElement('br'));
             isNewUserTurn = false;
         }
-        userSpeechBox.innerHTML += sc.inputTranscription.text;
+        appendText(userSpeechBox, sc.inputTranscription.text);
         userSpeechBox.scrollTop = userSpeechBox.scrollHeight;
     }
 
@@ -1618,12 +1663,14 @@ function handleServerMessage(response) {
         const svT = document.getElementById('svTranscript');
         if (isNewAiTurn) {
             const voiceName = voiceSelect.options[voiceSelect.selectedIndex].text;
-            aiSpeechBox.innerHTML += `<br><b style="color:#f39c12;">[${voiceName}]</b><br>`;
+            aiSpeechBox.appendChild(document.createElement('br'));
+            aiSpeechBox.appendChild(makeElement('b', { text: `[${voiceName}]`, color: '#f39c12' }));
+            aiSpeechBox.appendChild(document.createElement('br'));
             isNewAiTurn = false;
             directorLeak = false;
             if (svT) svT.textContent = ""; // 新的一輪：字幕清空重來
         }
-        aiSpeechBox.innerHTML += sc.outputTranscription.text;   // 除錯面板保留全文，方便你追問題
+        appendText(aiSpeechBox, sc.outputTranscription.text);   // 除錯面板保留全文，方便你追問題
         aiSpeechBox.scrollTop = aiSpeechBox.scrollHeight;
 
         // 防護：模型有時會唸出導演筆記，甚至自己捏造一段。
@@ -1909,7 +1956,7 @@ function stopSession() {
     talkBtn.textContent = '🎙️ 按一下開始說話';
     stageIndicator.textContent = '⏳ 等待連線';
     logSystem("連線已中斷。");
-    if (userSpeechBox) userSpeechBox.innerHTML = "等待音訊輸入...";
+    if (userSpeechBox) setText(userSpeechBox, "等待音訊輸入...");
 }
 
 // ---------------- 工具函式 ----------------

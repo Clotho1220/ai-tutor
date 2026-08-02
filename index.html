@@ -1,6 +1,7 @@
 <!DOCTYPE html><html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com https://script.google.com https://script.googleusercontent.com https://image.pollinations.ai; img-src 'self' data: https:; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
     <title>AI Tutor - 開發者除錯面板</title>
     <!-- PWA：手機瀏覽器選「加到主畫面」後，會以全螢幕 App 的樣子啟動 -->
     <link rel="manifest" href="manifest.json">
@@ -253,10 +254,6 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="app.js?v=20260726i"></script>
-    <script>
-        // 註冊 Service Worker（只為了讓網頁可以「加到主畫面」變成 App；不做快取）
-        if ('serviceWorker' in navigator) {
-            window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
-        }
-    </script></body></html>
+    <script src="dom-utils.js?v=20260802a"></script>
+    <script src="app.js?v=20260802a"></script>
+</body></html>

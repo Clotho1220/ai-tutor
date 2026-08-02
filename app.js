@@ -36,6 +36,8 @@ if (!window.StudentView) throw new Error("student-view.js 未載入");
 const studentView = window.StudentView.create({ timeoutMs: 5000 });
 if (!window.LiveSession) throw new Error("live-session.js 未載入");
 const liveSession = window.LiveSession.create({ maxReconnects: 3 });
+if (!window.StageTransitionGate) throw new Error("stage-transition.js 未載入");
+const stageTransitionGate = window.StageTransitionGate.create({ requiredRounds: 2 });
 
 // PWA 安裝所需。放在外部腳本中，讓 CSP 可以禁止 inline JavaScript。
 if ('serviceWorker' in navigator) {
@@ -65,6 +67,10 @@ let isTalking = false;         // Push-to-talk：目前是否正在說話（上�
 let stagePendingSince = null;  // 階段時間已到、正在等待自然切換點的時間戳（elapsedTime）
 let lastUserSpeechTime = 0;    // 延遲量測：按下「說完了」的時間
 let waitingFirstAudio = false; // 延遲量測：是否正在等待 AI 本輪第一塊音訊
+let studentTurnGeneration = 0; // 每次學生按「說完了」遞增；避免把被插斷的舊 AI turnComplete 算到新回合
+let activeAiResponseStudentGeneration = null;
+let currentAiTurnTranscript = "";
+const PRACTICE_INVITE_RE = /(please\s+repeat|repeat\s+(?:after me|it|this)|try\s+(?:it|saying)|your\s+turn|can\s+you\s+say|say\s+it|跟我說|說說看|試著說|再說一次|念一次|要不要試試|換你說)/i;
 
 let lessonTimer = null;
 let elapsedTime = 0;
@@ -116,10 +122,11 @@ talkBtn.addEventListener('click', () => {
         talkBtn.textContent = '🎙️ 按一下開始說話';
         lastUserSpeechTime = performance.now();
         waitingFirstAudio = true;
+        studentTurnGeneration += 1;
+        activeAiResponseStudentGeneration = null;
+        stageTransitionGate.noteStudentTurn();
         if (webSocket && webSocket.readyState === WebSocket.OPEN) {
             webSocket.send(JSON.stringify({ realtimeInput: { activityEnd: {} } }));
-            // 有掛起的階段：學生剛說完、輪到 AI 回應，此刻附上轉場指令最自然
-            if (stagePendingSince !== null) sendStageTransition('graceful');
         } else {
             // 說到一半斷線了：這句話已完整暫存，重連後自動重送
             needsReplay = true;
@@ -765,6 +772,7 @@ function buildSystemInstruction(lesson) {
               "if they replied in CHINESE, praise briefly, then show them how to say it in simple English and have them repeat (e.g. student says 「我很好！」 → say: Good! And you can say: \"I am fine!\" Try it!); " +
               "if they replied in ENGLISH with mistakes, never say 'wrong': acknowledge their meaning, naturally restate the corrected sentence, and invite them to try once more; " +
               "if their English was already CORRECT, praise them — and at most TWICE per lesson, also show ONE alternative way to say the same thing (e.g. Great! You can also say: \"I'm doing great!\"). After you have done this twice in a lesson, just praise and move on. " +
+              "REPEAT ATTEMPT RULE: when the student's message is their attempt to repeat the sentence you just modelled, evaluate ONLY that attempt. If it is understandable, acknowledge it briefly and do NOT offer another alternative or start another repetition chain. If there is a major error, correct it once, slowly, then wait. " +
               "(d) PRODUCTION PRACTICE — the most important part of every lesson: do not let the student only repeat after you. Several times per lesson, get them to build their OWN sentence — ask what they think, what they like, which one they would choose, what they would do. " +
               "Then judge what they actually produced and always let them hear the correct full sentence: if they answered in Chinese, say the English sentence for them slowly and have them say it themselves; " +
               "if their English had a mistake, give the corrected sentence naturally (never say 'wrong') and have them try once more; if it was correct, tell them clearly that it was right, say in a few words what made it good, then invite one more sentence. " +
@@ -1073,6 +1081,8 @@ async function startSession() {
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
+    stageTransitionGate.consume();
+    studentTurnGeneration = 0; activeAiResponseStudentGeneration = null; currentAiTurnTranscript = "";
     aiTurnActive = false; dropStaleAudio = false;
     userStopped = false; resumeHandle = null; liveSession.start();
     isNewAiTurn = true; isNewUserTurn = true;
@@ -1716,8 +1726,13 @@ function handleServerMessage(response, socket, socketToken) {
             aiSpeechBox.appendChild(document.createElement('br'));
             isNewAiTurn = false;
             directorLeak = false;
+            if (activeAiResponseStudentGeneration === null) {
+                activeAiResponseStudentGeneration = studentTurnGeneration;
+                currentAiTurnTranscript = "";
+            }
             studentView.beginTranscriptTurn(); // 新的一輪：字幕清空重來
         }
+        currentAiTurnTranscript += sc.outputTranscription.text;
         appendText(aiSpeechBox, sc.outputTranscription.text);   // 除錯面板保留全文，方便你追問題
         aiSpeechBox.scrollTop = aiSpeechBox.scrollHeight;
 
@@ -1740,6 +1755,10 @@ function handleServerMessage(response, socket, socketToken) {
         pendingDirectorNote = null; // AI 已開始回應，導演指令確定送達
         aiTurnActive = true;
         if (dropStaleAudio) return; // 學生已插話，這些是上一輪的殘留語音，不播
+        if (activeAiResponseStudentGeneration === null) {
+            activeAiResponseStudentGeneration = studentTurnGeneration;
+            currentAiTurnTranscript = "";
+        }
         for (const part of sc.modelTurn.parts) {
             if (part.inlineData && part.inlineData.mimeType.includes('audio/pcm')) {
                 if (waitingFirstAudio && lastUserSpeechTime) {
@@ -1754,10 +1773,20 @@ function handleServerMessage(response, socket, socketToken) {
     }
 
     if (sc.turnComplete) {
+        const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
+            activeAiResponseStudentGeneration === studentTurnGeneration;
+        const practiceRequested = PRACTICE_INVITE_RE.test(currentAiTurnTranscript);
         isNewAiTurn = true;
         isNewUserTurn = true;
         aiTurnActive = false;
         dropStaleAudio = false;   // 上一輪確定結束，下一輪的語音正常播放
+        activeAiResponseStudentGeneration = null;
+        currentAiTurnTranscript = "";
+        if (completesCurrentStudentTurn && stagePendingSince !== null &&
+            stageTransitionGate.completeAiTurn({ practiceRequested })) {
+            logSystem("✅ 學生已完成回饋與練習回合，現在以獨立回合切換階段。");
+            sendStageTransition('after-feedback');
+        }
     }
 }
 
@@ -1817,11 +1846,12 @@ function startLessonTimer() {
                 if (currentStageIndex === 0) {
                     sendStageTransition('opening'); // 開場沒有前文，直接開始
                 } else {
-                    logSystem(`⌛ ${stage.name} 時間已到，等待自然切換點...`);
+                    stageTransitionGate.request();
+                    logSystem(`⌛ ${stage.name} 時間已到；先完成回饋與一次學生練習，再獨立切換。`);
                 }
             }
             // 逾時保險：掛起超過 90 秒都沒有對話輪替，強制切換
-            if (stagePendingSince !== null && elapsedTime - stagePendingSince >= 90 && !isTalking) {
+            if (stagePendingSince !== null && elapsedTime - stagePendingSince >= 90 && !isTalking && !aiTurnActive) {
                 sendStageTransition('timeout');
             }
         }
@@ -1831,7 +1861,7 @@ function startLessonTimer() {
 
 // 發送階段轉場指令。trigger:
 //   opening  = 課程開場（無前文）
-//   graceful = 學生剛說完話，AI 回應時順勢收尾並轉場（最自然）
+//   after-feedback = 已完成至少兩個學生↔AI回合，以全新的老師回合轉場
 //   timeout  = 掛起逾時，強制轉場
 //   manual   = 測試用 Next 按鈕
 function sendStageTransition(trigger) {
@@ -1843,13 +1873,13 @@ function sendStageTransition(trigger) {
     let instruction;
     if (trigger === 'opening') {
         instruction = stage.prompt;
-    } else if (trigger === 'graceful') {
-        instruction = "Time to move to the next stage. First reply briefly to what the student just said, wrap up the current topic in ONE sentence, then CLEARLY announce the shift to the student in simple Traditional Chinese (e.g. 「好～接下來我們要來複習囉！」) so they know a new part of the lesson is starting. Then begin the next stage: " + stage.prompt;
     } else {
-        instruction = "Time to move to the next stage. Wrap up the current topic in ONE natural sentence, then CLEARLY announce the shift to the student in simple Traditional Chinese (e.g. 「好～接下來我們要來複習囉！」) so they know a new part of the lesson is starting. Then begin the next stage: " + stage.prompt;
+        instruction = "Start a NEW, separate teacher turn for the stage change. The student's previous answer has already been fully handled in an earlier turn. " +
+            "Do not reply to or revisit the student's previous answer, do not give another correction, and do not ask them to repeat it again. " +
+            "CLEARLY announce the shift in simple Traditional Chinese (e.g. 「好～接下來我們要來複習囉！」), then begin the next stage with at most ONE short question and WAIT: " + stage.prompt;
     }
 
-    const label = { opening: '開場', graceful: '自然切換', timeout: '逾時強制', manual: '手動 Next' }[trigger] || trigger;
+    const label = { opening: '開場', 'after-feedback': '完成練習後切換', timeout: '逾時強制', manual: '手動 Next' }[trigger] || trigger;
     logSystem(`🎬 導演指令（${label}）→ ${stage.name}`);
     const noteText = DIRECTOR_PREFIX + instruction + "]";
     webSocket.send(JSON.stringify({
@@ -1858,6 +1888,7 @@ function sendStageTransition(trigger) {
     pendingDirectorNote = noteText; // AI 開始回應時清除；若回應前斷線，重連後重送
     currentStageIndex++;
     stagePendingSince = null;
+    stageTransitionGate.consume();
 }
 
 // ---------------- 麥克風取得（Android 喇叭關鍵） ----------------
@@ -2017,6 +2048,9 @@ function stopSession() {
     actionBtn.textContent = '開始連線'; actionBtn.disabled = false;
     isTalking = false;
     stagePendingSince = null;
+    stageTransitionGate.consume();
+    activeAiResponseStudentGeneration = null;
+    currentAiTurnTranscript = "";
     talkBtn.disabled = true;
     nextStageBtn.disabled = true;
     talkBtn.classList.remove('talking');

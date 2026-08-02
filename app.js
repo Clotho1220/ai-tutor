@@ -1538,7 +1538,7 @@ function sendSetupMessage(socket, socketToken) {
             tools: (LESSON && LESSON.mode === 'news' ? [{ googleSearch: {} }] : []).concat([{
                 functionDeclarations: [{
                     name: "show_image",
-                    description: "Show the student an educational illustration of a concrete noun. Call this every time you mention or teach a visual, concrete noun (e.g. 'apple', 'UFO', 'elephant'). Call it BEFORE or WHILE you talk about the noun.",
+                    description: "Show the student an educational illustration of a concrete noun. Call this every time you mention or teach a visual, concrete noun (e.g. 'apple', 'UFO', 'elephant'). Call it BEFORE or WHILE you talk about the noun. When teaching vocabulary, include the exact vocabulary word in the keyword and keep the description short.",
                     parameters: {
                         type: "OBJECT",
                         properties: {

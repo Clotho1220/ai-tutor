@@ -84,6 +84,32 @@
     duplicateNew.succeed();
     check('duplicate same-word request cancels the older request', duplicateStatuses.includes('cancelled') && image.getAttribute('src') === '/eraser-new.png');
 
+    controller.reset();
+    controller.showWord('pencil (noun)', '\u925b\u7b46', 'This is a pencil.');
+    controller.showImage('/pencil-scene.png', 'a red pencil on a desk');
+    const describedPencil = FakeImage.instances.at(-1);
+    describedPencil.succeed();
+    check('a detailed image prompt stays paired with its core vocabulary word',
+        word.textContent === 'pencil (noun)' && meaning.textContent === '\u925b\u7b46' &&
+        image.getAttribute('src') === '/pencil-scene.png' && image.style.display === 'block');
+
+    controller.reset();
+    const notebookStatuses = [];
+    controller.showImage('/notebook-scene.png', 'an open notebook on a desk', { onStatus: value => notebookStatuses.push(value) });
+    const describedNotebook = FakeImage.instances.at(-1);
+    controller.showWord('notebook (noun)', '\u7b46\u8a18\u672c', 'This is my notebook.');
+    describedNotebook.succeed();
+    check('vocabulary details arriving after a related image do not cancel it',
+        !notebookStatuses.includes('cancelled') && word.textContent === 'notebook (noun)' &&
+        image.getAttribute('src') === '/notebook-scene.png');
+
+    controller.showImage('/pen.png', 'pen');
+    const penRequest = FakeImage.instances.at(-1);
+    controller.showWord('pencil', '\u925b\u7b46', 'This is a pencil.');
+    penRequest.succeed();
+    check('whole-word matching does not confuse pen with pencil',
+        image.style.display === 'none' && word.textContent === 'pencil');
+
     controller.showImage('/slow.png', 'slow picture');
     const slowRequest = FakeImage.instances.at(-1);
     runPendingTimers();

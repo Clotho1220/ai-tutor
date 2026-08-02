@@ -41,6 +41,32 @@
                 .trim();
         }
 
+        const SUBJECT_FILLER_WORDS = new Set([
+            "a", "an", "the", "on", "in", "at", "of", "with", "and", "or", "for", "to",
+            "near", "beside", "inside", "outside", "simple", "educational", "illustration",
+            "picture", "cartoon", "white", "background"
+        ]);
+
+        function subjectTokens(value) {
+            return normalize(value).split(" ").filter(token => token && !SUBJECT_FILLER_WORDS.has(token));
+        }
+
+        // 圖片提示通常比課本單字更長，例如「a red pencil on a desk」與
+        // 「pencil (noun)」。只要較短一方的核心詞完整出現在另一方，就視為
+        // 同一個教學內容；使用單字邊界可避免 pen 誤配 pencil。
+        function sameSubject(left, right) {
+            const leftKey = normalize(left);
+            const rightKey = normalize(right);
+            if (!leftKey || !rightKey) return false;
+            if (leftKey === rightKey) return true;
+            const leftTokens = subjectTokens(leftKey);
+            const rightTokens = subjectTokens(rightKey);
+            if (!leftTokens.length || !rightTokens.length) return false;
+            const shorter = leftTokens.length <= rightTokens.length ? leftTokens : rightTokens;
+            const longer = new Set(leftTokens.length <= rightTokens.length ? rightTokens : leftTokens);
+            return shorter.every(token => longer.has(token));
+        }
+
         function notify(callbacks, status, detail) {
             if (callbacks && typeof callbacks.onStatus === 'function') {
                 callbacks.onStatus(status, detail || {});
@@ -142,6 +168,11 @@
         function showWord(word, meaning, example) {
             const key = normalize(word);
             if (word) hideTopics();
+            if (key && state.wordKey && sameSubject(key, state.wordKey)) {
+                // log_vocabulary 與 show_image 的字串不必完全相同；保留同題材的載入中圖片。
+                setWordText(word, meaning, example, true);
+                return state.contentVersion;
+            }
             if (key && key !== state.wordKey) {
                 state.contentVersion += 1;
                 state.wordKey = key;
@@ -165,12 +196,13 @@
             const key = normalize(keyword);
             hideTopics();
 
-            if (key && key !== state.wordKey) {
+            const matchesCurrentWord = key && state.wordKey && sameSubject(key, state.wordKey);
+            if (key && key !== state.wordKey && !matchesCurrentWord) {
                 state.contentVersion += 1;
                 state.wordKey = key;
                 invalidateImage('✨', "");
                 setWordText(keyword, "", "", false);
-            } else if (keyword && elements.word) {
+            } else if (keyword && elements.word && !matchesCurrentWord) {
                 elements.word.textContent = keyword;
             }
 
@@ -187,7 +219,7 @@
             function isCurrent() {
                 return requestId === state.imageRequest &&
                     contentVersion === state.contentVersion &&
-                    key === state.wordKey && key === state.imageWordKey;
+                    sameSubject(key, state.wordKey) && key === state.imageWordKey;
             }
 
             function load(candidateUrl, attempt) {

@@ -1,7 +1,7 @@
 <!DOCTYPE html><html lang="zh-TW"><head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com https://script.google.com https://script.googleusercontent.com https://image.pollinations.ai; img-src 'self' data: https:; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' blob:; style-src 'self' 'unsafe-inline'; connect-src 'self' https://generativelanguage.googleapis.com wss://generativelanguage.googleapis.com https://api.openai.com https://script.google.com https://script.googleusercontent.com https://image.pollinations.ai; img-src 'self' data: https:; media-src 'self' blob:; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'">
     <title>AI Tutor - 開發者除錯面板</title>
     <!-- PWA：手機瀏覽器選「加到主畫面」後，會以全螢幕 App 的樣子啟動 -->
     <link rel="manifest" href="manifest.json">
@@ -145,6 +145,12 @@
     <div id="settingsScreen">
         <button id="closeSettingsBtn">← 返回</button>
         <div class="settings-row">
+            <label class="field">語言模型
+                <select id="providerSelect">
+                    <option value="gemini">Gemini Live 3.1（目前使用）</option>
+                    <option value="openai">GPT Realtime（測試）</option>
+                </select>
+            </label>
             <label class="field">Gemini API Key
                 <input type="password" id="apiKeyInput" placeholder="貼上你的 API Key" style="background:#3c3c3c; color:#fff; border:1px solid #555; padding:6px 10px; border-radius:4px; width:190px;">
             </label>
@@ -159,6 +165,9 @@
             </label>
             <label class="field">AI 聲音（記在目前人員身上）
                 <select id="voiceSelect"><option value="Aoede">Aoede</option><option value="Kore">Kore</option><option value="Puck">Puck</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option></select>
+            </label>
+            <label class="field" id="openaiVoiceField" hidden>GPT 聲音
+                <select id="openaiVoiceSelect"><option value="marin">Marin</option><option value="cedar">Cedar</option><option value="coral">Coral</option><option value="sage">Sage</option><option value="verse">Verse</option></select>
             </label>
             <label class="field">上第幾天
                 <select id="daySelect" title="自動＝依日期推進，同一天重複開課上同一天">
@@ -278,5 +287,6 @@
     <script src="practice-observer.js?v=20260802i"></script>
     <script src="session-diagnostics.js?v=20260802h"></script>
     <script src="lesson-ending.js?v=20260802i"></script>
-    <script src="app.js?v=20260802i"></script>
+    <script src="openai-realtime.js?v=20260802j"></script>
+    <script src="app.js?v=20260802j"></script>
 </body></html>

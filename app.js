@@ -109,8 +109,39 @@ const userSpeechBox = document.getElementById('userSpeechBox');
 const generatedImage = document.getElementById('generatedImage');
 const imageCaption = document.getElementById('imageCaption');
 const voiceSelect = document.getElementById('voiceSelect');
+const providerSelect = document.getElementById('providerSelect');
+const openaiVoiceSelect = document.getElementById('openaiVoiceSelect');
 const talkBtn = document.getElementById('talkBtn');
 const nextStageBtn = document.getElementById('nextStageBtn');
+const openaiRealtime = window.OpenAIRealtime ? window.OpenAIRealtime.create() : null;
+let openaiSessionActive = false;
+let openaiAiTranscriptStarted = false;
+
+function selectedProvider() {
+    return providerSelect && providerSelect.value === 'openai' ? 'openai' : 'gemini';
+}
+
+(function initProviderPicker() {
+    if (!providerSelect) return;
+    providerSelect.value = localStorage.getItem('ai_provider') === 'openai' ? 'openai' : 'gemini';
+    if (openaiVoiceSelect) openaiVoiceSelect.value = localStorage.getItem('openai_voice') || 'marin';
+    const refresh = () => {
+        const useOpenAI = selectedProvider() === 'openai';
+        const field = document.getElementById('openaiVoiceField');
+        if (field) field.hidden = !useOpenAI;
+        if (voiceSelect && voiceSelect.parentElement) voiceSelect.parentElement.hidden = useOpenAI;
+        if (document.getElementById('modelSelect') && document.getElementById('modelSelect').parentElement) {
+            document.getElementById('modelSelect').parentElement.hidden = useOpenAI;
+        }
+        if (apiKeyInput && apiKeyInput.parentElement) apiKeyInput.parentElement.hidden = useOpenAI;
+    };
+    providerSelect.addEventListener('change', () => {
+        localStorage.setItem('ai_provider', providerSelect.value);
+        refresh();
+    });
+    if (openaiVoiceSelect) openaiVoiceSelect.addEventListener('change', () => localStorage.setItem('openai_voice', openaiVoiceSelect.value));
+    refresh();
+})();
 
 // 測試用：手動跳到下一階段
 nextStageBtn.addEventListener('click', () => sendStageTransition('manual'));
@@ -119,6 +150,23 @@ nextStageBtn.addEventListener('click', () => sendStageTransition('manual'));
 // 按一下開始說話（開始上傳麥克風 + 通知伺服器 activityStart），
 // 再按一下結束（通知 activityEnd，AI 隨即回應）。
 talkBtn.addEventListener('click', () => {
+    if (openaiSessionActive) {
+        if (!isTalking) {
+            if (!openaiRealtime || !openaiRealtime.startTalking()) return;
+            stopAllPlayback();
+            currentUserTurnTranscript = "";
+            isTalking = true;
+            talkBtn.classList.add('talking');
+            talkBtn.textContent = '🔴 說完了，按一下送出';
+        } else {
+            openaiRealtime.stopTalking();
+            isTalking = false;
+            studentTurnGeneration += 1;
+            talkBtn.classList.remove('talking');
+            talkBtn.textContent = '🎙️ 按一下開始說話';
+        }
+        return;
+    }
     if (!isTalking) {
         // 開始說話需要活著的連線（重連中請稍等 1-2 秒）
         if (!webSocket || webSocket.readyState !== WebSocket.OPEN) return;
@@ -1133,7 +1181,13 @@ function logSystem(msg) {
 // ---------------- 連線控制 ----------------
 
 actionBtn.addEventListener('click', async () => {
-    if (!GAS_URL && !readApiKey()) { alert("請先在左上角欄位填入 Gemini API Key！"); apiKeyInput.focus(); return; }
+    if (selectedProvider() === 'openai') {
+        if (!syncConfigured()) { alert("GPT 測試需要先在設定中填入 Apps Script 同步網址。"); return; }
+        if (!openaiSessionActive) await startOpenAISession();
+        else { userStopped = true; stopSession("user"); }
+        return;
+    }
+    if (!GAS_URL && !readApiKey()) { alert("請先在設定中填入 Gemini API Key！"); apiKeyInput.focus(); return; }
     if (!webSocket && !micStream) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!audioContext) audioContext = new AC({ sampleRate: 16000 });        // 上行：麥克風
@@ -1146,6 +1200,101 @@ actionBtn.addEventListener('click', async () => {
         stopSession("user");
     }
 });
+
+async function startOpenAISession() {
+    if (!openaiRealtime) { alert("GPT Realtime 模組沒有載入，請重新整理頁面後再試。"); return; }
+    const tokenEndpoint = (localStorage.getItem(SYNC_URL_KEY) || "").trim();
+    const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
+    const selectedPerson = currentPerson();
+    sessionDiagnostics.start({
+        appVersion: "20260802j-gpt-test",
+        provider: "openai",
+        person: currentPersonName(),
+        learnerType: selectedPerson.adult ? "adult" : "child",
+        level: selectedPerson.level,
+        mode: currentMode(),
+        model: "gpt-realtime",
+        voice: openaiVoiceSelect ? openaiVoiceSelect.value : "marin",
+        audioMode: selectedAudioMode,
+        userAgent: navigator.userAgent
+    });
+    studentView.reset();
+    document.body.classList.add('student-mode');
+    statusBadge.textContent = 'GPT 連線中...';
+    statusBadge.style.background = '#0e639c';
+    statusBadge.style.color = '#fff';
+    actionBtn.textContent = 'GPT 連線中...';
+    actionBtn.disabled = true;
+    talkBtn.disabled = true;
+    clearNode(aiSpeechBox);
+    if (userSpeechBox) setText(userSpeechBox, '等待語音輸入...');
+    userStopped = false;
+    isTalking = false;
+    studentTurnGeneration = 0;
+    openaiAiTranscriptStarted = false;
+    openaiSessionActive = true;
+
+    try {
+        LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
+        prefetchLessonImages(LESSON);
+        teachingFlow = buildTeachingFlow(LESSON);
+        currentStageIndex = 0;
+        elapsedTime = 0;
+        const instructions = buildSystemInstruction(LESSON || DEFAULT_LESSON) +
+            " You are running in push-to-talk mode. Give exactly one short response at a time. " +
+            "If you teach or correct a sentence and ask the student to repeat it, STOP immediately and wait. " +
+            "Do not continue to the next question in that same response.";
+        await openaiRealtime.connect({
+            tokenEndpoint,
+            syncSecret: localStorage.getItem(SYNC_SECRET_KEY) || "",
+            learnerId: currentPersonName(),
+            model: "gpt-realtime",
+            voice: openaiVoiceSelect ? openaiVoiceSelect.value : "marin",
+            instructions,
+            onState(detail) {
+                sessionDiagnostics.record("openai_state", { state: detail.state });
+            },
+            onTranscript(detail) {
+                if (detail.role === 'student') {
+                    currentUserTurnTranscript = detail.final ? detail.text : currentUserTurnTranscript + detail.text;
+                    if (userSpeechBox) setText(userSpeechBox, detail.final ? detail.text : currentUserTurnTranscript);
+                    return;
+                }
+                if (!openaiAiTranscriptStarted) {
+                    studentView.beginTranscriptTurn();
+                    openaiAiTranscriptStarted = true;
+                }
+                if (detail.text && !detail.final) studentView.appendTranscript(detail.text);
+                if (detail.final) {
+                    currentAiTurnTranscript = detail.text || studentView.transcriptText();
+                    openaiAiTranscriptStarted = false;
+                }
+            },
+            onTurnComplete() {
+                openaiAiTranscriptStarted = false;
+                sessionDiagnostics.record("openai_turn_complete", { studentTurn: studentTurnGeneration });
+            },
+            onError(error) {
+                sessionDiagnostics.record("openai_error", { message: error.message });
+                logSystem(`<span style="color:#ff4444;">GPT 錯誤：${error.message}</span>`);
+            }
+        });
+        statusBadge.textContent = '🟢 GPT 已連線';
+        statusBadge.style.background = '#28a745';
+        actionBtn.textContent = '結束連線';
+        actionBtn.disabled = false;
+        talkBtn.disabled = false;
+        talkBtn.textContent = '🎙️ 按一下開始說話';
+        nextStageBtn.disabled = false;
+        startLessonTimer();
+        openaiRealtime.sendText("Begin today's lesson now with one short, friendly opening. Ask only one question, then wait.", true);
+    } catch (err) {
+        sessionDiagnostics.record("startup_failed", { provider: "openai", message: err.message });
+        logSystem(`<span style="color:#ff4444;">GPT 啟動失敗：${err.message}</span>`);
+        alert("GPT 連線失敗：" + err.message + "\n\n你可以先切回 Gemini 繼續使用。");
+        stopSession("openai_startup_error");
+    }
+}
 
 async function startSession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
@@ -2074,7 +2223,8 @@ function showImage(keyword) {
 function startLessonTimer() {
     if (lessonTimer) clearInterval(lessonTimer);
     lessonTimer = setInterval(() => {
-        if (!webSocket || webSocket.readyState !== WebSocket.OPEN) { clearInterval(lessonTimer); return; }
+        const connectionReady = openaiSessionActive || (webSocket && webSocket.readyState === WebSocket.OPEN);
+        if (!connectionReady) { clearInterval(lessonTimer); return; }
         if (currentStageIndex < teachingFlow.length) {
             const stage = teachingFlow[currentStageIndex];
             // 時間到：先「掛起」，不打斷當下對話
@@ -2107,7 +2257,8 @@ function startLessonTimer() {
 //   timeout  = 掛起逾時，強制轉場
 //   manual   = 測試用 Next 按鈕
 function sendStageTransition(trigger) {
-    if (!webSocket || webSocket.readyState !== WebSocket.OPEN) return;
+    const useOpenAI = openaiSessionActive && openaiRealtime;
+    if (!useOpenAI && (!webSocket || webSocket.readyState !== WebSocket.OPEN)) return;
     if (currentStageIndex >= teachingFlow.length) { logSystem("已是最後一個階段。"); return; }
     const stage = teachingFlow[currentStageIndex];
     lessonEndingGuard.enterStage(currentStageIndex === teachingFlow.length - 1);
@@ -2132,9 +2283,13 @@ function sendStageTransition(trigger) {
     });
     logSystem(`🎬 導演指令（${label}）→ ${stage.name}`);
     const noteText = DIRECTOR_PREFIX + instruction + "]";
-    webSocket.send(JSON.stringify({
-        clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
-    }));
+    if (useOpenAI) {
+        openaiRealtime.sendText(noteText, true);
+    } else {
+        webSocket.send(JSON.stringify({
+            clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
+        }));
+    }
     pendingDirectorNote = noteText; // AI 開始回應時清除；若回應前斷線，重連後重送
     currentStageIndex++;
     stagePendingSince = null;
@@ -2279,7 +2434,7 @@ function stopAllPlayback() {
 
 function stopSession(reason) {
     const endReason = reason || "stopped";
-    if (!webSocket && !micStream && !audioContext && !liveSession.isActive()) {
+    if (!webSocket && !micStream && !audioContext && !liveSession.isActive() && !openaiSessionActive) {
         if (sessionDiagnostics.inspect().active) {
             sessionDiagnostics.finish(endReason);
             refreshDiagnosticsStatus();
@@ -2293,6 +2448,8 @@ function stopSession(reason) {
     });
     const socketToClose = liveSession.stop(); // 先讓所有遲到事件失效，再關閉實體 socket
     webSocket = null;
+    if (openaiRealtime) openaiRealtime.close();
+    openaiSessionActive = false;
     document.body.classList.remove('student-mode'); // 下課回到老師畫面
     if (lessonTimer) clearInterval(lessonTimer);
     if (lessonFinishTimer) clearTimeout(lessonFinishTimer);

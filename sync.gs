@@ -27,10 +27,47 @@ function doPost(e) {
 
     if (req.action === 'pull') return json({ ok: true, data: readAll_() });
     if (req.action === 'push') return json({ ok: true, data: merge_(req.data || {}) });
+    if (req.action === 'openaiClientSecret') return json({ ok: true, data: openaiClientSecret_(req.data || {}) });
     return json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return json({ ok: false, error: String(err) });
   }
+}
+
+// ---------- OpenAI Realtime 短效憑證 ----------
+// 正式 API Key 只放在 Apps Script「指令碼屬性」的 OPENAI_API_KEY，絕不傳到網頁。
+function openaiClientSecret_(input) {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
+  if (!apiKey) throw new Error('尚未在指令碼屬性設定 OPENAI_API_KEY');
+
+  const allowedModels = ['gpt-realtime', 'gpt-realtime-mini'];
+  const allowedVoices = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse', 'marin', 'cedar'];
+  const model = allowedModels.indexOf(String(input.model || '')) >= 0 ? String(input.model) : 'gpt-realtime';
+  const voice = allowedVoices.indexOf(String(input.voice || '')) >= 0 ? String(input.voice) : 'marin';
+  const learner = String(input.learnerId || 'family-learner').slice(0, 100);
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, SECRET + '|' + learner);
+  const safetyId = digest.map(function(byte) { return ('0' + ((byte + 256) % 256).toString(16)).slice(-2); }).join('');
+
+  const response = UrlFetchApp.fetch('https://api.openai.com/v1/realtime/client_secrets', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: {
+      Authorization: 'Bearer ' + apiKey,
+      'OpenAI-Safety-Identifier': safetyId
+    },
+    payload: JSON.stringify({
+      session: {
+        type: 'realtime',
+        model: model,
+        audio: { output: { voice: voice } }
+      }
+    }),
+    muteHttpExceptions: true
+  });
+  const status = response.getResponseCode();
+  const body = response.getContentText();
+  if (status < 200 || status >= 300) throw new Error('OpenAI 憑證請求失敗 (' + status + '): ' + body.slice(0, 300));
+  return JSON.parse(body);
 }
 
 // 方便你用瀏覽器打開網址確認部署成功

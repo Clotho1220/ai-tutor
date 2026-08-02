@@ -1250,6 +1250,7 @@ async function startOpenAISession() {
             learnerId: currentPersonName(),
             model: "gpt-realtime",
             voice: openaiVoiceSelect ? openaiVoiceSelect.value : "marin",
+            audioMode: selectedAudioMode,
             instructions,
             onState(detail) {
                 sessionDiagnostics.record("openai_state", { state: detail.state });
@@ -1287,7 +1288,6 @@ async function startOpenAISession() {
         talkBtn.textContent = '🎙️ 按一下開始說話';
         nextStageBtn.disabled = false;
         startLessonTimer();
-        openaiRealtime.sendText("Begin today's lesson now with one short, friendly opening. Ask only one question, then wait.", true);
     } catch (err) {
         sessionDiagnostics.record("startup_failed", { provider: "openai", message: err.message });
         logSystem(`<span style="color:#ff4444;">GPT 啟動失敗：${err.message}</span>`);

@@ -11,6 +11,9 @@
         let stream = null;
         let track = null;
         let audioElement = null;
+        let outputContext = null;
+        let outputSource = null;
+        let outputDestination = null;
         let active = false;
         let talking = false;
         let handlers = {};
@@ -93,14 +96,28 @@
 
             audioElement = new AudioCtor();
             audioElement.autoplay = true;
+            audioElement.setAttribute && audioElement.setAttribute("playsinline", "");
             peer.addEventListener("track", event => {
-                audioElement.srcObject = event.streams[0];
+                const remoteStream = event.streams[0];
+                if (settings.audioMode === "speaker" && (global.AudioContext || global.webkitAudioContext)) {
+                    const AudioContextCtor = global.AudioContext || global.webkitAudioContext;
+                    outputContext = new AudioContextCtor();
+                    outputSource = outputContext.createMediaStreamSource(remoteStream);
+                    outputDestination = outputContext.createMediaStreamDestination();
+                    outputSource.connect(outputDestination);
+                    audioElement.srcObject = outputDestination.stream;
+                    if (outputContext.state === "suspended") outputContext.resume().catch(() => {});
+                } else {
+                    audioElement.srcObject = remoteStream;
+                }
                 const playResult = audioElement.play && audioElement.play();
                 if (playResult && typeof playResult.catch === "function") playResult.catch(() => {});
             });
 
             stream = await global.navigator.mediaDevices.getUserMedia({
-                audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
+                audio: settings.audioMode === "speaker"
+                    ? { echoCancellation: false, noiseSuppression: true, autoGainControl: true }
+                    : { echoCancellation: true, noiseSuppression: true, autoGainControl: true }
             });
             track = stream.getAudioTracks()[0];
             if (!track) throw new Error("找不到麥克風音軌");
@@ -192,7 +209,10 @@
                 try { audioElement.pause(); } catch (error) {}
                 audioElement.srcObject = null;
             }
+            if (outputSource) try { outputSource.disconnect(); } catch (error) {}
+            if (outputContext) try { outputContext.close(); } catch (error) {}
             peer = null; channel = null; stream = null; track = null; audioElement = null;
+            outputContext = null; outputSource = null; outputDestination = null;
             emit("onState", { state: "closed" });
         }
 

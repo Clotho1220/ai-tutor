@@ -220,6 +220,17 @@
         </div>
         <div id="syncStatus" style="margin-top:8px; font-size:13px; color:#aaa;"></div>
     </details>
+    <details id="diagnosticsPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
+        <summary style="cursor:pointer; font-weight:bold; color:#f39c12;">🩺 課堂診斷紀錄</summary>
+        <div style="margin-top:10px; font-size:13px; color:#aaa; line-height:1.6;">
+            保存最近 3 堂的階段、延遲、圖片狀態、斷線重連與文字逐字稿，方便找出偶發問題。只保存文字診斷，不保存聲音、API Key、憑證或同步密語。
+        </div>
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
+            <button id="exportDiagnosticsBtn">⬇️ 匯出最近診斷</button>
+            <button id="clearDiagnosticsBtn" style="background:#8b3a3a;">🗑️ 清除診斷</button>
+        </div>
+        <div id="diagnosticsStatus" style="margin-top:8px; font-size:13px; color:#aaa;"></div>
+    </details>
     <details id="vocabPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#4af626;">📚 學習紀錄（每位人員各自記錄，AI 會記得）</summary>
         <div id="vocabSummary" style="margin-top:10px; font-size:13px; color:#aaa;"></div>
@@ -265,5 +276,6 @@
     <script src="learning-records.js?v=20260802d"></script>
     <script src="stage-transition.js?v=20260802e"></script>
     <script src="practice-observer.js?v=20260802f"></script>
-    <script src="app.js?v=20260802g"></script>
+    <script src="session-diagnostics.js?v=20260802h"></script>
+    <script src="app.js?v=20260802h"></script>
 </body></html>

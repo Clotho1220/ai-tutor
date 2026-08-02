@@ -34,6 +34,8 @@ if (!window.SafeDOM) throw new Error("dom-utils.js 未載入");
 const { clear: clearNode, text: setText, appendText, element: makeElement, legacyMarkupToText } = window.SafeDOM;
 if (!window.StudentView) throw new Error("student-view.js 未載入");
 const studentView = window.StudentView.create({ timeoutMs: 5000 });
+if (!window.LiveSession) throw new Error("live-session.js 未載入");
+const liveSession = window.LiveSession.create({ maxReconnects: 3 });
 
 // PWA 安裝所需。放在外部腳本中，讓 CSP 可以禁止 inline JavaScript。
 if ('serviceWorker' in navigator) {
@@ -71,7 +73,6 @@ let pendingDirectorNote = null; // 已送出但 AI 尚未回應的導演指令�
 
 let userStopped = false;       // 使用者主動按「結束連線」（區別於意外斷線）
 let resumeHandle = null;       // Live API session resumption 握把，重連時恢復對話記憶
-let reconnectAttempts = 0;     // 意外斷線後的重連次數
 let turnChunks = [];           // 當前這句話的音訊暫存（斷線重連後整句重送用）
 let needsReplay = false;       // 重連後是否需要重送暫存的語音
 let lastReplayTime = 0;        // 上次重送的時間（保險絲：重送後立刻又斷線就放棄，避免迴圈）
@@ -1052,7 +1053,7 @@ async function startSession() {
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
     aiTurnActive = false; dropStaleAudio = false;
-    userStopped = false; resumeHandle = null; reconnectAttempts = 0;
+    userStopped = false; resumeHandle = null; liveSession.start();
     isNewAiTurn = true; isNewUserTurn = true;
     clearNode(aiSpeechBox);
     if (userSpeechBox) setText(userSpeechBox, '等待語音輸入...');
@@ -1283,21 +1284,31 @@ function logVocabToSheet(word, meaning, example) {
 // 建立（或重建）WebSocket 連線。isReconnect = true 表示意外斷線後的自動重連，
 // 會保留麥克風、AudioWorklet、課程進度，並用 resumeHandle 恢復 AI 的對話記憶。
 function connectWebSocket(isReconnect) {
+    if (!liveSession.isActive() || userStopped) return;
     // 臨時憑證走 v1alpha 端點（access_token 參數）；API Key 走原本的 v1beta 端點
     const url = currentToken
         ? `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${currentToken}`
         : `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${GEMINI_API_KEY}`;
-    webSocket = new WebSocket(url);
+    const socket = new WebSocket(url);
+    const socketToken = liveSession.adopt(socket);
+    if (!socketToken) {
+        try { socket.close(); } catch (e) {}
+        return;
+    }
+    webSocket = socket;
+    stopAllPlayback(); // 新連線不得接續播放上一條連線已排程的聲音
 
-    webSocket.onopen = () => {
+    socket.onopen = () => {
+        if (!liveSession.isCurrent(socket, socketToken)) return;
         statusBadge.textContent = '🟢 已連線'; statusBadge.style.background = '#28a745';
         actionBtn.textContent = '結束連線'; actionBtn.disabled = false;
         talkBtn.disabled = false;
+        if (!isTalking) talkBtn.textContent = '🎙️ 按一下開始說話';
         nextStageBtn.disabled = false;
         // 注意：重連次數不在這裡歸零。連線握手成功不代表設定被接受——
         // 若模型無效，伺服器會在 setup 後立刻踢斷，在這歸零會造成無限重連迴圈。
         // 歸零改在收到 setupComplete（伺服器真正接受設定）時。
-        sendSetupMessage();
+        sendSetupMessage(socket, socketToken);
         startLessonTimer();
         if (isReconnect) {
             logSystem(resumeHandle
@@ -1306,18 +1317,31 @@ function connectWebSocket(isReconnect) {
         }
     };
 
-    webSocket.onmessage = async (event) => {
+    socket.onmessage = async (event) => {
+        if (!liveSession.isCurrent(socket, socketToken)) return;
         try {
             let textData = event.data;
             if (event.data instanceof Blob) textData = await event.data.text();
+            if (!liveSession.isCurrent(socket, socketToken)) return;
             const response = JSON.parse(textData);
-            handleServerMessage(response);
+            handleServerMessage(response, socket, socketToken);
         } catch (err) {
-            logSystem(`<span style="color:#ff4444;">訊息解析失敗: ${err.message}</span>`);
+            if (liveSession.isCurrent(socket, socketToken)) {
+                logSystem(`<span style="color:#ff4444;">訊息解析失敗: ${err.message}</span>`);
+            }
         }
     };
 
-    webSocket.onclose = (e) => {
+    socket.onclose = (e) => {
+        // 舊 socket 的 close 可能在新 socket 建立後才抵達；絕不能清掉新連線或再排一條重連。
+        if (!liveSession.release(socket, socketToken)) return;
+        if (webSocket === socket) webSocket = null;
+        stopAllPlayback();
+        nextStageBtn.disabled = true;
+        if (!isTalking) {
+            talkBtn.disabled = true;
+            talkBtn.textContent = '🔄 正在重連...';
+        }
         logSystem(`<span style="color:#ff8800;">WebSocket 關閉 (code=${e.code}${e.reason ? ', reason=' + e.reason : ''})</span>`);
         if (userStopped) { stopSession(); return; }
         // 額度／計費類：重連一萬次也沒用，直接停下並說清楚該去哪處理
@@ -1353,18 +1377,18 @@ function connectWebSocket(isReconnect) {
             // 不重置 isTalking，使用者可以繼續講，音訊會進暫存不會漏字
             needsReplay = true;
         }
-        if (reconnectAttempts < 3) {
-            reconnectAttempts++;
+        const reconnectAttempt = liveSession.scheduleReconnect(() => connectWebSocket(true), 800);
+        if (reconnectAttempt != null) {
             statusBadge.textContent = '🔄 重連中...'; statusBadge.style.background = '#b8860b';
-            logSystem(`🔄 無預警斷線，自動重連 ${reconnectAttempts}/3 ...`);
-            setTimeout(() => connectWebSocket(true), 800);
+            logSystem(`🔄 無預警斷線，自動重連 ${reconnectAttempt}/3 ...`);
         } else {
             logSystem("❌ 多次重連失敗，結束連線。");
             stopSession();
         }
     };
 
-    webSocket.onerror = () => {
+    socket.onerror = () => {
+        if (!liveSession.isCurrent(socket, socketToken)) return;
         logSystem('<span style="color:#ff4444;">WebSocket 發生錯誤</span>');
     };
 }
@@ -1375,7 +1399,8 @@ function connectWebSocket(isReconnect) {
 
 // ---------------- Setup 訊息（含工具宣告與逐字稿） ----------------
 
-function sendSetupMessage() {
+function sendSetupMessage(socket, socketToken) {
+    if (!liveSession.isCurrent(socket, socketToken) || socket.readyState !== WebSocket.OPEN) return;
     const selectedModel = document.getElementById('modelSelect').value;
     const generationConfig = {
         responseModalities: ["AUDIO"],
@@ -1452,7 +1477,7 @@ function sendSetupMessage() {
             }
         }
     };
-    webSocket.send(JSON.stringify(setup));
+    socket.send(JSON.stringify(setup));
     logSystem(`Setup 已送出（模型: ${selectedModel.split('/').pop()}）。`);
 }
 
@@ -1460,7 +1485,7 @@ function sendSetupMessage() {
 
 // 圖片工具回應會等到「圖片完成」或「等待逾時」才送回模型。
 // 這會讓 AI 在教下一個單字前留出真正的看圖時間，而不是一收到網址就繼續講。
-async function respondToToolCalls(functionCalls) {
+async function respondToToolCalls(functionCalls, sourceSocket, socketToken) {
     const functionResponses = await Promise.all(functionCalls.map(async fc => {
         if (fc.name === "show_image") {
             const keyword = (fc.args && fc.args.keyword) ? fc.args.keyword : "picture";
@@ -1499,29 +1524,30 @@ async function respondToToolCalls(functionCalls) {
         };
     }));
 
-    if (functionResponses.length > 0 && webSocket && webSocket.readyState === WebSocket.OPEN) {
-        webSocket.send(JSON.stringify({ toolResponse: { functionResponses } }));
+    if (functionResponses.length > 0 && liveSession.isCurrent(sourceSocket, socketToken) && sourceSocket.readyState === WebSocket.OPEN) {
+        sourceSocket.send(JSON.stringify({ toolResponse: { functionResponses } }));
     } else if (functionResponses.length > 0) {
         logSystem("⚠️ 工具已完成，但連線已中斷；恢復連線後由 AI 重新確認畫面內容。");
     }
 }
 
-function handleServerMessage(response) {
+function handleServerMessage(response, socket, socketToken) {
+    if (!liveSession.isCurrent(socket, socketToken)) return;
     // 0) 連線生命週期訊息
     if (response.setupComplete) {
-        reconnectAttempts = 0; // 伺服器接受設定，連線真正健康，重連次數才歸零
+        liveSession.markHealthy(socket, socketToken); // 伺服器接受設定，連線真正健康，重連次數才歸零
         // 重連完成後，重送斷線時遺失的那句話
         if (needsReplay && turnChunks.length > 0) {
             logSystem(`📤 重送剛才的語音（${turnChunks.length} 個片段，約 ${(turnChunks.length * 0.128).toFixed(1)} 秒）...`);
             lastReplayTime = Date.now();
-            webSocket.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
+            socket.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
             // 新版 realtimeInput.audio 格式（media_chunks 已被新模型如 Live 3.1 淘汰，一次一塊）
             for (const d of turnChunks) {
-                webSocket.send(JSON.stringify({ realtimeInput: { audio: { mimeType: "audio/pcm;rate=16000", data: d } } }));
+                socket.send(JSON.stringify({ realtimeInput: { audio: { mimeType: "audio/pcm;rate=16000", data: d } } }));
             }
             if (!isTalking) {
                 // 這句話已講完：補上結束訊號，AI 會立即回應
-                webSocket.send(JSON.stringify({ realtimeInput: { activityEnd: {} } }));
+                socket.send(JSON.stringify({ realtimeInput: { activityEnd: {} } }));
                 lastUserSpeechTime = performance.now();
                 waitingFirstAudio = true;
             }
@@ -1531,7 +1557,7 @@ function handleServerMessage(response) {
         // 導演指令送出後、AI 還沒回應就斷線 → 指令已遺失，重連後重送（否則新階段永遠沒有開場）
         if (pendingDirectorNote) {
             logSystem("🎬 重連後重送導演指令（上一階段轉場在斷線中遺失）。");
-            webSocket.send(JSON.stringify({
+            socket.send(JSON.stringify({
                 clientContent: { turns: [{ role: "user", parts: [{ text: pendingDirectorNote }] }], turnComplete: true }
             }));
         }
@@ -1546,7 +1572,7 @@ function handleServerMessage(response) {
 
     // 1) 工具呼叫：獨立處理，避免圖片等待阻塞同一批字幕或音訊訊息。
     if (response.toolCall && response.toolCall.functionCalls) {
-        respondToToolCalls(response.toolCall.functionCalls).catch(error => {
+        respondToToolCalls(response.toolCall.functionCalls, socket, socketToken).catch(error => {
             logSystem(`⚠️ 工具處理失敗：${error.message}`);
         });
     }
@@ -1862,17 +1888,21 @@ function stopAllPlayback() {
 // ---------------- 收尾 ----------------
 
 function stopSession() {
-    if (!webSocket && !micStream && !audioContext) return; // 已清理過，避免 onclose 重複觸發
+    if (!webSocket && !micStream && !audioContext && !liveSession.isActive()) return; // 已清理過，避免 onclose 重複觸發
+    const socketToClose = liveSession.stop(); // 先讓所有遲到事件失效，再關閉實體 socket
+    webSocket = null;
     document.body.classList.remove('student-mode'); // 下課回到老師畫面
     if (lessonTimer) clearInterval(lessonTimer);
     stopAllPlayback();
-    if (webSocket && webSocket.readyState === WebSocket.OPEN) webSocket.close();
+    if (socketToClose && (socketToClose.readyState === WebSocket.OPEN || socketToClose.readyState === WebSocket.CONNECTING)) {
+        socketToClose.close();
+    }
     if (micStream) micStream.getTracks().forEach(t => t.stop());
     if (audioWorkletNode) audioWorkletNode.disconnect();
     if (speakerEl) { speakerEl.pause(); speakerEl.srcObject = null; }
     if (audioContext) audioContext.close();
     if (playbackContext) playbackContext.close();
-    webSocket = null; micStream = null; audioWorkletNode = null; audioContext = null;
+    micStream = null; audioWorkletNode = null; audioContext = null;
     playbackContext = null; mediaDest = null; speakerEl = null; nextPlayTime = 0;
     statusBadge.textContent = '未連線'; statusBadge.style.background = '#5c4d0c'; statusBadge.style.color = '#ffcc00';
     actionBtn.textContent = '開始連線'; actionBtn.disabled = false;

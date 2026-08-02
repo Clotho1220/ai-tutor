@@ -156,6 +156,7 @@ function saveProfiles(p) {
 
 function currentPersonName() { return loadProfiles().current; }
 function currentPerson() { const p = loadProfiles(); return p.people[p.current]; }
+const learningRecords = window.LearningRecords.create({ storage: localStorage, maxPerPerson: 200 });
 
 function updateCurrentPerson(patch) {
     const p = loadProfiles();
@@ -248,7 +249,7 @@ function resolveLessonForToday(json) {
     if (!json.week || !json.week.length) return json; // 單日教案，直接用
 
     const days = json.week;
-    const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+    const today = learningRecords.today(); // 台灣日期 YYYY-MM-DD
     const progressKey = weekProgressKey(json.unit);   // 每位人員的進度各自獨立
     let chosen = null;
 
@@ -773,12 +774,12 @@ function buildSystemInstruction(lesson) {
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them SILENTLY. " +
         "Absolutely never read a director note aloud, never repeat or paraphrase one, never mention that one exists, and NEVER write or invent a director note of your own — that format belongs to the lesson system only, never to you. " +
         `Everything you say out loud must be natural speech addressed directly to the ${learner}. If you ever find yourself about to say the words 'director note', stop and just talk to the student instead. ` +
-        "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say 'show_image', 'log_vocabulary', '[System]', braces, or any code-like text out loud. " +
+        "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Whenever you model a full English sentence based on the learner's answer, call log_practice exactly once with their answer, your model sentence, and the feedback kind. Tool calls are silent actions: never say tool names, '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
         "(6) MANDATORY FEEDBACK LOOP — after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
         "first, react to WHAT they said in one short sentence; " +
-        "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it; " +
+        "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it. When you provide that model sentence, silently call log_practice before ending your turn; " +
         "third, hand the turn back with ONE question. " +
         "CRITICAL: the moment you invite them to say or repeat a sentence (e.g. 'You can say: ... Try it!'), your turn ENDS THERE — stop speaking and wait silently for their attempt. Do NOT continue with the topic, do NOT ask a different question, do NOT answer for them. Step three only happens AFTER they have tried. " +
         "NEVER skip step two, and never launch into another block of narration without completing this loop first." +
@@ -788,11 +789,20 @@ function buildSystemInstruction(lesson) {
 // 過去幾天學過的字 → 寫進 system prompt，讓 AI 跨天記得孩子的學習歷程
 function pastLearningSection() {
     const past = recentVocabForPrompt();
-    if (!past.length) return "";
-    const words = past.map(v => v.word + (v.meaning ? " (" + v.meaning + ")" : "")).join("; ");
-    return " PAST LESSONS — words this student has already learned with you on earlier days: " + words + ". " +
-        "You genuinely remember teaching these. Weave them back in naturally when they fit today's topic (a quick callback like 「你還記得 balloon 嗎？」 is great), and treat them as known vocabulary you can build on. " +
-        "Do NOT list them all out loud, do not turn the lesson into a review of them, and never mention that you were given a list.";
+    const today = learningRecords.today();
+    const practice = learningRecords.recent(currentPersonName(), 10, today);
+    if (!past.length && !practice.length) return "";
+    const sections = [];
+    if (past.length) {
+        const words = past.map(v => v.word + (v.meaning ? " (" + v.meaning + ")" : "")).join("; ");
+        sections.push("words already learned: " + words);
+    }
+    if (practice.length) {
+        const phrases = practice.map(item => `\"${item.suggestion}\"${item.focus ? " [focus: " + item.focus + "]" : ""}`).join("; ");
+        sections.push("English sentences previously modelled for this student: " + phrases);
+    }
+    return " PAST LESSONS — " + sections.join(". ") + ". " +
+        "You genuinely remember teaching these. Reuse one naturally when it fits, especially a sentence the student previously needed help with, but do not recite this history or mention that you were given a list.";
 }
 
 // ---------------- 跨手機同步（Google 試算表後端，見 sync.gs / SETUP-SYNC.md） ----------------
@@ -828,6 +838,7 @@ async function syncCall(action, data) {
 function collectLocalState() {
     const p = loadProfiles();
     const vocab = [];
+    const practice = [];
     const profiles = {};
     Object.keys(p.people).forEach(name => {
         const person = p.people[name];
@@ -840,8 +851,9 @@ function collectLocalState() {
         let list = [];
         try { list = JSON.parse(localStorage.getItem("vocab_log_v1::" + name)) || []; } catch (e) {}
         list.forEach(v => vocab.push(Object.assign({ person: name }, v)));
+        learningRecords.load(name).forEach(item => practice.push(item));
     });
-    return { vocab, profiles };
+    return { schemaVersion: 2, vocab, practice, profiles };
 }
 
 // 某位人員所有單元的「上到第幾天」進度
@@ -871,6 +883,14 @@ function applyRemoteState(remote) {
     Object.keys(byPerson).forEach(name => {
         localStorage.setItem("vocab_log_v1::" + name, JSON.stringify(byPerson[name]));
     });
+
+    // 句子練習：以穩定 id 取聯集，次數取大，舊版後端沒回 practice 時保留本機資料
+    const practiceByPerson = {};
+    (remote.practice || []).forEach(item => {
+        if (!item || !item.person) return;
+        (practiceByPerson[item.person] = practiceByPerson[item.person] || []).push(item);
+    });
+    Object.keys(practiceByPerson).forEach(name => learningRecords.merge(name, practiceByPerson[name]));
 
     // 設定與進度
     const p = loadProfiles();
@@ -975,12 +995,13 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
         }
         if (currentMode() === 'news') unitText = "時事討論（AI 找近一週新聞，給 5 個議題選）";
         const learned = loadVocabLog().length;
+        const practised = learningRecords.load(name).length;
         clearNode(summary);
         summary.appendChild(makeElement('b', { text: name, color: '#4daafc' }));
         if (p.adult) summary.appendChild(makeElement('span', { text: ' 🧑 成人模式', color: '#b07cc6' }));
         appendText(summary, `　📖 ${unitText}`);
         summary.appendChild(document.createElement('br'));
-        appendText(summary, `🈶 ${LEVEL_LABEL[p.level] || p.level}　🔊 ${p.voice}　📚 已學 ${learned} 個字`);
+        appendText(summary, `🈶 ${LEVEL_LABEL[p.level] || p.level}　🔊 ${p.voice}　📚 已學 ${learned} 個字、練過 ${practised} 句`);
     };
 
     // 切換人員：所有設定與紀錄都跟著換
@@ -1153,7 +1174,7 @@ function recordVocab(word, meaning, example) {
     word = (word || "").trim();
     if (!word) return;
     const list = loadVocabLog();
-    const today = new Date().toISOString().slice(0, 10);
+    const today = learningRecords.today();
     const unit = (LESSON && LESSON.unit) ? LESSON.unit : "";
     const key = word.toLowerCase();
     const hit = list.find(v => (v.word || "").toLowerCase() === key);
@@ -1172,9 +1193,26 @@ function recordVocab(word, meaning, example) {
     logSystem(`📚 已記錄單字：${word}${meaning ? "（" + meaning + "）" : ""}`);
 }
 
+// 記錄 AI 針對學生實際回答提供的英文示範。只存文字，不保存聲音檔。
+function recordPracticeFeedback(original, suggestion, kind, focus) {
+    const item = learningRecords.record(currentPersonName(), {
+        original,
+        suggestion,
+        kind,
+        focus,
+        unit: (LESSON && LESSON.unit) ? LESSON.unit : "",
+        mode: currentMode()
+    });
+    if (!item) return;
+    renderVocabPanel();
+    if (window.refreshPersonSummary) window.refreshPersonSummary();
+    scheduleSync();
+    logSystem(`✍️ 已記錄句子練習：${item.suggestion}`);
+}
+
 // 供 system prompt 使用：最近學過的字（上限 40 個，避免指令過長）
 function recentVocabForPrompt() {
-    const today = new Date().toISOString().slice(0, 10);
+    const today = learningRecords.today();
     const list = loadVocabLog()
         .filter(v => v.lastDate !== today)          // 今天剛教的不算「以前學過」
         .sort((a, b) => (b.lastDate || "").localeCompare(a.lastDate || ""))
@@ -1183,6 +1221,7 @@ function recentVocabForPrompt() {
 }
 
 function renderVocabPanel() {
+    renderPracticePanel();
     const sum = document.getElementById('vocabSummary');
     const box = document.getElementById('vocabList');
     if (!sum || !box) return;
@@ -1218,6 +1257,41 @@ function renderVocabPanel() {
     });
 }
 
+function renderPracticePanel() {
+    const sum = document.getElementById('practiceSummary');
+    const box = document.getElementById('practiceList');
+    if (!sum || !box) return;
+    const list = learningRecords.load(currentPersonName());
+    const stats = learningRecords.summary(currentPersonName());
+    if (!list.length) {
+        sum.textContent = "還沒有句子練習。AI 提供中文轉英文、文法修正或替代表達後，會自動記在這裡。";
+        clearNode(box);
+        return;
+    }
+    sum.textContent = `${currentPersonName()}：${stats.entries} 句、共練習 ${stats.attempts} 次（中文轉英文 ${stats.kinds.translated}、文法修正 ${stats.kinds.corrected}、替代表達 ${stats.kinds.alternative}）。`;
+    const kindLabel = { translated: "中→英", corrected: "修正", alternative: "替代表達" };
+    clearNode(box);
+    list.slice(0, 30).forEach(item => {
+        const row = makeElement('div');
+        Object.assign(row.style, {
+            background: '#303030', borderRadius: '7px', padding: '7px 9px', marginBottom: '6px'
+        });
+        row.appendChild(makeElement('span', { text: `${item.date} · ${kindLabel[item.kind] || item.kind}`, color: '#f39c12' }));
+        if (item.count > 1) row.appendChild(makeElement('span', { text: ` ×${item.count}`, color: '#aaa' }));
+        row.appendChild(document.createElement('br'));
+        if (item.original) {
+            row.appendChild(makeElement('span', { text: `學生：${item.original}`, color: '#aaa' }));
+            row.appendChild(document.createElement('br'));
+        }
+        row.appendChild(makeElement('b', { text: `英文：${item.suggestion}`, color: '#4daafc' }));
+        if (item.focus) {
+            row.appendChild(document.createElement('br'));
+            row.appendChild(makeElement('span', { text: `重點：${item.focus}`, color: '#9b59b6' }));
+        }
+        box.appendChild(row);
+    });
+}
+
 // 匯出 / 還原 / 清除
 (function initVocabPanel() {
     const exportBtn = document.getElementById('exportVocabBtn');
@@ -1227,7 +1301,13 @@ function renderVocabPanel() {
     if (!exportBtn) return;
 
     exportBtn.addEventListener('click', () => {
-        const data = JSON.stringify(loadVocabLog(), null, 2);
+        const data = JSON.stringify({
+            schemaVersion: 2,
+            person: currentPersonName(),
+            exportedAt: new Date().toISOString(),
+            vocab: loadVocabLog(),
+            practice: learningRecords.load(currentPersonName())
+        }, null, 2);
         const a = document.createElement('a');
         a.href = URL.createObjectURL(new Blob([data], { type: 'application/json' }));
         a.download = `ai-tutor-${currentPersonName()}-學習紀錄-${new Date().toISOString().slice(0, 10)}.json`;
@@ -1242,7 +1322,9 @@ function renderVocabPanel() {
         const reader = new FileReader();
         reader.onload = () => {
             try {
-                const incoming = JSON.parse(reader.result);
+                const backup = JSON.parse(reader.result);
+                // 舊備份只有單字陣列；新版備份同時包含 vocab / practice
+                const incoming = Array.isArray(backup) ? backup : backup.vocab;
                 if (!Array.isArray(incoming)) throw new Error("格式不符");
                 // 與現有紀錄合併，同一個字取次數較多、日期較新的
                 const merged = loadVocabLog();
@@ -1257,8 +1339,12 @@ function renderVocabPanel() {
                     } else merged.push(v);
                 });
                 saveVocabLog(merged);
+                if (!Array.isArray(backup) && Array.isArray(backup.practice)) {
+                    learningRecords.merge(currentPersonName(), backup.practice);
+                }
                 renderVocabPanel();
-                alert(`還原完成，目前共 ${merged.length} 個單字。`);
+                scheduleSync();
+                alert(`還原完成，目前共 ${merged.length} 個單字、${learningRecords.load(currentPersonName()).length} 句練習。`);
             } catch (e) { alert("還原失敗：檔案格式不正確。"); }
             importFile.value = "";
         };
@@ -1268,6 +1354,7 @@ function renderVocabPanel() {
     clearBtn.addEventListener('click', () => {
         if (!confirm(`確定要清除 ${currentPersonName()} 的全部學習紀錄嗎？建議先「匯出備份」。此動作無法復原。`)) return;
         localStorage.removeItem(vocabKey());
+        learningRecords.clear(currentPersonName());
         renderVocabPanel();
     });
 
@@ -1454,6 +1541,19 @@ function sendSetupMessage(socket, socketToken) {
                         required: ["word", "meaning"]
                     }
                 }, {
+                    name: "log_practice",
+                    description: "Silently save sentence-level feedback whenever you model an English sentence based on what the learner just said. Call exactly once for each model sentence you ask them to try.",
+                    parameters: {
+                        type: "OBJECT",
+                        properties: {
+                            original: { type: "STRING", description: "What the learner said, in their original language and wording" },
+                            suggestion: { type: "STRING", description: "The complete natural English sentence you modelled" },
+                            kind: { type: "STRING", enum: ["translated", "corrected", "alternative"], description: "translated = Chinese to English; corrected = fix an English error; alternative = another natural expression for correct English" },
+                            focus: { type: "STRING", description: "Optional short learning point, such as be verb, word order, or third-person -s" }
+                        },
+                        required: ["original", "suggestion", "kind"]
+                    }
+                }, {
                     name: "show_topics",
                     description: "Display a short numbered list of choices on the student's screen so the child can SEE them and pick one. Use this in the news chat when offering today's story options — a young child cannot remember five options by ear.",
                     parameters: {
@@ -1515,6 +1615,15 @@ async function respondToToolCalls(functionCalls, sourceSocket, socketToken) {
                 id: fc.id,
                 name: fc.name,
                 response: { result: { status: "vocabulary saved" } }
+            };
+        }
+        if (fc.name === "log_practice") {
+            const a = fc.args || {};
+            recordPracticeFeedback(a.original || "", a.suggestion || "", a.kind || "corrected", a.focus || "");
+            return {
+                id: fc.id,
+                name: fc.name,
+                response: { result: { status: "sentence practice saved" } }
             };
         }
         return {

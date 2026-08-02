@@ -224,6 +224,9 @@
         <summary style="cursor:pointer; font-weight:bold; color:#4af626;">📚 學習紀錄（每位人員各自記錄，AI 會記得）</summary>
         <div id="vocabSummary" style="margin-top:10px; font-size:13px; color:#aaa;"></div>
         <div id="vocabList" style="margin-top:10px; max-height:260px; overflow-y:auto; font-size:13px; line-height:1.7;"></div>
+        <div style="margin-top:14px; padding-top:12px; border-top:1px solid #444; font-weight:bold; color:#4daafc;">✍️ 句子練習</div>
+        <div id="practiceSummary" style="margin-top:8px; font-size:13px; color:#aaa;"></div>
+        <div id="practiceList" style="margin-top:8px; max-height:300px; overflow-y:auto; font-size:13px; line-height:1.6;"></div>
         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
             <button id="exportVocabBtn">⬇️ 匯出備份</button>
             <button id="importVocabBtn" style="background:#555;">⬆️ 還原備份</button>
@@ -231,7 +234,7 @@
             <button id="clearVocabBtn" style="background:#8b3a3a;">🗑️ 清除全部</button>
         </div>
         <div style="margin-top:8px; font-size:12px; color:#888;">
-            紀錄存在這支手機／這個瀏覽器裡。換手機或清除瀏覽器資料前，請先「匯出備份」。
+            紀錄存在這支手機／這個瀏覽器裡；有設定跨手機同步時也會備份至你的 Google 試算表。只保存文字，不保存聲音檔。
         </div>
     </details>
         <div class="dashboard-grid">
@@ -259,5 +262,6 @@
     <script src="dom-utils.js?v=20260802a"></script>
     <script src="student-view.js?v=20260802b"></script>
     <script src="live-session.js?v=20260802c"></script>
-    <script src="app.js?v=20260802c"></script>
+    <script src="learning-records.js?v=20260802d"></script>
+    <script src="app.js?v=20260802d"></script>
 </body></html>

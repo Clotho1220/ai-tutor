@@ -13,10 +13,12 @@
 
 const SECRET = '請改成你自己的通關密語';   // ← 務必修改，並與 App 設定一致
 
-// 兩個工作表：vocab 給人看（家長報告），state 存設定與進度
+// 三個工作表：vocab（單字）、practice（句子練習）、state（設定與進度）
 const VOCAB_SHEET = 'vocab';
+const PRACTICE_SHEET = 'practice';
 const STATE_SHEET = 'state';
 const VOCAB_HEADER = ['person', 'word', 'meaning', 'example', 'firstDate', 'lastDate', 'count', 'unit'];
+const PRACTICE_HEADER = ['person', 'id', 'date', 'kind', 'original', 'suggestion', 'focus', 'unit', 'mode', 'firstPracticedAt', 'lastPracticedAt', 'count'];
 
 function doPost(e) {
   try {
@@ -53,7 +55,7 @@ function sheet_(name, header) {
 
 // ---------- 讀取 ----------
 function readAll_() {
-  return { vocab: readVocab_(), profiles: readState_() };
+  return { schemaVersion: 2, vocab: readVocab_(), practice: readPractice_(), profiles: readState_() };
 }
 
 function readVocab_() {
@@ -67,6 +69,23 @@ function readVocab_() {
       person: String(r[0]), word: String(r[1]), meaning: String(r[2] || ''),
       example: String(r[3] || ''), firstDate: fmtDate_(r[4]), lastDate: fmtDate_(r[5]),
       count: Number(r[6] || 1), unit: String(r[7] || '')
+    });
+  }
+  return out;
+}
+
+function readPractice_() {
+  const sh = sheet_(PRACTICE_SHEET, PRACTICE_HEADER);
+  const rows = sh.getDataRange().getValues();
+  const out = [];
+  for (let i = 1; i < rows.length; i++) {
+    const r = rows[i];
+    if (!r[0] || !r[1] || !r[5]) continue;
+    out.push({
+      person: String(r[0]), id: String(r[1]), date: fmtDate_(r[2]), kind: String(r[3] || 'corrected'),
+      original: String(r[4] || ''), suggestion: String(r[5] || ''), focus: String(r[6] || ''),
+      unit: String(r[7] || ''), mode: String(r[8] || 'lesson'),
+      firstPracticedAt: Number(r[9] || 0), lastPracticedAt: Number(r[10] || 0), count: Number(r[11] || 1)
     });
   }
   return out;
@@ -95,10 +114,51 @@ function merge_(incoming) {
   lock.waitLock(20000);            // 兩支手機同時上傳時排隊，避免覆蓋
   try {
     mergeVocab_(incoming.vocab || []);
+    mergePractice_(incoming.practice || []);
     mergeState_(incoming.profiles || {});
     return readAll_();             // 回傳合併後的完整資料，讓手機端對齊
   } finally {
     lock.releaseLock();
+  }
+}
+
+function mergePractice_(incoming) {
+  const sh = sheet_(PRACTICE_SHEET, PRACTICE_HEADER);
+  const existing = readPractice_();
+  const key = item => String(item.person) + '||' + String(item.id);
+  const map = {};
+  existing.forEach(item => { map[key(item)] = item; });
+
+  incoming.forEach(item => {
+    if (!item || !item.person || !item.id || !item.suggestion) return;
+    const k = key(item);
+    const cur = map[k];
+    if (!cur) {
+      map[k] = item;
+    } else {
+      // 同一筆練習可能由兩支手機同步回來：取較大的次數，避免重複灌水
+      cur.count = Math.max(Number(cur.count || 1), Number(item.count || 1));
+      cur.firstPracticedAt = Math.min(Number(cur.firstPracticedAt || item.firstPracticedAt || 0), Number(item.firstPracticedAt || cur.firstPracticedAt || 0));
+      cur.lastPracticedAt = Math.max(Number(cur.lastPracticedAt || 0), Number(item.lastPracticedAt || 0));
+      cur.original = cur.original || item.original || '';
+      cur.suggestion = cur.suggestion || item.suggestion || '';
+      cur.focus = cur.focus || item.focus || '';
+      cur.unit = cur.unit || item.unit || '';
+      cur.date = cur.date || item.date || '';
+      cur.kind = cur.kind || item.kind || 'corrected';
+      cur.mode = cur.mode || item.mode || 'lesson';
+    }
+  });
+
+  const list = Object.keys(map).map(k => map[k]);
+  list.sort((a, b) => (a.person + a.date + a.id).localeCompare(b.person + b.date + b.id));
+  sh.clear();
+  sh.appendRow(PRACTICE_HEADER);
+  if (list.length) {
+    sh.getRange(2, 1, list.length, PRACTICE_HEADER.length).setValues(list.map(item => [
+      item.person, item.id, item.date, item.kind, item.original, item.suggestion, item.focus,
+      item.unit, item.mode, item.firstPracticedAt, item.lastPracticedAt, item.count
+    ]));
   }
 }
 

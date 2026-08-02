@@ -28,6 +28,7 @@ function doPost(e) {
     if (req.action === 'pull') return json({ ok: true, data: readAll_() });
     if (req.action === 'push') return json({ ok: true, data: merge_(req.data || {}) });
     if (req.action === 'openaiClientSecret') return json({ ok: true, data: openaiClientSecret_(req.data || {}) });
+    if (req.action === 'newsTopics') return json({ ok: true, data: newsTopics_() });
     return json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return json({ ok: false, error: String(err) });
@@ -68,6 +69,32 @@ function openaiClientSecret_(input) {
   const body = response.getContentText();
   if (status < 200 || status >= 300) throw new Error('OpenAI 憑證請求失敗 (' + status + '): ' + body.slice(0, 300));
   return JSON.parse(body);
+}
+
+// ---------- 近期新聞題材 ----------
+// Realtime 模型本身沒有內建網頁搜尋；由後端讀取 Google News RSS，再把標題交給 Tutor 討論。
+function newsTopics_() {
+  const feeds = [
+    { region: '台灣', url: 'https://news.google.com/rss?hl=zh-TW&gl=TW&ceid=TW:zh-Hant' },
+    { region: '國際', url: 'https://news.google.com/rss/headlines/section/topic/WORLD?hl=zh-TW&gl=TW&ceid=TW:zh-Hant' }
+  ];
+  const topics = [];
+  feeds.forEach(function(feed) {
+    const response = UrlFetchApp.fetch(feed.url, { muteHttpExceptions: true });
+    if (response.getResponseCode() < 200 || response.getResponseCode() >= 300) return;
+    const document = XmlService.parse(response.getContentText());
+    const channel = document.getRootElement().getChild('channel');
+    if (!channel) return;
+    channel.getChildren('item').slice(0, 5).forEach(function(item) {
+      topics.push({
+        region: feed.region,
+        title: String(item.getChildText('title') || '').slice(0, 180),
+        publishedAt: String(item.getChildText('pubDate') || ''),
+        link: String(item.getChildText('link') || '')
+      });
+    });
+  });
+  return { fetchedAt: new Date().toISOString(), topics: topics };
 }
 
 // 方便你用瀏覽器打開網址確認部署成功

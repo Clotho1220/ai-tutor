@@ -86,6 +86,13 @@
             handlers = settings;
             emit("onState", { state: "connecting" });
 
+            // Android 只允許在使用者手勢仍有效時啟動 Web Audio；必須放在第一個 await 之前。
+            if (settings.audioMode === "speaker" && (global.AudioContext || global.webkitAudioContext)) {
+                const AudioContextCtor = global.AudioContext || global.webkitAudioContext;
+                outputContext = new AudioContextCtor();
+                if (outputContext.state === "suspended") outputContext.resume().catch(() => {});
+            }
+
             const clientSecret = await requestClientSecret(settings);
             peer = new PeerConnection();
             channel = peer.createDataChannel("oai-events");
@@ -99,15 +106,14 @@
             audioElement.setAttribute && audioElement.setAttribute("playsinline", "");
             peer.addEventListener("track", event => {
                 const remoteStream = event.streams[0];
-                if (settings.audioMode === "speaker" && (global.AudioContext || global.webkitAudioContext)) {
-                    const AudioContextCtor = global.AudioContext || global.webkitAudioContext;
-                    outputContext = new AudioContextCtor();
+                if (settings.audioMode === "speaker" && outputContext && outputContext.state === "running") {
                     outputSource = outputContext.createMediaStreamSource(remoteStream);
                     outputDestination = outputContext.createMediaStreamDestination();
                     outputSource.connect(outputDestination);
                     audioElement.srcObject = outputDestination.stream;
                     if (outputContext.state === "suspended") outputContext.resume().catch(() => {});
                 } else {
+                    // 媒體路徑若沒有成功啟動，退回 WebRTC 直接播放，避免整堂課完全無聲。
                     audioElement.srcObject = remoteStream;
                 }
                 const playResult = audioElement.play && audioElement.play();

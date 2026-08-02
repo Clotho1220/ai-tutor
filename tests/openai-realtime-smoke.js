@@ -10,10 +10,12 @@
     check("uses current GPT realtime model", /gpt-realtime/.test(source) && !/gpt-realtime-2\.1/.test(source));
     check("uses WebRTC calls endpoint", /https:\/\/api\.openai\.com\/v1\/realtime\/calls/.test(source));
     check("speaker mode uses media audio routing", /createMediaStreamDestination/.test(source) && /echoCancellation:\s*false/.test(source));
+    check("speaker routing starts before credentials await", source.indexOf('outputContext = new AudioContextCtor') < source.indexOf('await requestClientSecret'));
     check("uses the current realtime transcription model", /gpt-4o-mini-transcribe/.test(source));
     check("browser requests only a short-lived client secret", /openaiClientSecret/.test(source) && !/OPENAI_API_KEY/.test(source));
     check("backend reads API key from Script Properties", /getScriptProperties\(\)\.getProperty\('OPENAI_API_KEY'\)/.test(backend));
     check("backend restricts models and voices", /allowedModels/.test(backend) && /allowedVoices/.test(backend));
+    check("backend supplies current news headlines", /newsTopics_/.test(backend) && /news\.google\.com\/rss/.test(backend));
     check("OpenAI module loads before app", index.indexOf('src="openai-realtime.js') < index.indexOf('src="app.js'));
     check("CSP permits OpenAI WebRTC setup", /connect-src[^\"]*https:\/\/api\.openai\.com/.test(index));
 

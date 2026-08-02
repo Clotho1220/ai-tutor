@@ -280,7 +280,9 @@ async function loadLesson() {
     // 0) 時事討論模式：跳過課本、教材與學習進度
     if (currentMode() === 'news') {
         const p = currentPerson();
-        logSystem("📰 時事討論模式：AI 會用 Google 搜尋找近一週的新聞。");
+        logSystem(selectedProvider() === 'openai'
+            ? "📰 時事討論模式：後端會取得近期新聞標題交給 GPT。"
+            : "📰 時事討論模式：AI 會用 Google 搜尋找近一週的新聞。");
         return buildNewsLesson({ name: currentPersonName(), level: p.level, interests: p.interests || [], adult: !!p.adult });
     }
     // 0) 老師在畫面上貼的自訂教材，優先於一切
@@ -1240,7 +1242,18 @@ async function startOpenAISession() {
         teachingFlow = buildTeachingFlow(LESSON);
         currentStageIndex = 0;
         elapsedTime = 0;
-        const instructions = buildSystemInstruction(LESSON || DEFAULT_LESSON) +
+        let newsContext = "";
+        if (currentMode() === 'news') {
+            const news = await syncCall('newsTopics', {});
+            const topics = news && Array.isArray(news.topics) ? news.topics : [];
+            if (!topics.length) throw new Error("目前無法取得近期新聞，請稍後重試或先切回一般課程");
+            newsContext = " CURRENT NEWS HEADLINES fetched at " + news.fetchedAt + ": " +
+                topics.map((item, index) => `${index + 1}. [${item.region}] ${item.title}`).join(" | ") +
+                ". These headlines are your only current-news source. Never claim you searched the web. " +
+                "Offer a few concise choices, then ask the learner to choose. ";
+            logSystem(`📰 GPT 已取得 ${topics.length} 則近期新聞標題。`);
+        }
+        const instructions = buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext +
             " You are running in push-to-talk mode. Give exactly one short response at a time. " +
             "If you teach or correct a sentence and ask the student to repeat it, STOP immediately and wait. " +
             "Do not continue to the next question in that same response.";

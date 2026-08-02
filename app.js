@@ -38,6 +38,7 @@ if (!window.LiveSession) throw new Error("live-session.js 未載入");
 const liveSession = window.LiveSession.create({ maxReconnects: 3 });
 if (!window.StageTransitionGate) throw new Error("stage-transition.js 未載入");
 const stageTransitionGate = window.StageTransitionGate.create({ requiredRounds: 2 });
+if (!window.PracticeObserver) throw new Error("practice-observer.js 未載入");
 
 // PWA 安裝所需。放在外部腳本中，讓 CSP 可以禁止 inline JavaScript。
 if ('serviceWorker' in navigator) {
@@ -68,9 +69,12 @@ let stagePendingSince = null;  // 階段時間已到、正在等待自然切換�
 let lastUserSpeechTime = 0;    // 延遲量測：按下「說完了」的時間
 let waitingFirstAudio = false; // 延遲量測：是否正在等待 AI 本輪第一塊音訊
 let studentTurnGeneration = 0; // 每次學生按「說完了」遞增；避免把被插斷的舊 AI turnComplete 算到新回合
+let pendingStudentResponseGeneration = null;
 let activeAiResponseStudentGeneration = null;
+let aiTurnTrackingStarted = false;
+let currentUserTurnTranscript = "";
+let activeAiTurnUserTranscript = "";
 let currentAiTurnTranscript = "";
-const PRACTICE_INVITE_RE = /(please\s+repeat|repeat\s+(?:after me|it|this)|try\s+(?:it|saying)|your\s+turn|can\s+you\s+say|say\s+it|跟我說|說說看|試著說|再說一次|念一次|要不要試試|換你說)/i;
 
 let lessonTimer = null;
 let elapsedTime = 0;
@@ -111,6 +115,7 @@ talkBtn.addEventListener('click', () => {
         if (aiTurnActive) dropStaleAudio = true;
         turnChunks = [];   // 開始新的一句，清空暫存
         needsReplay = false;
+        currentUserTurnTranscript = "";
         webSocket.send(JSON.stringify({ realtimeInput: { activityStart: {} } }));
         isTalking = true;
         isNewUserTurn = true;
@@ -123,6 +128,7 @@ talkBtn.addEventListener('click', () => {
         lastUserSpeechTime = performance.now();
         waitingFirstAudio = true;
         studentTurnGeneration += 1;
+        pendingStudentResponseGeneration = studentTurnGeneration;
         activeAiResponseStudentGeneration = null;
         stageTransitionGate.noteStudentTurn();
         if (webSocket && webSocket.readyState === WebSocket.OPEN) {
@@ -782,12 +788,12 @@ function buildSystemInstruction(lesson) {
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them SILENTLY. " +
         "Absolutely never read a director note aloud, never repeat or paraphrase one, never mention that one exists, and NEVER write or invent a director note of your own — that format belongs to the lesson system only, never to you. " +
         `Everything you say out loud must be natural speech addressed directly to the ${learner}. If you ever find yourself about to say the words 'director note', stop and just talk to the student instead. ` +
-        "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Whenever you model a full English sentence based on the learner's answer, call log_practice exactly once with their answer, your model sentence, and the feedback kind. Tool calls are silent actions: never say tool names, '[System]', braces, or any code-like text out loud. " +
+        "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say tool names, '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
         "(6) MANDATORY FEEDBACK LOOP — after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
         "first, react to WHAT they said in one short sentence; " +
-        "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it. When you provide that model sentence, silently call log_practice before ending your turn; " +
+        "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it; " +
         "third, hand the turn back with ONE question. " +
         "CRITICAL: the moment you invite them to say or repeat a sentence (e.g. 'You can say: ... Try it!'), your turn ENDS THERE — stop speaking and wait silently for their attempt. Do NOT continue with the topic, do NOT ask a different question, do NOT answer for them. Step three only happens AFTER they have tried. " +
         "NEVER skip step two, and never launch into another block of narration without completing this loop first." +
@@ -1082,7 +1088,9 @@ async function startSession() {
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
     stageTransitionGate.consume();
-    studentTurnGeneration = 0; activeAiResponseStudentGeneration = null; currentAiTurnTranscript = "";
+    studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
+    activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
+    currentUserTurnTranscript = ""; activeAiTurnUserTranscript = ""; currentAiTurnTranscript = "";
     aiTurnActive = false; dropStaleAudio = false;
     userStopped = false; resumeHandle = null; liveSession.start();
     isNewAiTurn = true; isNewUserTurn = true;
@@ -1551,19 +1559,6 @@ function sendSetupMessage(socket, socketToken) {
                         required: ["word", "meaning"]
                     }
                 }, {
-                    name: "log_practice",
-                    description: "Silently save sentence-level feedback whenever you model an English sentence based on what the learner just said. Call exactly once for each model sentence you ask them to try.",
-                    parameters: {
-                        type: "OBJECT",
-                        properties: {
-                            original: { type: "STRING", description: "What the learner said, in their original language and wording" },
-                            suggestion: { type: "STRING", description: "The complete natural English sentence you modelled" },
-                            kind: { type: "STRING", enum: ["translated", "corrected", "alternative"], description: "translated = Chinese to English; corrected = fix an English error; alternative = another natural expression for correct English" },
-                            focus: { type: "STRING", description: "Optional short learning point, such as be verb, word order, or third-person -s" }
-                        },
-                        required: ["original", "suggestion", "kind"]
-                    }
-                }, {
                     name: "show_topics",
                     description: "Display a short numbered list of choices on the student's screen so the child can SEE them and pick one. Use this in the news chat when offering today's story options — a young child cannot remember five options by ear.",
                     parameters: {
@@ -1627,15 +1622,6 @@ async function respondToToolCalls(functionCalls, sourceSocket, socketToken) {
                 response: { result: { status: "vocabulary saved" } }
             };
         }
-        if (fc.name === "log_practice") {
-            const a = fc.args || {};
-            recordPracticeFeedback(a.original || "", a.suggestion || "", a.kind || "corrected", a.focus || "");
-            return {
-                id: fc.id,
-                name: fc.name,
-                response: { result: { status: "sentence practice saved" } }
-            };
-        }
         return {
             id: fc.id,
             name: fc.name,
@@ -1648,6 +1634,14 @@ async function respondToToolCalls(functionCalls, sourceSocket, socketToken) {
     } else if (functionResponses.length > 0) {
         logSystem("⚠️ 工具已完成，但連線已中斷；恢復連線後由 AI 重新確認畫面內容。");
     }
+}
+
+function beginTrackedAiTurn() {
+    if (aiTurnTrackingStarted) return;
+    aiTurnTrackingStarted = true;
+    currentAiTurnTranscript = "";
+    activeAiResponseStudentGeneration = pendingStudentResponseGeneration;
+    activeAiTurnUserTranscript = activeAiResponseStudentGeneration !== null ? currentUserTurnTranscript : "";
 }
 
 function handleServerMessage(response, socket, socketToken) {
@@ -1706,30 +1700,34 @@ function handleServerMessage(response, socket, socketToken) {
     }
 
     // 3) 使用者語音逐字稿（伺服器端 STT，取代 webkitSpeechRecognition）
-    if (sc.inputTranscription && sc.inputTranscription.text && userSpeechBox) {
-        if (isNewUserTurn) {
-            userSpeechBox.appendChild(document.createElement('br'));
-            userSpeechBox.appendChild(makeElement('b', { text: '[You]', color: '#4daafc' }));
-            userSpeechBox.appendChild(document.createElement('br'));
-            isNewUserTurn = false;
+    if (sc.inputTranscription && sc.inputTranscription.text) {
+        currentUserTurnTranscript += sc.inputTranscription.text;
+        if (activeAiResponseStudentGeneration !== null &&
+            activeAiResponseStudentGeneration === pendingStudentResponseGeneration) {
+            activeAiTurnUserTranscript = currentUserTurnTranscript;
         }
-        appendText(userSpeechBox, sc.inputTranscription.text);
-        userSpeechBox.scrollTop = userSpeechBox.scrollHeight;
+        if (userSpeechBox) {
+            if (isNewUserTurn) {
+                userSpeechBox.appendChild(document.createElement('br'));
+                userSpeechBox.appendChild(makeElement('b', { text: '[You]', color: '#4daafc' }));
+                userSpeechBox.appendChild(document.createElement('br'));
+                isNewUserTurn = false;
+            }
+            appendText(userSpeechBox, sc.inputTranscription.text);
+            userSpeechBox.scrollTop = userSpeechBox.scrollHeight;
+        }
     }
 
     // 4) AI 實際說出的逐字稿（除錯面板累積全程；學生畫面字幕只顯示當前這一輪）
     if (sc.outputTranscription && sc.outputTranscription.text && !dropStaleAudio) {
         if (isNewAiTurn) {
+            beginTrackedAiTurn();
             const voiceName = voiceSelect.options[voiceSelect.selectedIndex].text;
             aiSpeechBox.appendChild(document.createElement('br'));
             aiSpeechBox.appendChild(makeElement('b', { text: `[${voiceName}]`, color: '#f39c12' }));
             aiSpeechBox.appendChild(document.createElement('br'));
             isNewAiTurn = false;
             directorLeak = false;
-            if (activeAiResponseStudentGeneration === null) {
-                activeAiResponseStudentGeneration = studentTurnGeneration;
-                currentAiTurnTranscript = "";
-            }
             studentView.beginTranscriptTurn(); // 新的一輪：字幕清空重來
         }
         currentAiTurnTranscript += sc.outputTranscription.text;
@@ -1755,10 +1753,7 @@ function handleServerMessage(response, socket, socketToken) {
         pendingDirectorNote = null; // AI 已開始回應，導演指令確定送達
         aiTurnActive = true;
         if (dropStaleAudio) return; // 學生已插話，這些是上一輪的殘留語音，不播
-        if (activeAiResponseStudentGeneration === null) {
-            activeAiResponseStudentGeneration = studentTurnGeneration;
-            currentAiTurnTranscript = "";
-        }
+        beginTrackedAiTurn();
         for (const part of sc.modelTurn.parts) {
             if (part.inlineData && part.inlineData.mimeType.includes('audio/pcm')) {
                 if (waitingFirstAudio && lastUserSpeechTime) {
@@ -1774,14 +1769,29 @@ function handleServerMessage(response, socket, socketToken) {
 
     if (sc.turnComplete) {
         const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
-            activeAiResponseStudentGeneration === studentTurnGeneration;
-        const practiceRequested = PRACTICE_INVITE_RE.test(currentAiTurnTranscript);
+            activeAiResponseStudentGeneration === pendingStudentResponseGeneration;
+        const completedUserTranscript = activeAiTurnUserTranscript;
+        const completedAiTranscript = currentAiTurnTranscript;
+        const practiceRequested = window.PracticeObserver.asksForPractice(completedAiTranscript);
         isNewAiTurn = true;
         isNewUserTurn = true;
         aiTurnActive = false;
         dropStaleAudio = false;   // 上一輪確定結束，下一輪的語音正常播放
+        aiTurnTrackingStarted = false;
         activeAiResponseStudentGeneration = null;
+        activeAiTurnUserTranscript = "";
         currentAiTurnTranscript = "";
+        if (completesCurrentStudentTurn) {
+            pendingStudentResponseGeneration = null;
+            const observedFeedback = window.PracticeObserver.analyze({
+                userText: completedUserTranscript,
+                aiText: completedAiTranscript
+            });
+            if (observedFeedback) {
+                recordPracticeFeedback(observedFeedback.original, observedFeedback.suggestion,
+                    observedFeedback.kind, observedFeedback.focus);
+            }
+        }
         if (completesCurrentStudentTurn && stagePendingSince !== null &&
             stageTransitionGate.completeAiTurn({ practiceRequested })) {
             logSystem("✅ 學生已完成回饋與練習回合，現在以獨立回合切換階段。");
@@ -2049,7 +2059,11 @@ function stopSession() {
     isTalking = false;
     stagePendingSince = null;
     stageTransitionGate.consume();
+    pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null;
+    aiTurnTrackingStarted = false;
+    currentUserTurnTranscript = "";
+    activeAiTurnUserTranscript = "";
     currentAiTurnTranscript = "";
     talkBtn.disabled = true;
     nextStageBtn.disabled = true;

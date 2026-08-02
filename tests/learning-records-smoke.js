@@ -52,7 +52,7 @@
     const indexSource = await fetch('../index.html?learning-records-test=' + Date.now()).then(response => response.text());
     const syncSource = await fetch('../sync.gs?learning-records-test=' + Date.now()).then(response => response.text());
     check("learning records load before app", indexSource.indexOf('src="learning-records.js') < indexSource.indexOf('src="app.js'));
-    check("Gemini has a sentence feedback tool", /name:\s*"log_practice"/.test(appSource));
+    check("sentence records no longer depend on a Live tool", !/name:\s*"log_practice"/.test(appSource) && /PracticeObserver\.analyze/.test(appSource));
     check("sync payload includes practice records", /return \{ schemaVersion: 2, vocab, practice, profiles \}/.test(appSource));
     check("Apps Script merges practice records", /mergePractice_\(incoming\.practice \|\| \[\]\)/.test(syncSource));
 

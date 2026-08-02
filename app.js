@@ -32,6 +32,8 @@ function readApiKey() {
 
 if (!window.SafeDOM) throw new Error("dom-utils.js 未載入");
 const { clear: clearNode, text: setText, appendText, element: makeElement, legacyMarkupToText } = window.SafeDOM;
+if (!window.StudentView) throw new Error("student-view.js 未載入");
+const studentView = window.StudentView.create({ timeoutMs: 5000 });
 
 // PWA 安裝所需。放在外部腳本中，讓 CSP 可以禁止 inline JavaScript。
 if ('serviceWorker' in navigator) {
@@ -1044,12 +1046,12 @@ actionBtn.addEventListener('click', async () => {
 });
 
 async function startSession() {
-    resetStudentView();                          // 清掉上一場殘留的議題／圖片／字幕
+    studentView.reset();                         // 清掉上一場殘留的議題／圖片／字幕
     document.body.classList.add('student-mode'); // 上課即切到學生畫面（左上角「← 返回」可回老師畫面）
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
-    aiTurnActive = false; dropStaleAudio = false; studentImgSeq = 0; studentImgWord = "";
+    aiTurnActive = false; dropStaleAudio = false;
     userStopped = false; resumeHandle = null; reconnectAttempts = 0;
     isNewAiTurn = true; isNewUserTurn = true;
     clearNode(aiSpeechBox);
@@ -1111,112 +1113,6 @@ async function gasPost(data) {
     if (enterBtn) enterBtn.addEventListener('click', () => document.body.classList.add('student-mode'));
     if (exitBtn) exitBtn.addEventListener('click', () => document.body.classList.remove('student-mode'));
 })();
-
-// 目前畫面上那張圖是屬於哪個單字的（含正在載入中的）。
-// 用來擋掉「新的字配舊的圖」：log_vocabulary 只換字不換圖，
-// 若不比對，動詞之類沒有配圖的字就會沿用上一個字的圖片。
-let studentImgWord = "";
-const normWord = w => String(w || "").toLowerCase().replace(/\([^)]*\)/g, "").trim();
-
-// 學生畫面：顯示可選的議題清單（時事討論用，讓孩子看著挑）
-function studentShowTopics(topics) {
-    const box = document.getElementById('svTopics');
-    if (!box || !Array.isArray(topics) || !topics.length) return;
-    clearNode(box);
-    topics.slice(0, 5).forEach((topic, i) => {
-        const card = makeElement('div', { className: 'topic' });
-        card.appendChild(makeElement('span', { className: 'num', text: i + 1 }));
-        card.appendChild(makeElement('span', { text: topic }));
-        box.appendChild(card);
-    });
-    box.style.display = 'flex';
-    const w = document.getElementById('svWord');
-    if (w) w.textContent = "想聊哪一個？";
-    const m = document.getElementById('svMeaning');
-    if (m) m.textContent = "";
-    const say = document.getElementById('svSayBox');
-    if (say) say.style.display = 'none';
-    hideStudentImage('📰');
-    studentImgWord = "";
-}
-
-function studentHideTopics() {
-    const box = document.getElementById('svTopics');
-    if (box) box.style.display = 'none';
-}
-
-// 開始新課程時把學生畫面清乾淨。
-// 少了這一步，上一場的議題卡片／圖片／字幕會殘留到下一場（甚至跨人員），
-// 造成畫面內容和 AI 正在講的完全對不起來。
-function resetStudentView() {
-    const box = document.getElementById('svTopics');
-    if (box) { clearNode(box); box.style.display = 'none'; }
-    const w = document.getElementById('svWord');
-    if (w) w.textContent = "👂 聽老師說～";
-    const m = document.getElementById('svMeaning');
-    if (m) m.textContent = "";
-    const say = document.getElementById('svSayBox');
-    if (say) say.style.display = 'none';
-    const t = document.getElementById('svTranscript');
-    if (t) { t.textContent = ""; t.style.display = 'none'; }
-    const img = document.getElementById('svImage');
-    if (img) { img.style.display = 'none'; img.src = ""; }
-    const ph = document.getElementById('svImagePlaceholder');
-    if (ph) { ph.textContent = '🎈'; ph.style.display = 'block'; }
-    studentImgWord = "";
-    studentImgSeq = 0;
-}
-
-// 收起學生畫面的圖片。icon：'🎨' 表示正在畫，'✨' 表示這個字沒有配圖
-function hideStudentImage(icon) {
-    const img = document.getElementById('svImage'), ph = document.getElementById('svImagePlaceholder');
-    if (img) img.style.display = 'none';
-    if (ph) { ph.textContent = icon || '✨'; ph.style.display = 'block'; }
-}
-
-// 學生畫面顯示單字（log_vocabulary 完整覆蓋；show_image 只先換字）
-function studentShowWord(word, meaning, example) {
-    const w = document.getElementById('svWord');
-    if (!w) return;
-    if (word) {
-        studentHideTopics();          // 開始教單字了，收起議題清單
-        w.textContent = word;
-        // 換到了另一個單字，而這個字目前沒有對應的圖 → 立刻收掉舊圖
-        if (normWord(word) !== normWord(studentImgWord)) {
-            studentImgWord = "";
-            hideStudentImage('✨');
-        }
-    }
-    const m = document.getElementById('svMeaning');
-    if (m) m.textContent = meaning || "";
-    const box = document.getElementById('svSayBox'), s = document.getElementById('svSay');
-    if (box && s) {
-        if (example) { s.textContent = example; box.style.display = 'block'; }
-        else box.style.display = 'none';
-    }
-}
-
-// 學生畫面顯示圖片。
-// 重點：新單字一出現就立刻收掉舊圖並顯示「畫圖中」，
-// 否則孩子會看到「新的字配舊的圖」（例如字是 pencil、圖還是 notebook）。
-let studentImgSeq = 0;
-function studentShowImage(url, keyword) {
-    const img = document.getElementById('svImage'), ph = document.getElementById('svImagePlaceholder');
-    if (!img) return;
-    const mySeq = ++studentImgSeq;
-    studentImgWord = keyword || "";   // 立刻宣告這張圖屬於哪個字（含載入中），
-                                      // 否則同一批工具呼叫裡的 log_vocabulary 會誤判成換字而把它收掉
-    hideStudentImage('🎨');           // 立刻收掉上一張，絕不讓舊圖配新字
-    const loader = new Image();
-    loader.onload = () => {
-        if (mySeq !== studentImgSeq) return;    // 已經換到更新的字了，這張過期圖直接丟掉
-        img.src = url;
-        img.style.display = 'block';
-        if (ph) ph.style.display = 'none';
-    };
-    loader.onerror = () => { if (ph && mySeq === studentImgSeq) ph.textContent = '🖼️'; };
-    loader.src = url;
-}
 
 // 開課時在背景預先繪製本課單字的圖片（同樣的網址進瀏覽器快取，
 // AI 課中呼叫 show_image 時圖片幾乎瞬間顯示，解決生圖跟不上教學節奏的問題）
@@ -1562,6 +1458,54 @@ function sendSetupMessage() {
 
 // ---------------- 伺服器訊息處理 ----------------
 
+// 圖片工具回應會等到「圖片完成」或「等待逾時」才送回模型。
+// 這會讓 AI 在教下一個單字前留出真正的看圖時間，而不是一收到網址就繼續講。
+async function respondToToolCalls(functionCalls) {
+    const functionResponses = await Promise.all(functionCalls.map(async fc => {
+        if (fc.name === "show_image") {
+            const keyword = (fc.args && fc.args.keyword) ? fc.args.keyword : "picture";
+            const imageStatus = await showImage(keyword);
+            return {
+                id: fc.id,
+                name: fc.name,
+                response: { result: { status: imageStatus === 'ready' ? "image displayed to student" : `image ${imageStatus}; student sees a safe placeholder` } }
+            };
+        }
+        if (fc.name === "show_topics") {
+            const list = (fc.args && fc.args.topics) || [];
+            studentView.showTopics(list);
+            logSystem(`📰 [toolCall] show_topics：${list.join(" / ")}`);
+            return {
+                id: fc.id,
+                name: fc.name,
+                response: { result: { status: "topics displayed to student" } }
+            };
+        }
+        if (fc.name === "log_vocabulary") {
+            const a = fc.args || {};
+            studentView.showWord(a.word || "", a.meaning || "", a.example || "");
+            recordVocab(a.word || "", a.meaning || "", a.example || "");
+            logVocabToSheet(a.word || "", a.meaning || "", a.example || "");
+            return {
+                id: fc.id,
+                name: fc.name,
+                response: { result: { status: "vocabulary saved" } }
+            };
+        }
+        return {
+            id: fc.id,
+            name: fc.name,
+            response: { result: { status: "unsupported tool" } }
+        };
+    }));
+
+    if (functionResponses.length > 0 && webSocket && webSocket.readyState === WebSocket.OPEN) {
+        webSocket.send(JSON.stringify({ toolResponse: { functionResponses } }));
+    } else if (functionResponses.length > 0) {
+        logSystem("⚠️ 工具已完成，但連線已中斷；恢復連線後由 AI 重新確認畫面內容。");
+    }
+}
+
 function handleServerMessage(response) {
     // 0) 連線生命週期訊息
     if (response.setupComplete) {
@@ -1600,41 +1544,11 @@ function handleServerMessage(response) {
         logSystem(`⚠️ 伺服器預告即將斷線${response.goAway.timeLeft ? '（剩 ' + response.goAway.timeLeft + '）' : ''}，斷線後將自動重連。`);
     }
 
-    // 1) 工具呼叫（生圖）
+    // 1) 工具呼叫：獨立處理，避免圖片等待阻塞同一批字幕或音訊訊息。
     if (response.toolCall && response.toolCall.functionCalls) {
-        const functionResponses = [];
-        for (const fc of response.toolCall.functionCalls) {
-            if (fc.name === "show_image") {
-                const keyword = (fc.args && fc.args.keyword) ? fc.args.keyword : "picture";
-                showImage(keyword);
-                functionResponses.push({
-                    id: fc.id,
-                    name: fc.name,
-                    response: { result: { status: "image displayed to student" } }
-                });
-            } else if (fc.name === "show_topics") {
-                const list = (fc.args && fc.args.topics) || [];
-                studentShowTopics(list);
-                logSystem(`📰 [toolCall] show_topics：${list.join(" / ")}`);
-                functionResponses.push({
-                    id: fc.id, name: fc.name,
-                    response: { result: { status: "topics displayed to student" } }
-                });
-            } else if (fc.name === "log_vocabulary") {
-                const a = fc.args || {};
-                studentShowWord(a.word || "", a.meaning || "", a.example || ""); // 學生畫面同步顯示
-                recordVocab(a.word || "", a.meaning || "", a.example || "");     // 存進本機學習紀錄
-                logVocabToSheet(a.word || "", a.meaning || "", a.example || ""); // （選用）同步到 GAS 試算表
-                functionResponses.push({
-                    id: fc.id,
-                    name: fc.name,
-                    response: { result: { status: "vocabulary saved" } }
-                });
-            }
-        }
-        if (functionResponses.length > 0 && webSocket && webSocket.readyState === WebSocket.OPEN) {
-            webSocket.send(JSON.stringify({ toolResponse: { functionResponses } }));
-        }
+        respondToToolCalls(response.toolCall.functionCalls).catch(error => {
+            logSystem(`⚠️ 工具處理失敗：${error.message}`);
+        });
     }
 
     const sc = response.serverContent;
@@ -1660,7 +1574,6 @@ function handleServerMessage(response) {
 
     // 4) AI 實際說出的逐字稿（除錯面板累積全程；學生畫面字幕只顯示當前這一輪）
     if (sc.outputTranscription && sc.outputTranscription.text && !dropStaleAudio) {
-        const svT = document.getElementById('svTranscript');
         if (isNewAiTurn) {
             const voiceName = voiceSelect.options[voiceSelect.selectedIndex].text;
             aiSpeechBox.appendChild(document.createElement('br'));
@@ -1668,25 +1581,23 @@ function handleServerMessage(response) {
             aiSpeechBox.appendChild(document.createElement('br'));
             isNewAiTurn = false;
             directorLeak = false;
-            if (svT) svT.textContent = ""; // 新的一輪：字幕清空重來
+            studentView.beginTranscriptTurn(); // 新的一輪：字幕清空重來
         }
         appendText(aiSpeechBox, sc.outputTranscription.text);   // 除錯面板保留全文，方便你追問題
         aiSpeechBox.scrollTop = aiSpeechBox.scrollHeight;
 
         // 防護：模型有時會唸出導演筆記，甚至自己捏造一段。
         // 一偵測到就立刻停止播放（孩子不會聽到後半段）並把字幕裁掉（孩子看不到）。
-        if (!directorLeak && svT && DIRECTOR_LEAK_RE.test(svT.textContent + sc.outputTranscription.text)) {
+        const transcriptBefore = studentView.transcriptText();
+        const transcriptCandidate = transcriptBefore + sc.outputTranscription.text;
+        if (!directorLeak && DIRECTOR_LEAK_RE.test(transcriptCandidate)) {
             directorLeak = true;
             stopAllPlayback();
-            const cut = svT.textContent.search(DIRECTOR_LEAK_RE);
-            if (cut >= 0) svT.textContent = svT.textContent.slice(0, cut).trimEnd();
+            const cut = transcriptCandidate.search(DIRECTOR_LEAK_RE);
+            if (cut >= 0) studentView.truncateTranscript(Math.min(cut, transcriptBefore.length));
             logSystem("<span style='color:#ff8800;'>⚠️ AI 開始唸出導演筆記，已中斷播放並隱藏字幕。</span>");
         }
-        if (svT && !directorLeak) {
-            svT.textContent += sc.outputTranscription.text;
-            svT.style.display = 'block';
-            svT.scrollTop = svT.scrollHeight;
-        }
+        if (!directorLeak) studentView.appendTranscript(sc.outputTranscription.text);
     }
 
     // 5) 音訊播放
@@ -1719,25 +1630,42 @@ function handleServerMessage(response) {
 
 function showImage(keyword) {
     logSystem(`<span style="color:#f39c12;">🎨 [toolCall] show_image: ${keyword}</span>`);
-    generatedImage.style.display = 'block';
-    generatedImage.src = "";
-    delete generatedImage.dataset.retried;
+    generatedImage.style.display = 'none';
+    generatedImage.removeAttribute('src');
     imageCaption.textContent = "🎨 正在繪製：" + keyword + " ...";
     const prompt = "A simple, educational illustration of " + keyword + ", white background";
     const imageUrl = `https://image.pollinations.ai/prompt/${encodeURIComponent(prompt)}?width=400&height=400&nologo=true`;
-    studentShowWord(keyword, "", null);      // 學生畫面先換上單字（log_vocabulary 稍後會補中文與例句）
-    studentShowImage(imageUrl, keyword);     // 圖片與單字綁在一起，避免字圖不同步
-    generatedImage.onload = () => { imageCaption.textContent = "AI 呼叫 show_image：" + keyword; };
-    generatedImage.onerror = () => {
-        if (!generatedImage.dataset.retried) {
-            generatedImage.dataset.retried = "1";
-            imageCaption.textContent = "🔁 重試繪製：" + keyword + " ...";
-            generatedImage.src = imageUrl + "&seed=" + Date.now(); // 換 seed 重試一次
-        } else {
-            imageCaption.textContent = "⚠️ 圖片載入失敗：" + keyword;
-        }
-    };
-    generatedImage.src = imageUrl;
+    return new Promise(resolve => {
+        let settled = false;
+        const finish = status => {
+            if (settled) return;
+            settled = true;
+            resolve(status);
+        };
+
+        studentView.showImage(imageUrl, keyword, {
+            onStatus(status, detail) {
+                if (status === 'loading') {
+                    imageCaption.textContent = "🎨 正在繪製：" + keyword + " ...";
+                } else if (status === 'retrying') {
+                    imageCaption.textContent = "🔁 重試繪製：" + keyword + " ...";
+                } else if (status === 'ready') {
+                    generatedImage.src = detail.url;
+                    generatedImage.style.display = 'block';
+                    imageCaption.textContent = "AI 呼叫 show_image：" + keyword;
+                    finish('ready');
+                } else if (status === 'slow') {
+                    imageCaption.textContent = "⏳ 圖片仍在準備：" + keyword;
+                    finish('slow');
+                } else if (status === 'error') {
+                    imageCaption.textContent = "⚠️ 圖片載入失敗：" + keyword;
+                    finish('error');
+                } else if (status === 'cancelled') {
+                    finish('cancelled');
+                }
+            }
+        });
+    });
 }
 
 // ---------------- 隱藏導演（教學流程狀態機） ----------------

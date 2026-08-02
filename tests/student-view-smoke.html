@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>AI Tutor student view smoke test</title>
+    <style>
+        body { font-family: system-ui, sans-serif; margin: 24px; }
+        .pass { color: #137333; }
+        .fail { color: #b3261e; }
+        #fixture { border: 1px solid #ccc; padding: 12px; margin: 12px 0; }
+        #svImage { display: none; max-width: 120px; }
+        #svTopics, #svSayBox, #svTranscript, #svImageStatus { display: none; }
+        pre { white-space: pre-wrap; }
+    </style>
+</head>
+<body>
+    <h1>Student view synchronization smoke test</h1>
+    <div id="fixture">
+        <div id="svTopics"></div>
+        <div id="svImagePlaceholder"></div>
+        <img id="svImage" alt="">
+        <div id="svImageStatus"></div>
+        <div id="svWord"></div>
+        <div id="svMeaning"></div>
+        <div id="svSayBox"><div id="svSay"></div></div>
+        <div id="svTranscript"></div>
+    </div>
+    <pre id="result">Running...</pre>
+    <script src="../student-view.js"></script>
+    <script src="student-view-smoke.js"></script>
+</body>
+</html>

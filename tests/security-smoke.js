@@ -26,7 +26,7 @@
     const indexSource = await fetch('../index.html?security-test=' + Date.now()).then(r => r.text());
     check('app.js contains no innerHTML writes', !/\.innerHTML\s*[+]?=/.test(appSource));
     check('index has restrictive script CSP', /script-src 'self' blob:/.test(indexSource));
-    check('index loads safe DOM helpers before app', indexSource.indexOf('dom-utils.js') < indexSource.indexOf('app.js'));
+    check('index loads safe DOM helpers before app', indexSource.indexOf('src="dom-utils.js') < indexSource.indexOf('src="app.js'));
 
     const passed = checks.every(c => c.pass);
     result.className = passed ? 'pass' : 'fail';

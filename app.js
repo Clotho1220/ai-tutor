@@ -15,7 +15,7 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.08";
+const APP_VERSION = "3.09";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -244,6 +244,13 @@ talkBtn.addEventListener('click', () => {
             openaiRealtime.stopTalking();
             isTalking = false;
             studentTurnGeneration += 1;
+            pendingStudentResponseGeneration = studentTurnGeneration;
+            activeAiResponseStudentGeneration = null;
+            stageTransitionGate.noteStudentTurn();
+            sessionDiagnostics.record("student_talk_ended", {
+                provider: "openai",
+                turn: studentTurnGeneration
+            });
             talkBtn.classList.remove('talking');
             talkBtn.textContent = '🎙️ 按一下開始說話';
         }
@@ -1361,7 +1368,7 @@ async function startOpenAISession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.08",
+        appVersion: `v${APP_VERSION}`,
         provider: "openai",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
@@ -1389,6 +1396,15 @@ async function startOpenAISession() {
     userStopped = false;
     isTalking = false;
     studentTurnGeneration = 0;
+    pendingStudentResponseGeneration = null;
+    activeAiResponseStudentGeneration = null;
+    aiTurnTrackingStarted = false;
+    currentUserTurnTranscript = "";
+    activeAiTurnUserTranscript = "";
+    currentAiTurnTranscript = "";
+    stageTransitionGate.consume();
+    lessonEndingGuard.resetSession();
+    practiceTurnBoundary.reset();
     openaiAiTranscriptStarted = false;
     openaiSessionActive = false;
 
@@ -1409,10 +1425,11 @@ async function startOpenAISession() {
                 "Only continue with a story after the learner clearly says its number or title; if their choice is unclear or empty, ask them to choose again and WAIT. ";
             logSystem(`📰 GPT 已取得 ${topics.length} 則近期新聞標題。`);
         }
-        const instructions = buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext +
-            " You are running in push-to-talk mode. Give exactly one short response at a time. " +
-            "If you teach or correct a sentence and ask the student to repeat it, STOP immediately and wait. " +
-            "Do not continue to the next question in that same response.";
+        const instructions = "GPT REALTIME TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, then WAIT. " +
+            "If you translate, correct, model a sentence, or ask the learner to repeat, STOP immediately after that invitation. " +
+            "Never combine practice instructions with the next lesson topic. Obey DIRECTOR NOTE messages silently; never quote or discuss them. " +
+            "Use the available display and vocabulary tools silently when appropriate. " +
+            buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext;
         await openaiRealtime.connect({
             tokenEndpoint,
             syncSecret: localStorage.getItem(SYNC_SECRET_KEY) || "",
@@ -1422,6 +1439,7 @@ async function startOpenAISession() {
             speed: Number(currentPerson().gptSpeed || (currentPerson().adult ? 1 : 0.9)),
             audioMode: selectedAudioMode,
             instructions,
+            tools: tutorToolDeclarations(),
             onState(detail) {
                 sessionDiagnostics.record("openai_state", { state: detail.state });
             },
@@ -1443,24 +1461,40 @@ async function startOpenAISession() {
                     return;
                 }
                 if (detail.final) {
+                    beginTrackedAiTurn();
+                    aiTurnActive = true;
                     if (!openaiAiTranscriptStarted) {
                         studentView.beginTranscriptTurn();
                         studentView.appendTranscript(detail.text);
                     }
                     currentAiTurnTranscript = detail.text;
+                    if (!openaiAiTranscriptStarted) {
+                        lessonEndingGuard.observe(detail.text);
+                        practiceTurnBoundary.observe(detail.text);
+                    }
                     openaiAiTranscriptStarted = false;
                     return;
                 }
                 if (!openaiAiTranscriptStarted) {
+                    beginTrackedAiTurn();
+                    aiTurnActive = true;
                     studentView.beginTranscriptTurn();
                     openaiAiTranscriptStarted = true;
                 }
                 studentView.appendTranscript(detail.text);
+                currentAiTurnTranscript += detail.text;
+                lessonEndingGuard.observe(detail.text);
+                practiceTurnBoundary.observe(detail.text);
+            },
+            onToolCall(detail) {
+                handleOpenAIToolCall(detail).catch(error => {
+                    sessionDiagnostics.record("openai_tool_failed", { name: detail.name, message: error.message });
+                    openaiRealtime.sendToolResult(detail.callId, { status: "error", message: error.message }, true);
+                });
             },
             onTurnComplete() {
                 openaiAiTranscriptStarted = false;
-                sessionDiagnostics.record("openai_turn_complete", { studentTurn: studentTurnGeneration });
-                if (closingStageActive) scheduleLessonCompletion();
+                completeTrackedAiTurn("openai");
             },
             onError(error) {
                 sessionDiagnostics.record("openai_error", { message: error.message });
@@ -1480,7 +1514,7 @@ async function startSession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.08",
+        appVersion: `v${APP_VERSION}`,
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
         level: selectedPerson.level,
@@ -1991,6 +2025,74 @@ function connectWebSocket(isReconnect) {
 
 // ---------------- Setup 訊息（含工具宣告與逐字稿） ----------------
 
+function tutorToolDeclarations() {
+    return [{
+        type: "function",
+        name: "show_image",
+        description: "Show an educational illustration for a concrete noun before or while teaching it.",
+        parameters: {
+            type: "object",
+            properties: { keyword: { type: "string", description: "Short English noun phrase to illustrate." } },
+            required: ["keyword"]
+        }
+    }, {
+        type: "function",
+        name: "log_vocabulary",
+        description: "Silently save a newly taught or difficult word in the learner's record.",
+        parameters: {
+            type: "object",
+            properties: {
+                word: { type: "string" },
+                meaning: { type: "string", description: "Traditional Chinese meaning." },
+                example: { type: "string", description: "Short English example sentence." }
+            },
+            required: ["word", "meaning"]
+        }
+    }, {
+        type: "function",
+        name: "show_topics",
+        description: "Display exactly five short choices on the learner's screen.",
+        parameters: {
+            type: "object",
+            properties: {
+                topics: { type: "array", items: { type: "string" }, description: "Five concise titles." }
+            },
+            required: ["topics"]
+        }
+    }];
+}
+
+async function executeTutorTool(name, args) {
+    const a = args || {};
+    if (name === "show_image") {
+        const keyword = a.keyword || "picture";
+        const imageStatus = await showImage(keyword);
+        return { status: imageStatus === 'ready' ? "image displayed to student" : `image ${imageStatus}; student sees a safe placeholder` };
+    }
+    if (name === "show_topics") {
+        const list = Array.isArray(a.topics) ? a.topics.slice(0, 5) : [];
+        studentView.showTopics(list);
+        logSystem(`📰 [toolCall] show_topics：${list.join(" / ")}`);
+        return { status: "topics displayed to student" };
+    }
+    if (name === "log_vocabulary") {
+        studentView.showWord(a.word || "", a.meaning || "", a.example || "");
+        recordVocab(a.word || "", a.meaning || "", a.example || "");
+        logVocabToSheet(a.word || "", a.meaning || "", a.example || "");
+        return { status: "vocabulary saved" };
+    }
+    return { status: "unsupported tool" };
+}
+
+async function handleOpenAIToolCall(detail) {
+    let args = {};
+    try { args = JSON.parse(detail.arguments || "{}"); }
+    catch (error) { throw new Error(`工具參數格式錯誤：${detail.name}`); }
+    sessionDiagnostics.record("openai_tool_call", { name: detail.name });
+    const result = await executeTutorTool(detail.name, args);
+    openaiRealtime.sendToolResult(detail.callId, result, true);
+}
+
 function sendSetupMessage(socket, socketToken) {
     if (!liveSession.isCurrent(socket, socketToken) || socket.readyState !== WebSocket.OPEN) return;
     const selectedModel = document.getElementById('modelSelect').value;
@@ -2079,40 +2181,11 @@ function sendSetupMessage(socket, socketToken) {
 // 這會讓 AI 在教下一個單字前留出真正的看圖時間，而不是一收到網址就繼續講。
 async function respondToToolCalls(functionCalls, sourceSocket, socketToken) {
     const functionResponses = await Promise.all(functionCalls.map(async fc => {
-        if (fc.name === "show_image") {
-            const keyword = (fc.args && fc.args.keyword) ? fc.args.keyword : "picture";
-            const imageStatus = await showImage(keyword);
-            return {
-                id: fc.id,
-                name: fc.name,
-                response: { result: { status: imageStatus === 'ready' ? "image displayed to student" : `image ${imageStatus}; student sees a safe placeholder` } }
-            };
-        }
-        if (fc.name === "show_topics") {
-            const list = (fc.args && fc.args.topics) || [];
-            studentView.showTopics(list);
-            logSystem(`📰 [toolCall] show_topics：${list.join(" / ")}`);
-            return {
-                id: fc.id,
-                name: fc.name,
-                response: { result: { status: "topics displayed to student" } }
-            };
-        }
-        if (fc.name === "log_vocabulary") {
-            const a = fc.args || {};
-            studentView.showWord(a.word || "", a.meaning || "", a.example || "");
-            recordVocab(a.word || "", a.meaning || "", a.example || "");
-            logVocabToSheet(a.word || "", a.meaning || "", a.example || "");
-            return {
-                id: fc.id,
-                name: fc.name,
-                response: { result: { status: "vocabulary saved" } }
-            };
-        }
+        const result = await executeTutorTool(fc.name, fc.args || {});
         return {
             id: fc.id,
             name: fc.name,
-            response: { result: { status: "unsupported tool" } }
+            response: { result }
         };
     }));
 
@@ -2131,12 +2204,60 @@ function beginTrackedAiTurn() {
     activeAiTurnUserTranscript = activeAiResponseStudentGeneration !== null ? currentUserTurnTranscript : "";
 }
 
+function completeTrackedAiTurn(provider) {
+    const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
+        activeAiResponseStudentGeneration === pendingStudentResponseGeneration;
+    const completedUserTranscript = activeAiTurnUserTranscript;
+    const completedAiTranscript = currentAiTurnTranscript;
+    const practiceBoundaryDetected = practiceTurnBoundary.completeTurn();
+    const practiceRequested = practiceBoundaryDetected || window.PracticeObserver.asksForPractice(completedAiTranscript);
+    const endingAction = lessonEndingGuard.completeTurn({
+        finalStage: closingStageActive,
+        finishFinalTurn: closingStageActive
+    });
+    sessionDiagnostics.record("ai_turn_completed", {
+        provider,
+        responseToTurn: activeAiResponseStudentGeneration,
+        userTranscriptLength: completedUserTranscript.length,
+        aiTranscriptLength: completedAiTranscript.length,
+        practiceRequested
+    });
+    isNewAiTurn = true;
+    isNewUserTurn = true;
+    aiTurnActive = false;
+    dropStaleAudio = false;
+    aiTurnTrackingStarted = false;
+    activeAiResponseStudentGeneration = null;
+    activeAiTurnUserTranscript = "";
+    currentAiTurnTranscript = "";
+    suppressAudioAfterFarewell = false;
+    suppressAudioAfterPractice = false;
+    if (completesCurrentStudentTurn) {
+        pendingStudentResponseGeneration = null;
+        const observedFeedback = window.PracticeObserver.analyze({
+            userText: completedUserTranscript,
+            aiText: completedAiTranscript
+        });
+        if (observedFeedback) {
+            recordPracticeFeedback(observedFeedback.original, observedFeedback.suggestion,
+                observedFeedback.kind, observedFeedback.focus);
+        }
+    }
+    if (endingAction === "continue" && completesCurrentStudentTurn && stagePendingSince !== null &&
+        stageTransitionGate.completeAiTurn({ practiceRequested })) {
+        sendStageTransition('after-feedback');
+    }
+    if (endingAction === "finish") scheduleLessonCompletion();
+    else if (endingAction === "recover") sendEarlyFarewellRecovery();
+}
+
 function sendEarlyFarewellRecovery() {
     if (closingStageActive || lessonCompletionPending) {
         scheduleLessonCompletion();
         return;
     }
-    if (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped) return;
+    const useOpenAI = openaiSessionActive && openaiRealtime;
+    if (!useOpenAI && (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped)) return;
     const activeStage = teachingFlow[Math.max(0, currentStageIndex - 1)];
     const stagePrompt = activeStage ? activeStage.prompt : "Continue the current lesson activity.";
     const noteText = DIRECTOR_PREFIX +
@@ -2148,7 +2269,8 @@ function sendEarlyFarewellRecovery() {
         stage: activeStage ? activeStage.name : "unknown"
     });
     pendingDirectorNote = noteText;
-    webSocket.send(JSON.stringify({
+    if (useOpenAI) openaiRealtime.sendText(noteText, true);
+    else webSocket.send(JSON.stringify({
         clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
     }));
 }
@@ -2357,53 +2479,7 @@ function handleServerMessage(response, socket, socketToken) {
     if (practiceJustDetected && practiceJustDetected.detected) suppressAudioAfterPractice = true;
 
     if (sc.turnComplete) {
-        const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
-            activeAiResponseStudentGeneration === pendingStudentResponseGeneration;
-        const completedUserTranscript = activeAiTurnUserTranscript;
-        const completedAiTranscript = currentAiTurnTranscript;
-        const practiceBoundaryDetected = practiceTurnBoundary.completeTurn();
-        const practiceRequested = practiceBoundaryDetected || window.PracticeObserver.asksForPractice(completedAiTranscript);
-        const endingAction = lessonEndingGuard.completeTurn({
-            finalStage: closingStageActive,
-            finishFinalTurn: closingStageActive
-        });
-        sessionDiagnostics.record("ai_turn_completed", {
-            responseToTurn: activeAiResponseStudentGeneration,
-            userTranscriptLength: completedUserTranscript.length,
-            aiTranscriptLength: completedAiTranscript.length,
-            practiceRequested
-        });
-        isNewAiTurn = true;
-        isNewUserTurn = true;
-        aiTurnActive = false;
-        dropStaleAudio = false;   // 上一輪確定結束，下一輪的語音正常播放
-        aiTurnTrackingStarted = false;
-        activeAiResponseStudentGeneration = null;
-        activeAiTurnUserTranscript = "";
-        currentAiTurnTranscript = "";
-        suppressAudioAfterFarewell = false;
-        suppressAudioAfterPractice = false;
-        if (completesCurrentStudentTurn) {
-            pendingStudentResponseGeneration = null;
-            const observedFeedback = window.PracticeObserver.analyze({
-                userText: completedUserTranscript,
-                aiText: completedAiTranscript
-            });
-            if (observedFeedback) {
-                recordPracticeFeedback(observedFeedback.original, observedFeedback.suggestion,
-                    observedFeedback.kind, observedFeedback.focus);
-            }
-        }
-        if (endingAction === "continue" && completesCurrentStudentTurn && stagePendingSince !== null &&
-            stageTransitionGate.completeAiTurn({ practiceRequested })) {
-            logSystem("✅ 學生已完成回饋與練習回合，現在以獨立回合切換階段。");
-            sendStageTransition('after-feedback');
-        }
-        if (endingAction === "finish") {
-            scheduleLessonCompletion();
-        } else if (endingAction === "recover") {
-            sendEarlyFarewellRecovery();
-        }
+        completeTrackedAiTurn("gemini");
     }
 }
 

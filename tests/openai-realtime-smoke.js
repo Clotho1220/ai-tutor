@@ -16,13 +16,18 @@
     check("speaker mode selects speakerphone microphone when available", /speakerphone\|speaker\|擴音\|喇叭/.test(source));
     check("audio always falls back to direct WebRTC playback", /audioElement\.srcObject\s*=\s*remoteStream/.test(source));
     check("uses the current realtime transcription model", /gpt-4o-mini-transcribe/.test(source));
+    check("declares Realtime function tools", /tools:\s*Array\.isArray\(settings\.tools\)/.test(source) && /tool_choice:/.test(source));
+    check("detects function calls without completing a teacher turn",
+        /type === "function_call"/.test(source) && /emit\("onToolCall"/.test(source));
+    check("returns function results to the conversation",
+        /type: "function_call_output"/.test(source) && /sendToolResult/.test(source));
     check("settings expose per-person GPT speed", /id="openaiSpeedSelect"/.test(index) && /gptSpeed/.test(app));
     check("Realtime session sends output speed", /output:\s*\{\s*voice:[^}]*speed:\s*outputSpeed/.test(source));
     check("push-to-talk cancels an active GPT response", /type:\s*["']response\.cancel["']/.test(source));
     check("push-to-talk clears buffered WebRTC audio", /type:\s*["']output_audio_buffer\.clear["']/.test(source));
     check("next GPT response waits for cancellation acknowledgement",
         /cancellationPending\s*\|\|\s*responseInProgress[\s\S]{0,260}responseCreatePending\s*=\s*true/.test(source) &&
-        /event\.type\s*===\s*["']response\.done["'][\s\S]{0,260}responseCreatePending/.test(source));
+        /event\.type\s*===\s*["']response\.done["'][\s\S]{0,900}responseCreatePending/.test(source));
     check("closed sessions reject queued stale events", /connectionGeneration/.test(source) && /if\s*\(!active\)\s*return/.test(source));
     check("browser requests only a short-lived client secret", /openaiClientSecret/.test(source) && !/OPENAI_API_KEY/.test(source));
     check("backend reads API key from Script Properties", /getScriptProperties\(\)\.getProperty\('OPENAI_API_KEY'\)/.test(backend));
@@ -31,6 +36,10 @@
     check("backend supplies current news headlines", /newsTopics_/.test(backend) && /news\.google\.com\/rss/.test(backend));
     check("OpenAI module loads before app", index.indexOf('src="openai-realtime.js') < index.indexOf('src="app.js'));
     check("settings combine all engines in one picker", /id="engineSelect"/.test(index) && /gpt-mini/.test(index) && /gpt-quality/.test(index));
+    check("GPT uses the same tracked lesson lifecycle as Gemini",
+        /completeTrackedAiTurn\("openai"\)/.test(app) && /completeTrackedAiTurn\("gemini"\)/.test(app));
+    check("GPT tools share the same app-side executor as Gemini",
+        /function executeTutorTool/.test(app) && /handleOpenAIToolCall/.test(app));
     check("CSP permits OpenAI WebRTC setup", /connect-src[^\"]*https:\/\/api\.openai\.com/.test(index));
 
     const passed = checks.every(item => item.pass);

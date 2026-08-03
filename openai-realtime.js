@@ -62,6 +62,18 @@
             } else if (event.type === "response.done") {
                 responseInProgress = false;
                 cancellationPending = false;
+                const toolCalls = (((event.response || {}).output) || [])
+                    .filter(item => item && item.type === "function_call")
+                    .map(item => ({
+                        callId: item.call_id,
+                        name: item.name,
+                        arguments: item.arguments || "{}",
+                        item
+                    }));
+                if (toolCalls.length > 0) {
+                    toolCalls.forEach(call => emit("onToolCall", call));
+                    return;
+                }
                 if (responseCreatePending && !talking) {
                     responseCreatePending = false;
                     send({ type: "response.create" });
@@ -209,7 +221,9 @@
                             transcription: { model: "gpt-4o-mini-transcribe" }
                         },
                         output: { voice: settings.voice || "marin", speed: outputSpeed }
-                    }
+                    },
+                    tools: Array.isArray(settings.tools) ? settings.tools : [],
+                    tool_choice: Array.isArray(settings.tools) && settings.tools.length ? "auto" : "none"
                 }
             });
             emit("onState", { state: "connected" });
@@ -272,6 +286,17 @@
             return sent;
         }
 
+        function sendToolResult(callId, output, requestResponse) {
+            if (!callId) return false;
+            const serialized = typeof output === "string" ? output : JSON.stringify(output || {});
+            const sent = send({
+                type: "conversation.item.create",
+                item: { type: "function_call_output", call_id: callId, output: serialized }
+            });
+            if (sent && requestResponse !== false) send({ type: "response.create" });
+            return sent;
+        }
+
         function muteOutput(value) {
             if (audioElement) audioElement.muted = !!value;
         }
@@ -318,7 +343,7 @@
             });
         }
 
-        return Object.freeze({ connect, startTalking, stopTalking, sendText, muteOutput, close, inspect });
+        return Object.freeze({ connect, startTalking, stopTalking, sendText, sendToolResult, muteOutput, close, inspect });
     }
 
     global.OpenAIRealtime = Object.freeze({ create });

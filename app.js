@@ -1218,6 +1218,39 @@ actionBtn.addEventListener('click', async () => {
     }
 });
 
+function newsDisplayTitle(item) {
+    const raw = String((item && item.title) || "").trim();
+    return raw.replace(/\s+-\s+[^-]{1,50}$/, "").slice(0, 48) || "近期新聞";
+}
+
+function selectVisibleNewsTopics(topics) {
+    const local = topics.filter(item => item && item.region === '台灣');
+    const world = topics.filter(item => item && item.region === '國際');
+    const selected = [];
+    while (selected.length < 5 && (local.length || world.length)) {
+        if (local.length) selected.push(local.shift());
+        if (selected.length < 5 && world.length) selected.push(world.shift());
+    }
+    topics.forEach(item => {
+        if (selected.length < 5 && item && !selected.includes(item)) selected.push(item);
+    });
+    return selected.slice(0, 5);
+}
+
+async function fetchAndShowNewsTopics() {
+    const news = await syncCall('newsTopics', {});
+    const topics = news && Array.isArray(news.topics) ? news.topics : [];
+    if (!topics.length) throw new Error("目前無法取得近期新聞，請稍後重試或先切回一般課程");
+    const visible = selectVisibleNewsTopics(topics);
+    studentView.showTopics(visible.map(newsDisplayTitle));
+    sessionDiagnostics.record("news_topics_displayed", {
+        count: visible.length,
+        regions: visible.map(item => item.region)
+    });
+    logSystem(`📰 已在學生畫面顯示 ${visible.length} 則新聞選項。`);
+    return news;
+}
+
 async function startOpenAISession() {
     if (!openaiRealtime) { alert("GPT Realtime 模組沒有載入，請重新整理頁面後再試。"); return; }
     const tokenEndpoint = (localStorage.getItem(SYNC_URL_KEY) || "").trim();
@@ -1259,9 +1292,8 @@ async function startOpenAISession() {
         elapsedTime = 0;
         let newsContext = "";
         if (currentMode() === 'news') {
-            const news = await syncCall('newsTopics', {});
+            const news = await fetchAndShowNewsTopics();
             const topics = news && Array.isArray(news.topics) ? news.topics : [];
-            if (!topics.length) throw new Error("目前無法取得近期新聞，請稍後重試或先切回一般課程");
             newsContext = " CURRENT NEWS HEADLINES fetched at " + news.fetchedAt + ": " +
                 topics.map((item, index) => `${index + 1}. [${item.region}] ${item.title}`).join(" | ") +
                 ". These headlines are your only current-news source. Never claim you searched the web. " +
@@ -1387,6 +1419,13 @@ async function startSession() {
         LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
         prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
+        if (currentMode() === 'news' && syncConfigured()) {
+            try {
+                await fetchAndShowNewsTopics();
+            } catch (newsError) {
+                logSystem(`<span style="color:#ff8800;">⚠️ 新聞選項載入失敗，Gemini 將改用搜尋工具：${newsError.message}</span>`);
+            }
+        }
         const totalMin = LESSON.stages.reduce((a, s) => a + (s.minutes || 0), 0);
         sessionDiagnostics.updateMetadata({
             unit: LESSON.unit || "一般練習",

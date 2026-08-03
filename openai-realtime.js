@@ -13,6 +13,9 @@
         let audioElement = null;
         let active = false;
         let talking = false;
+        let responseInProgress = false;
+        let outputAudioPlaying = false;
+        let connectionGeneration = 0;
         let handlers = {};
 
         function emit(name, detail) {
@@ -26,8 +29,15 @@
         }
 
         function handleEvent(event) {
+            if (!active) return;
             emit("onEvent", event);
-            if (event.type === "session.created" || event.type === "session.updated") {
+            if (event.type === "response.created") {
+                responseInProgress = true;
+            } else if (event.type === "output_audio_buffer.started") {
+                outputAudioPlaying = true;
+            } else if (event.type === "output_audio_buffer.stopped" || event.type === "output_audio_buffer.cleared") {
+                outputAudioPlaying = false;
+            } else if (event.type === "session.created" || event.type === "session.updated") {
                 emit("onState", { state: "ready", event });
             } else if (event.type === "conversation.item.input_audio_transcription.delta") {
                 emit("onTranscript", { role: "student", text: event.delta || "", final: false, event });
@@ -38,6 +48,7 @@
             } else if (event.type === "response.output_audio_transcript.done") {
                 emit("onTranscript", { role: "ai", text: event.transcript || "", final: true, event });
             } else if (event.type === "response.done") {
+                responseInProgress = false;
                 emit("onTurnComplete", event);
             } else if (event.type === "error") {
                 emit("onError", new Error((event.error && event.error.message) || "OpenAI Realtime error"));
@@ -102,12 +113,14 @@
             if (!settings || !settings.tokenEndpoint) throw new Error("尚未設定短效憑證後端網址");
             if (!PeerConnection) throw new Error("這個瀏覽器不支援 WebRTC");
             handlers = settings;
+            const generation = ++connectionGeneration;
             emit("onState", { state: "connecting" });
 
             const clientSecret = await requestClientSecret(settings);
             peer = new PeerConnection();
             channel = peer.createDataChannel("oai-events");
             channel.addEventListener("message", message => {
+                if (generation !== connectionGeneration) return;
                 try { handleEvent(JSON.parse(message.data)); }
                 catch (error) { emit("onError", error); }
             });
@@ -116,6 +129,7 @@
             audioElement.autoplay = true;
             audioElement.setAttribute && audioElement.setAttribute("playsinline", "");
             peer.addEventListener("track", event => {
+                if (generation !== connectionGeneration) return;
                 const remoteStream = event.streams[0];
                 audioElement.srcObject = remoteStream;
                 const playResult = audioElement.play && audioElement.play();
@@ -151,6 +165,8 @@
             await peer.setRemoteDescription({ type: "answer", sdp: await sdpResponse.text() });
             await opened;
 
+            if (generation !== connectionGeneration) throw new Error("OpenAI 連線已取消");
+            active = true;
             send({
                 type: "session.update",
                 session: {
@@ -167,13 +183,18 @@
                     }
                 }
             });
-            active = true;
             emit("onState", { state: "connected" });
             return inspect();
         }
 
         function startTalking() {
             if (!active || !track || talking) return false;
+            // Push-to-talk 沒有 VAD 幫忙插話；必須由前端主動取消生成並清掉 WebRTC 播放緩衝。
+            if (responseInProgress) send({ type: "response.cancel" });
+            if (responseInProgress || outputAudioPlaying) send({ type: "output_audio_buffer.clear" });
+            responseInProgress = false;
+            outputAudioPlaying = false;
+            muteOutput(true);
             send({ type: "input_audio_buffer.clear" });
             track.enabled = true;
             talking = true;
@@ -185,6 +206,7 @@
             if (!active || !track || !talking) return false;
             track.enabled = false;
             talking = false;
+            muteOutput(false);
             send({ type: "input_audio_buffer.commit" });
             send({ type: "response.create" });
             emit("onState", { state: "waiting" });
@@ -206,8 +228,15 @@
         }
 
         function close() {
+            if (active) {
+                if (responseInProgress) send({ type: "response.cancel" });
+                if (responseInProgress || outputAudioPlaying) send({ type: "output_audio_buffer.clear" });
+            }
+            connectionGeneration += 1;
             active = false;
             talking = false;
+            responseInProgress = false;
+            outputAudioPlaying = false;
             if (track) track.enabled = false;
             if (stream) stream.getTracks().forEach(item => item.stop());
             if (channel) try { channel.close(); } catch (error) {}
@@ -221,7 +250,7 @@
         }
 
         function inspect() {
-            return Object.freeze({ active, talking, channelState: channel ? channel.readyState : "closed" });
+            return Object.freeze({ active, talking, responseInProgress, outputAudioPlaying, channelState: channel ? channel.readyState : "closed" });
         }
 
         return Object.freeze({ connect, startTalking, stopTalking, sendText, muteOutput, close, inspect });

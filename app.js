@@ -15,7 +15,7 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.02";
+const APP_VERSION = "3.03";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -143,6 +143,7 @@ const generatedImage = document.getElementById('generatedImage');
 const imageCaption = document.getElementById('imageCaption');
 const voiceSelect = document.getElementById('voiceSelect');
 const providerSelect = document.getElementById('providerSelect');
+const engineSelect = document.getElementById('engineSelect');
 const openaiVoiceSelect = document.getElementById('openaiVoiceSelect');
 const openaiModelSelect = document.getElementById('openaiModelSelect');
 const talkBtn = document.getElementById('talkBtn');
@@ -162,7 +163,7 @@ function selectedOpenAIModel() {
 }
 
 (function initProviderPicker() {
-    if (!providerSelect) return;
+    if (!providerSelect || !engineSelect) return;
     providerSelect.value = localStorage.getItem('ai_provider') === 'openai' ? 'openai' : 'gemini';
     if (openaiVoiceSelect) openaiVoiceSelect.value = localStorage.getItem('openai_voice') || 'marin';
     if (openaiModelSelect) {
@@ -170,25 +171,21 @@ function selectedOpenAIModel() {
             ? 'gpt-realtime'
             : 'gpt-realtime-2.1-mini';
     }
-    const refresh = () => {
-        const useOpenAI = selectedProvider() === 'openai';
-        const field = document.getElementById('openaiVoiceField');
-        if (field) field.hidden = !useOpenAI;
-        const modelField = document.getElementById('openaiModelField');
-        if (modelField) modelField.hidden = !useOpenAI;
-        if (voiceSelect && voiceSelect.parentElement) voiceSelect.parentElement.hidden = useOpenAI;
-        if (document.getElementById('modelSelect') && document.getElementById('modelSelect').parentElement) {
-            document.getElementById('modelSelect').parentElement.hidden = useOpenAI;
+    engineSelect.value = providerSelect.value === 'gemini'
+        ? 'gemini'
+        : (openaiModelSelect.value === 'gpt-realtime' ? 'gpt-quality' : 'gpt-mini');
+    engineSelect.addEventListener('change', () => {
+        const useGemini = engineSelect.value === 'gemini';
+        providerSelect.value = useGemini ? 'gemini' : 'openai';
+        if (!useGemini) {
+            openaiModelSelect.value = engineSelect.value === 'gpt-quality'
+                ? 'gpt-realtime'
+                : 'gpt-realtime-2.1-mini';
         }
-        if (apiKeyInput && apiKeyInput.parentElement) apiKeyInput.parentElement.hidden = useOpenAI;
-    };
-    providerSelect.addEventListener('change', () => {
         localStorage.setItem('ai_provider', providerSelect.value);
-        refresh();
+        localStorage.setItem('openai_model', selectedOpenAIModel());
     });
     if (openaiVoiceSelect) openaiVoiceSelect.addEventListener('change', () => localStorage.setItem('openai_voice', openaiVoiceSelect.value));
-    if (openaiModelSelect) openaiModelSelect.addEventListener('change', () => localStorage.setItem('openai_model', selectedOpenAIModel()));
-    refresh();
 })();
 
 // 測試用：手動跳到下一階段
@@ -200,8 +197,12 @@ nextStageBtn.addEventListener('click', () => sendStageTransition('manual'));
 talkBtn.addEventListener('click', () => {
     if (openaiSessionActive) {
         if (!isTalking) {
+            const responseWasActive = !!(openaiRealtime && openaiRealtime.inspect().responseInProgress);
             if (!openaiRealtime || !openaiRealtime.startTalking()) return;
             stopAllPlayback();
+            sessionDiagnostics.record("openai_student_interrupt", {
+                responseWasActive
+            });
             currentUserTurnTranscript = "";
             isTalking = true;
             talkBtn.classList.add('talking');
@@ -1341,7 +1342,8 @@ async function startOpenAISession() {
             newsContext = " CURRENT NEWS HEADLINES fetched at " + news.fetchedAt + ": " +
                 topics.map((item, index) => `${index + 1}. [${item.region}] ${item.title}`).join(" | ") +
                 ". These headlines are your only current-news source. Never claim you searched the web. " +
-                "Offer a few concise choices, then ask the learner to choose. ";
+                "Offer a few concise choices, then ask the learner to choose. NEVER choose a headline for the learner. " +
+                "Only continue with a story after the learner clearly says its number or title; if their choice is unclear or empty, ask them to choose again and WAIT. ";
             logSystem(`📰 GPT 已取得 ${topics.length} 則近期新聞標題。`);
         }
         const instructions = buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext +

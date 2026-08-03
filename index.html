@@ -43,7 +43,7 @@
 
         /* Push-to-talk 說話按鈕：固定在畫面底部中央 */
         /* bottom 提高避開手機底部手勢條，避免誤觸 */
-        #talkBtn { position: fixed; bottom: 44px; left: 50%; transform: translateX(-50%); z-index: 100;
+        #talkBtn { display:none; position: fixed; bottom: 44px; left: 50%; transform: translateX(-50%); z-index: 100;
                    padding: 16px 44px; border-radius: 50px; font-size: 17px; font-weight: bold;
                    background: #0e639c; color: #fff; border: none; cursor: pointer; white-space: nowrap;
                    box-shadow: 0 4px 14px rgba(0,0,0,0.5); -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
@@ -95,7 +95,7 @@
                         font-size:20px; line-height:1.65; color:#4a4a4a; text-align:left; display:block;
                         box-shadow:0 4px 16px rgba(0,0,0,0.08); white-space:pre-wrap; }
         #svTranscript:empty::before { content:'AI 的逐字稿會顯示在這裡'; color:#aaa; }
-        body.student-mode #talkBtn { font-size:20px; padding:20px 56px; }
+        body.student-mode #talkBtn { display:block; font-size:20px; padding:20px 56px; }
         #studentModeBtn { background:#28a745; }
 
         /* ---------------- 首頁（極簡：選人 → 耳機/喇叭 → 開始連線） ---------------- */
@@ -115,16 +115,30 @@
         #settingsBtn { background:transparent; color:#888; border:1px solid #555; border-radius:20px; padding:8px 20px; font-weight:normal; }
 
         /* ---------------- 設定畫面（預設隱藏） ---------------- */
-        #settingsScreen { display:none; }
+        #settingsScreen { display:none; width:min(100%,760px); margin:0 auto; }
         body.settings-mode #homeScreen { display:none; }
         body.settings-mode #settingsScreen { display:block; }
         body.student-mode #homeScreen, body.student-mode #settingsScreen { display:none; }
-        #closeSettingsBtn { background:#3c3c3c; border-radius:18px; padding:8px 18px; margin-bottom:14px; }
-        .settings-row { display:flex; flex-wrap:wrap; gap:12px; align-items:center; margin-bottom:14px; }
-        .settings-row label.field { display:flex; flex-direction:column; gap:4px; font-size:12px; color:#aaa; }
+        .settings-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:18px; }
+        #closeSettingsBtn { background:#303030; border-radius:22px; padding:10px 20px; }
+        #appVersion { color:#858585; font-size:13px; }
+        .settings-card { background:#292929; border:1px solid #414141; border-radius:18px; padding:18px; margin-bottom:14px; }
+        .settings-card-title { font-size:17px; font-weight:800; color:#eee; margin-bottom:14px; }
+        .settings-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+        .settings-grid .wide { grid-column:1 / -1; }
+        label.field { display:flex; flex-direction:column; gap:7px; color:#aaa; font-size:13px; }
+        label.field select, label.field input { width:100%; min-height:46px; box-sizing:border-box; font-size:16px; }
+        .advanced-heading { color:#777; font-size:12px; letter-spacing:1px; margin:24px 4px 10px; }
+        #settingsScreen > details { border-radius:14px !important; margin-bottom:10px !important; background:#242424 !important; }
+        #settingsScreen > details summary { font-size:15px; }
+        #teacherDiagnostics { display:none; }
+        #lessonToolsCard { display:none; }
 
         /* 手機：單欄，圖片與 Log 高度收斂 */
         @media (max-width: 768px) {
+            body { padding-left:14px; padding-right:14px; }
+            .settings-grid { grid-template-columns:1fr; }
+            .settings-grid .wide { grid-column:auto; }
             .dashboard-grid { grid-template-columns: 1fr; }
             .panel-chat .panel-content { height: 120px; }
             .panel-image .panel-content { height: 200px; }
@@ -144,7 +158,7 @@
             <button class="mode-btn" data-mode="lesson">📖 課程</button>
             <button class="mode-btn" data-mode="news">📰 時事討論</button>
         </div>
-        <div id="personSummary"></div>
+        <div id="personSummary" hidden></div>
         <div class="audio-row">
             <label><input type="radio" name="audioMode" value="headphone"> 🎧 耳機</label>
             <label><input type="radio" name="audioMode" value="speaker" checked> 🔊 喇叭</label>
@@ -156,60 +170,61 @@
 
     <!-- ==================== 設定畫面：其餘全部收在這裡 ==================== -->
     <div id="settingsScreen">
-        <button id="closeSettingsBtn">← 返回</button>
-        <div id="appVersion" style="margin:0 0 14px; color:#8f8f8f; font-size:13px;">AI Tutor Studio v3.02</div>
-        <div class="settings-row">
-            <label class="field">語言模型
-                <select id="providerSelect">
-                    <option value="gemini">Gemini Live 3.1（目前使用）</option>
-                    <option value="openai">GPT Realtime（測試）</option>
-                </select>
-            </label>
-            <label class="field">Gemini API Key
-                <input type="password" id="apiKeyInput" placeholder="貼上你的 API Key" style="background:#3c3c3c; color:#fff; border:1px solid #555; padding:6px 10px; border-radius:4px; width:190px;">
-                <span style="color:#888; font-size:11px; max-width:230px;">僅供舊版備援；設定後端 GEMINI_API_KEY 後會自動清除手機裡的 Key。</span>
-            </label>
-            <label class="field">程度（中英文比例，記在目前人員身上）
-                <select id="levelSelect">
-                    <option value="1">① 70% 中文（適合 6-8 歲）</option>
-                    <option value="2">② 中英各半</option>
-                    <option value="3">③ 70% 英文</option>
-                    <option value="4">④ 幾乎全英</option>
-                    <option value="5">⑤ 全英文</option>
-                </select>
-            </label>
-            <label class="field">AI 聲音（記在目前人員身上）
-                <select id="voiceSelect"><option value="Aoede">Aoede</option><option value="Kore">Kore</option><option value="Puck">Puck</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option></select>
-            </label>
-            <label class="field" id="openaiVoiceField" hidden>GPT 聲音
-                <select id="openaiVoiceSelect"><option value="marin">Marin</option><option value="cedar">Cedar</option><option value="coral">Coral</option><option value="sage">Sage</option><option value="verse">Verse</option></select>
-            </label>
-            <label class="field" id="openaiModelField" hidden>GPT 模型
-                <select id="openaiModelSelect">
-                    <option value="gpt-realtime-2.1-mini">GPT Realtime 2.1 mini（省費，預設）</option>
-                    <option value="gpt-realtime">GPT Realtime（高品質，較高費用）</option>
-                </select>
-            </label>
-            <label class="field">上第幾天
-                <select id="daySelect" title="自動＝依日期推進，同一天重複開課上同一天">
-                    <option value="auto">📅 自動排課</option>
-                    <option value="1">第 1 天</option>
-                    <option value="2">第 2 天</option>
-                    <option value="3">第 3 天</option>
-                    <option value="4">第 4 天</option>
-                    <option value="5">第 5 天</option>
-                </select>
-            </label>
-            <label class="field">模型
-                <select id="modelSelect" title="實測 Live 3.1 最穩定">
-                    <option value="models/gemini-3.1-flash-live-preview">Live 3.1（新一代，低延遲）</option>
-                </select>
-            </label>
-            <label class="field">上課中
-                <span><button id="nextStageBtn" disabled>⏭ 下一階段</button>
-                <button id="studentModeBtn">🧒 學生畫面</button></span>
-            </label>
+        <div class="settings-top">
+            <button id="closeSettingsBtn">← 返回</button>
+            <div id="appVersion">AI Tutor Studio v3.03</div>
         </div>
+        <section class="settings-card">
+            <div class="settings-card-title">🤖 AI 老師</div>
+            <div class="settings-grid">
+                <label class="field wide">語言模型
+                    <select id="engineSelect">
+                        <option value="gemini">Gemini Live 3.1</option>
+                        <option value="gpt-mini">GPT Realtime 2.1 mini（省費）</option>
+                        <option value="gpt-quality">GPT Realtime（高品質）</option>
+                    </select>
+                </label>
+                <label class="field">Gemini 聲音
+                    <select id="voiceSelect"><option value="Aoede">Aoede</option><option value="Kore">Kore</option><option value="Puck">Puck</option><option value="Charon">Charon</option><option value="Fenrir">Fenrir</option></select>
+                </label>
+                <label class="field">GPT 聲音
+                    <select id="openaiVoiceSelect"><option value="marin">Marin</option><option value="cedar">Cedar</option><option value="coral">Coral</option><option value="sage">Sage</option><option value="verse">Verse</option></select>
+                </label>
+            </div>
+            <div hidden aria-hidden="true">
+                <select id="providerSelect"><option value="gemini">Gemini</option><option value="openai">GPT</option></select>
+                <select id="openaiModelSelect"><option value="gpt-realtime-2.1-mini">GPT mini</option><option value="gpt-realtime">GPT quality</option></select>
+                <select id="modelSelect"><option value="models/gemini-3.1-flash-live-preview">Live 3.1</option></select>
+                <input type="password" id="apiKeyInput" placeholder="Gemini API Key 舊版備援">
+            </div>
+        </section>
+        <section class="settings-card">
+            <div class="settings-card-title">📚 學習安排</div>
+            <div class="settings-grid">
+                <label class="field">程度（記在目前人員身上）
+                    <select id="levelSelect">
+                        <option value="1">① 70% 中文</option>
+                        <option value="2">② 中英各半</option>
+                        <option value="3">③ 70% 英文</option>
+                        <option value="4">④ 幾乎全英</option>
+                        <option value="5">⑤ 全英文</option>
+                    </select>
+                </label>
+                <label class="field">課程日期
+                    <select id="daySelect" title="自動＝依日期推進，同一天重複開課上同一天">
+                        <option value="auto">📅 自動排課</option>
+                        <option value="1">第 1 天</option><option value="2">第 2 天</option><option value="3">第 3 天</option>
+                        <option value="4">第 4 天</option><option value="5">第 5 天</option>
+                    </select>
+                </label>
+            </div>
+        </section>
+        <section class="settings-card" id="lessonToolsCard">
+            <div class="settings-card-title">🎛️ 上課工具</div>
+            <button id="nextStageBtn" disabled>⏭ 下一階段</button>
+            <button id="studentModeBtn">🧒 學生畫面</button>
+        </section>
+        <div class="advanced-heading">進階設定與資料</div>
     <details id="unitPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#f39c12;">📖 課本單元（Gogo English，共 18 個單元）</summary>
         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
@@ -278,7 +293,7 @@
             紀錄存在這支手機／這個瀏覽器裡；有設定跨手機同步時也會備份至你的 Google 試算表。只保存文字，不保存聲音檔。
         </div>
     </details>
-        <div class="dashboard-grid">
+        <div class="dashboard-grid" id="teacherDiagnostics">
             <div class="panel panel-chat"><div class="panel-header"><span>🤖 AI 逐字稿</span></div><div class="panel-content" id="aiSpeechBox"></div></div>
             <div class="panel panel-image"><div class="panel-header"><span>🖼️ 生成的圖片</span></div><div class="panel-content image-container"><img id="generatedImage" src="" alt="AI Image"><div id="imageCaption">等待 AI 觸發畫圖指令...</div></div></div>
             <div class="panel panel-log"><div class="panel-header"><span>⚙️ System &amp; Event Log</span></div><div class="panel-content" id="sysLogBox">準備就緒。</div></div>
@@ -314,6 +329,6 @@
     <script src="practice-observer.js?v=20260802i"></script>
     <script src="session-diagnostics.js?v=20260802h"></script>
     <script src="lesson-ending.js?v=20260802i"></script>
-    <script src="openai-realtime.js?v=20260803b"></script>
-    <script src="app.js?v=20260803f"></script>
+    <script src="openai-realtime.js?v=20260803c"></script>
+    <script src="app.js?v=20260803g"></script>
 </body></html>

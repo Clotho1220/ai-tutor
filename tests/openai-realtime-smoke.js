@@ -12,13 +12,16 @@
     check("speaker mode selects speakerphone microphone when available", /speakerphone\|speaker\|擴音\|喇叭/.test(source));
     check("audio always falls back to direct WebRTC playback", /audioElement\.srcObject\s*=\s*remoteStream/.test(source));
     check("uses the current realtime transcription model", /gpt-4o-mini-transcribe/.test(source));
+    check("push-to-talk cancels an active GPT response", /type:\s*["']response\.cancel["']/.test(source));
+    check("push-to-talk clears buffered WebRTC audio", /type:\s*["']output_audio_buffer\.clear["']/.test(source));
+    check("closed sessions reject queued stale events", /connectionGeneration/.test(source) && /if\s*\(!active\)\s*return/.test(source));
     check("browser requests only a short-lived client secret", /openaiClientSecret/.test(source) && !/OPENAI_API_KEY/.test(source));
     check("backend reads API key from Script Properties", /getScriptProperties\(\)\.getProperty\('OPENAI_API_KEY'\)/.test(backend));
     check("backend restricts models and voices", /allowedModels/.test(backend) && /allowedVoices/.test(backend));
     check("backend allows mini and quality models", /'gpt-realtime-2\.1-mini', 'gpt-realtime'/.test(backend));
     check("backend supplies current news headlines", /newsTopics_/.test(backend) && /news\.google\.com\/rss/.test(backend));
     check("OpenAI module loads before app", index.indexOf('src="openai-realtime.js') < index.indexOf('src="app.js'));
-    check("settings expose both GPT model choices", /id="openaiModelSelect"/.test(index) && /gpt-realtime-2\.1-mini/.test(index));
+    check("settings combine all engines in one picker", /id="engineSelect"/.test(index) && /gpt-mini/.test(index) && /gpt-quality/.test(index));
     check("CSP permits OpenAI WebRTC setup", /connect-src[^\"]*https:\/\/api\.openai\.com/.test(index));
 
     const passed = checks.every(item => item.pass);

@@ -52,6 +52,10 @@
     check("observer loads before app", indexSource.indexOf('src="practice-observer.js') < indexSource.indexOf('src="app.js'));
     check("Live setup no longer declares log_practice", !/name:\s*"log_practice"/.test(appSource));
     check("turnComplete records observed feedback", /PracticeObserver\.analyze\(\{[\s\S]{0,180}userText:[\s\S]{0,180}aiText:/.test(appSource));
+    check("clarification requests override Chinese-to-English feedback",
+        /CLARIFICATION OVERRIDE/.test(appSource) &&
+        /你在說什麼/.test(appSource) &&
+        /Never teach them to say 'What did you say\?'/.test(appSource));
     check("student transcript ignores chunks after a closed practice boundary",
         /boundaryAlreadyClosed\s*=\s*suppressAudioAfterFarewell\s*\|\|\s*suppressAudioAfterPractice/.test(appSource));
 

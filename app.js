@@ -912,7 +912,8 @@ function buildSystemInstruction(lesson) {
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say tool names, '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
-        "(6) MANDATORY FEEDBACK LOOP — after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
+        "(6) CLARIFICATION OVERRIDE — this rule has priority over every feedback or translation rule below. If the learner says 「你在說什麼？」, 「你說什麼？」, 「什麼意思？」, 「我聽不懂」, 「蛤？」, asks you to repeat, or otherwise shows they did not understand YOUR previous words, treat it as a request for help — NOT as an answer to translate or correct. Never teach them to say 'What did you say?' in this situation. Instead, immediately repeat or rephrase YOUR last message in much simpler English; for Mandarin learners, add one short Traditional Chinese explanation when useful. Keep it to one or two short sentences, then STOP and let them respond. Do not continue the lesson topic in the same turn. " +
+        "(7) MANDATORY FEEDBACK LOOP — except for the clarification requests covered by rule 6, after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
         "first, react to WHAT they said in one short sentence; " +
         "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it; " +
         "third, hand the turn back with ONE question. " +
@@ -1306,7 +1307,7 @@ async function startOpenAISession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.05",
+        appVersion: "v3.06",
         provider: "openai",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
@@ -1428,7 +1429,7 @@ async function startSession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.05",
+        appVersion: "v3.06",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
         level: selectedPerson.level,

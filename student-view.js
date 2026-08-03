@@ -272,7 +272,7 @@
         function beginTranscriptTurn() {
             if (!elements.transcript) return;
             elements.transcript.textContent = "";
-            elements.transcript.style.display = 'none';
+            elements.transcript.style.display = 'block';
         }
 
         function appendTranscript(value) {

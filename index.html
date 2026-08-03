@@ -57,9 +57,17 @@
 
         /* ---------------- 學生畫面（明亮全螢幕，給孩子看） ---------------- */
         #studentView { display:none; position:fixed; inset:0; z-index:50; background:linear-gradient(180deg,#fff8e7,#ffeef2);
-                       color:#333; padding:20px; padding-bottom:115px; flex-direction:column; align-items:center;
-                       justify-content:center; gap:12px; text-align:center; overflow-y:auto; }
+                       color:#333; padding:0 20px calc(130px + env(safe-area-inset-bottom)); flex-direction:column;
+                       align-items:stretch; justify-content:flex-start; gap:18px; text-align:center; overflow-y:auto;
+                       overscroll-behavior-y:contain; -webkit-overflow-scrolling:touch; box-sizing:border-box; }
         body.student-mode #studentView { display:flex; }
+        #svVisualSection, #svTranscriptSection { width:100%; min-height:75dvh; flex:0 0 auto; box-sizing:border-box; }
+        #svVisualSection { display:flex; flex-direction:column; align-items:center; justify-content:center;
+                           gap:12px; padding:72px 0 20px; }
+        #svTranscriptSection { display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+                               padding:24px 0 34px; }
+        #svTranscriptTitle { width:min(94vw,720px); margin:0 0 10px; text-align:left; color:#8a7a64;
+                             font-size:17px; font-weight:800; }
         #svImage { max-width:min(64vw,300px); max-height:27vh; border-radius:24px; display:none;
                    box-shadow:0 6px 20px rgba(0,0,0,0.12); background:#fff; }
         #svImagePlaceholder { font-size:70px; line-height:1; }
@@ -69,7 +77,8 @@
         #svSayBox { background:#ffffff; border-radius:18px; padding:12px 24px; box-shadow:0 4px 14px rgba(0,0,0,0.09); display:none; max-width:88vw; }
         #svSayLabel { font-size:15px; color:#e67e22; font-weight:bold; margin-bottom:4px; }
         #svSay { font-size:27px; font-weight:700; color:#c0392b; word-break:break-word; }
-        #exitStudentBtn { position:absolute; top:12px; left:12px; background:#f1e4d0; color:#8a7a64;
+        #exitStudentBtn { position:fixed; top:calc(12px + env(safe-area-inset-top)); left:12px; z-index:102;
+                          background:#f1e4d0; color:#8a7a64;
                           border-radius:18px; padding:8px 16px; font-size:15px; font-weight:bold; }
         /* 時事討論：5 個議題讓孩子看著選 */
         #svTopics { display:none; flex-direction:column; gap:8px; width:min(92vw,460px); }
@@ -79,9 +88,11 @@
         #svTopics .num { background:#7d3c98; color:#fff; border-radius:50%; min-width:34px; height:34px;
                          display:flex; align-items:center; justify-content:center; font-size:18px; flex-shrink:0; }
         /* AI 說話字幕（同步逐字稿） */
-        #svTranscript { background:rgba(255,255,255,0.9); border-radius:16px; padding:14px 20px; max-width:94vw;
-                        min-width:min(94vw,520px); max-height:210px; overflow-y:auto; font-size:24px;
-                        line-height:1.55; color:#4a4a4a; text-align:left; display:none; }
+        #svTranscript { background:rgba(255,255,255,0.92); border-radius:20px; padding:20px 22px;
+                        width:min(94vw,720px); height:68dvh; min-height:420px; overflow-y:auto; box-sizing:border-box;
+                        font-size:20px; line-height:1.65; color:#4a4a4a; text-align:left; display:block;
+                        box-shadow:0 4px 16px rgba(0,0,0,0.08); white-space:pre-wrap; }
+        #svTranscript:empty::before { content:'AI 的逐字稿會顯示在這裡'; color:#aaa; }
         body.student-mode #talkBtn { font-size:20px; padding:20px 56px; }
         #studentModeBtn { background:#28a745; }
 
@@ -271,22 +282,27 @@
     </div><!-- /#settingsScreen -->
     <div id="studentView">
         <button id="exitStudentBtn" title="回到老師畫面">← 返回</button>
-        <div id="svImagePlaceholder">🎈</div>
-        <img id="svImage" src="" alt="教學圖片">
-        <div id="svImageStatus" role="status" aria-live="polite"></div>
-        <div id="svWord">👂 聽老師說～</div>
-        <div id="svMeaning"></div>
-        <div id="svSayBox">
-            <div id="svSayLabel">🗣️ 你說說看</div>
-            <div id="svSay"></div>
-        </div>
-        <div id="svTopics"></div>
-        <div id="svTranscript"></div>
+        <section id="svVisualSection" aria-label="課程圖片與選項">
+            <div id="svImagePlaceholder">🎈</div>
+            <img id="svImage" src="" alt="教學圖片">
+            <div id="svImageStatus" role="status" aria-live="polite"></div>
+            <div id="svWord">👂 聽老師說～</div>
+            <div id="svMeaning"></div>
+            <div id="svSayBox">
+                <div id="svSayLabel">🗣️ 你說說看</div>
+                <div id="svSay"></div>
+            </div>
+            <div id="svTopics"></div>
+        </section>
+        <section id="svTranscriptSection" aria-label="AI 逐字稿">
+            <h2 id="svTranscriptTitle">AI 逐字稿</h2>
+            <div id="svTranscript" role="log" aria-live="polite"></div>
+        </section>
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
     <script src="dom-utils.js?v=20260802a"></script>
-    <script src="student-view.js?v=20260802g"></script>
+    <script src="student-view.js?v=20260803a"></script>
     <script src="live-session.js?v=20260802c"></script>
     <script src="learning-records.js?v=20260802d"></script>
     <script src="stage-transition.js?v=20260802e"></script>

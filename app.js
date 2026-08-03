@@ -15,7 +15,7 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.07";
+const APP_VERSION = "3.08";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -65,6 +65,7 @@ const { clear: clearNode, text: setText, appendText, element: makeElement, legac
 if (!window.StudentView) throw new Error("student-view.js 未載入");
 const studentView = window.StudentView.create({ timeoutMs: 5000 });
 if (!window.LiveSession) throw new Error("live-session.js 未載入");
+if (!window.CourseProgression) throw new Error("course-progression.js 未載入");
 const liveSession = window.LiveSession.create({ maxReconnects: 3 });
 if (!window.StageTransitionGate) throw new Error("stage-transition.js 未載入");
 const stageTransitionGate = window.StageTransitionGate.create({ requiredRounds: 2 });
@@ -710,8 +711,30 @@ async function readSelectedUnit() {
     await loadUnitsData();
     const unit = findUnit(sel.book, sel.num);
     if (!unit) return null;
-    return buildWeeklyLessonFromUnit(unit,
-        { name: currentPersonName(), level: p.level, interests: p.interests || [] });
+    const student = { name: currentPersonName(), level: p.level, interests: p.interests || [] };
+    let weeklyLesson = buildWeeklyLessonFromUnit(unit, student);
+    const daySelect = document.getElementById('daySelect');
+    const manual = daySelect ? daySelect.value : "auto";
+    let progress = null;
+    try { progress = JSON.parse(localStorage.getItem(weekProgressKey(weeklyLesson.unit))); } catch (e) {}
+
+    if (window.CourseProgression.shouldAdvance({
+        progress,
+        today: learningRecords.today(),
+        manual,
+        dayCount: weeklyLesson.week.length
+    })) {
+        const next = window.CourseProgression.nextUnit(UNITS_DATA.books, sel);
+        if (next) {
+            updateCurrentPerson({ unit: { book: next.book, num: next.num } });
+            weeklyLesson = buildWeeklyLessonFromUnit(next, student);
+            logSystem(`🎓 ${sel.book} Unit ${sel.num} 已完成，自動進入 ${next.book} Unit ${next.num} 的第 1 天。`);
+            if (window.refreshUnitPickerForPerson) window.refreshUnitPickerForPerson();
+        } else {
+            logSystem(`🏆 ${sel.book} Unit ${sel.num} 已是目前教材的最後一個單元。`);
+        }
+    }
+    return weeklyLesson;
 }
 
 // 課本單元選單：冊別 → 單元 → 套用
@@ -1338,7 +1361,7 @@ async function startOpenAISession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.07",
+        appVersion: "v3.08",
         provider: "openai",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
@@ -1457,7 +1480,7 @@ async function startSession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.07",
+        appVersion: "v3.08",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
         level: selectedPerson.level,

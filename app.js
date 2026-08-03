@@ -15,7 +15,7 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.01";
+const APP_VERSION = "3.02";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -88,6 +88,7 @@ const appVersionEl = document.getElementById('appVersion');
 if (appVersionEl) appVersionEl.textContent = `AI Tutor Studio v${APP_VERSION}`;
 
 let webSocket = null;
+let connectionWatchdog = null;
 let audioContext = null;       // 麥克風擷取用：固定 16kHz（Gemini 上行音訊規格）
 let playbackContext = null;    // AI 語音播放用：固定 24kHz（Gemini 下行音訊規格）
                                // 兩者分開，避免把 24kHz 語音硬塞進 16kHz 環境逐塊重新取樣（音質失真、音色不穩）
@@ -956,14 +957,24 @@ function syncStatus(msg, color) {
 async function syncCall(action, data) {
     const url = (localStorage.getItem(SYNC_URL_KEY) || "").trim();
     if (!url) return null;
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 15000);
     // 不自訂 header，讓它維持「簡單請求」，避開 Apps Script 的 CORS 預檢問題
-    const res = await fetch(url, {
-        method: "POST",
-        body: JSON.stringify({ action, secret: localStorage.getItem(SYNC_SECRET_KEY) || "", data })
-    });
-    const j = await res.json();
-    if (!j.ok) throw new Error(j.error || "同步失敗");
-    return j.data;
+    try {
+        const res = await fetch(url, {
+            method: "POST",
+            body: JSON.stringify({ action, secret: localStorage.getItem(SYNC_SECRET_KEY) || "", data }),
+            signal: controller.signal
+        });
+        const j = await res.json();
+        if (!j.ok) throw new Error(j.error || "同步失敗");
+        return j.data;
+    } catch (error) {
+        if (error && error.name === 'AbortError') throw new Error(`${action} 等待後端超過 15 秒`);
+        throw error;
+    } finally {
+        clearTimeout(timeout);
+    }
 }
 
 // 本機所有人員的資料 → 上傳用的格式
@@ -1446,14 +1457,20 @@ async function startSession() {
     logSystem("正在請求麥克風權限...");
 
     try {
+        statusBadge.textContent = '準備麥克風...';
+        actionBtn.textContent = '準備麥克風...';
         micStream = await acquireMicStream(selectedAudioMode);
         await setupAudioWorklet();
 
         // 載入今日教案（GAS → lesson.json → 內建預設），週教案先解析出今天上第幾天
+        statusBadge.textContent = '載入課程...';
+        actionBtn.textContent = '載入課程...';
         LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
         prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
         if (currentMode() === 'news' && syncConfigured()) {
+            statusBadge.textContent = '載入新聞...';
+            actionBtn.textContent = '載入新聞...';
             try {
                 await fetchAndShowNewsTopics();
             } catch (newsError) {
@@ -1475,6 +1492,8 @@ async function startSession() {
         // 優先由 Apps Script 換取本場課程的 Gemini 短效憑證。
         currentToken = null;
         if (syncConfigured()) {
+            statusBadge.textContent = '安全驗證...';
+            actionBtn.textContent = '安全驗證...';
             logSystem("🔑 向後端請求臨時憑證...");
             try {
                 const result = await syncCall('geminiLiveToken', {});
@@ -1492,10 +1511,13 @@ async function startSession() {
             }
         }
 
+        statusBadge.textContent = '連接 Gemini...';
+        actionBtn.textContent = '連接 Gemini...';
         connectWebSocket(false);
     } catch (err) {
         sessionDiagnostics.record("startup_failed", { message: err.message });
         logSystem(`<span style="color:#ff4444;">❌ 啟動失敗: ${err.message}</span>`);
+        alert("Gemini 連線失敗：" + err.message + "\n\n請確認 Apps Script 已部署最新 sync.gs，且指令碼屬性中有 GEMINI_API_KEY。");
         stopSession("startup_error");
     }
 }
@@ -1774,9 +1796,18 @@ function connectWebSocket(isReconnect) {
     }
     webSocket = socket;
     stopAllPlayback(); // 新連線不得接續播放上一條連線已排程的聲音
+    if (connectionWatchdog) clearTimeout(connectionWatchdog);
+    connectionWatchdog = setTimeout(() => {
+        if (!liveSession.isCurrent(socket, socketToken) || socket.readyState === WebSocket.OPEN) return;
+        sessionDiagnostics.record("connection_timeout", { reconnect: !!isReconnect });
+        alert("Gemini WebSocket 連線超過 15 秒沒有回應，已停止連線。\n\n請稍後再試；若重複發生，請匯出課堂診斷給我。");
+        stopSession("connection_timeout");
+    }, 15000);
 
     socket.onopen = () => {
         if (!liveSession.isCurrent(socket, socketToken)) return;
+        if (connectionWatchdog) clearTimeout(connectionWatchdog);
+        connectionWatchdog = null;
         sessionDiagnostics.record("connection_opened", { reconnect: !!isReconnect });
         statusBadge.textContent = '🟢 已連線'; statusBadge.style.background = '#28a745';
         actionBtn.textContent = '結束連線'; actionBtn.disabled = false;
@@ -2558,6 +2589,8 @@ function stopAllPlayback() {
 function stopSession(reason) {
     const endReason = reason || "stopped";
     disarmLessonExitGuard();
+    if (connectionWatchdog) clearTimeout(connectionWatchdog);
+    connectionWatchdog = null;
     if (!webSocket && !micStream && !audioContext && !liveSession.isActive() && !openaiSessionActive) {
         if (sessionDiagnostics.inspect().active) {
             sessionDiagnostics.finish(endReason);

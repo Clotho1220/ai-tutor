@@ -1294,15 +1294,26 @@ async function startOpenAISession() {
                     if (userSpeechBox) setText(userSpeechBox, detail.final ? detail.text : currentUserTurnTranscript);
                     return;
                 }
+                // 有些 Realtime 回合只送 final、沒有 delta。只有真的拿到新文字才清掉上一輪，
+                // final-only 時要把完整文字補上，避免字幕框突然變空白。
+                if (!detail.text) {
+                    if (detail.final) openaiAiTranscriptStarted = false;
+                    return;
+                }
+                if (detail.final) {
+                    if (!openaiAiTranscriptStarted) {
+                        studentView.beginTranscriptTurn();
+                        studentView.appendTranscript(detail.text);
+                    }
+                    currentAiTurnTranscript = detail.text;
+                    openaiAiTranscriptStarted = false;
+                    return;
+                }
                 if (!openaiAiTranscriptStarted) {
                     studentView.beginTranscriptTurn();
                     openaiAiTranscriptStarted = true;
                 }
-                if (detail.text && !detail.final) studentView.appendTranscript(detail.text);
-                if (detail.final) {
-                    currentAiTurnTranscript = detail.text || studentView.transcriptText();
-                    openaiAiTranscriptStarted = false;
-                }
+                studentView.appendTranscript(detail.text);
             },
             onTurnComplete() {
                 openaiAiTranscriptStarted = false;

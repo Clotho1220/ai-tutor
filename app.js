@@ -15,7 +15,7 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.04";
+const APP_VERSION = "3.07";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -126,6 +126,9 @@ let pendingDirectorNote = null; // 已送出但 AI 尚未回應的導演指令�
 let suppressAudioAfterFarewell = false; // 結語已出現後，丟棄模型仍生成的問題或多餘內容
 let suppressAudioAfterPractice = false; // 「Try it／試試看」後必須交棒給學生，後續內容一律不播
 let lessonFinishTimer = null;   // 等最後一句已排程音訊播完再真正結束連線
+let sessionReady = false;       // 模型已接受完整設定；初次 ready 後才進學生畫面
+let closingStageActive = false; // 最後結語階段已送出；此後的道別一律視為正式下課
+let lessonCompletionPending = false; // 已排程下課；忽略任何遲到的模型事件
 
 let userStopped = false;       // 使用者主動按「結束連線」（區別於意外斷線）
 let resumeHandle = null;       // Live API session resumption 握把，重連時恢復對話記憶
@@ -149,9 +152,37 @@ const openaiSpeedSelect = document.getElementById('openaiSpeedSelect');
 const openaiModelSelect = document.getElementById('openaiModelSelect');
 const talkBtn = document.getElementById('talkBtn');
 const nextStageBtn = document.getElementById('nextStageBtn');
+const resumeStudentBtn = document.getElementById('resumeStudentBtn');
 const openaiRealtime = window.OpenAIRealtime ? window.OpenAIRealtime.create() : null;
 let openaiSessionActive = false;
 let openaiAiTranscriptStarted = false;
+
+function refreshStudentReturnButton() {
+    if (!resumeStudentBtn) return;
+    const shouldShow = sessionReady && !document.body.classList.contains('student-mode');
+    resumeStudentBtn.classList.toggle('visible', shouldShow);
+}
+
+function markSessionReady(provider, options) {
+    const wasReady = sessionReady;
+    sessionReady = true;
+    if (provider === 'openai') openaiSessionActive = true;
+    statusBadge.textContent = provider === 'openai' ? '🟢 GPT 已連線' : '🟢 已連線';
+    statusBadge.style.background = '#28a745';
+    statusBadge.style.color = '#fff';
+    actionBtn.textContent = '結束連線';
+    actionBtn.disabled = false;
+    talkBtn.disabled = false;
+    if (!isTalking) talkBtn.textContent = '🎙️ 按一下開始說話';
+    nextStageBtn.disabled = false;
+    if (!wasReady && !(options && options.reconnect)) {
+        document.body.classList.remove('settings-mode');
+        document.body.classList.add('student-mode');
+        armLessonExitGuard();
+        startLessonTimer();
+    }
+    refreshStudentReturnButton();
+}
 
 function selectedProvider() {
     return providerSelect && providerSelect.value === 'openai' ? 'openai' : 'gemini';
@@ -1307,7 +1338,7 @@ async function startOpenAISession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.06",
+        appVersion: "v3.07",
         provider: "openai",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
@@ -1319,8 +1350,11 @@ async function startOpenAISession() {
         userAgent: navigator.userAgent
     });
     studentView.reset();
-    document.body.classList.add('student-mode');
-    armLessonExitGuard();
+    sessionReady = false;
+    closingStageActive = false;
+    lessonCompletionPending = false;
+    document.body.classList.remove('student-mode');
+    refreshStudentReturnButton();
     statusBadge.textContent = 'GPT 連線中...';
     statusBadge.style.background = '#0e639c';
     statusBadge.style.color = '#fff';
@@ -1333,7 +1367,7 @@ async function startOpenAISession() {
     isTalking = false;
     studentTurnGeneration = 0;
     openaiAiTranscriptStarted = false;
-    openaiSessionActive = true;
+    openaiSessionActive = false;
 
     try {
         LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
@@ -1403,20 +1437,14 @@ async function startOpenAISession() {
             onTurnComplete() {
                 openaiAiTranscriptStarted = false;
                 sessionDiagnostics.record("openai_turn_complete", { studentTurn: studentTurnGeneration });
+                if (closingStageActive) scheduleLessonCompletion();
             },
             onError(error) {
                 sessionDiagnostics.record("openai_error", { message: error.message });
                 logSystem(`<span style="color:#ff4444;">GPT 錯誤：${error.message}</span>`);
             }
         });
-        statusBadge.textContent = '🟢 GPT 已連線';
-        statusBadge.style.background = '#28a745';
-        actionBtn.textContent = '結束連線';
-        actionBtn.disabled = false;
-        talkBtn.disabled = false;
-        talkBtn.textContent = '🎙️ 按一下開始說話';
-        nextStageBtn.disabled = false;
-        startLessonTimer();
+        markSessionReady('openai');
     } catch (err) {
         sessionDiagnostics.record("startup_failed", { provider: "openai", message: err.message });
         logSystem(`<span style="color:#ff4444;">GPT 啟動失敗：${err.message}</span>`);
@@ -1429,7 +1457,7 @@ async function startSession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "v3.06",
+        appVersion: "v3.07",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
         level: selectedPerson.level,
@@ -1441,8 +1469,11 @@ async function startSession() {
     });
     refreshDiagnosticsStatus();
     studentView.reset();                         // 清掉上一場殘留的議題／圖片／字幕
-    document.body.classList.add('student-mode'); // 上課即切到學生畫面（左上角「← 返回」可回老師畫面）
-    armLessonExitGuard();
+    sessionReady = false;
+    closingStageActive = false;
+    lessonCompletionPending = false;
+    document.body.classList.remove('student-mode'); // 模型 setupComplete 後才進學生畫面
+    refreshStudentReturnButton();
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
@@ -1548,8 +1579,18 @@ async function gasPost(data) {
 (function initStudentView() {
     const enterBtn = document.getElementById('studentModeBtn');
     const exitBtn = document.getElementById('exitStudentBtn');
-    if (enterBtn) enterBtn.addEventListener('click', () => document.body.classList.add('student-mode'));
-    if (exitBtn) exitBtn.addEventListener('click', () => document.body.classList.remove('student-mode'));
+    const enterStudentView = () => {
+        if (!sessionReady) return;
+        document.body.classList.remove('settings-mode');
+        document.body.classList.add('student-mode');
+        refreshStudentReturnButton();
+    };
+    if (enterBtn) enterBtn.addEventListener('click', enterStudentView);
+    if (resumeStudentBtn) resumeStudentBtn.addEventListener('click', enterStudentView);
+    if (exitBtn) exitBtn.addEventListener('click', () => {
+        document.body.classList.remove('student-mode');
+        refreshStudentReturnButton();
+    });
 })();
 
 // 開課時在背景預先繪製本課單字的圖片（同樣的網址進瀏覽器快取，
@@ -1818,16 +1859,16 @@ function connectWebSocket(isReconnect) {
         if (connectionWatchdog) clearTimeout(connectionWatchdog);
         connectionWatchdog = null;
         sessionDiagnostics.record("connection_opened", { reconnect: !!isReconnect });
-        statusBadge.textContent = '🟢 已連線'; statusBadge.style.background = '#28a745';
-        actionBtn.textContent = '結束連線'; actionBtn.disabled = false;
-        talkBtn.disabled = false;
-        if (!isTalking) talkBtn.textContent = '🎙️ 按一下開始說話';
-        nextStageBtn.disabled = false;
+        statusBadge.textContent = isReconnect ? '🔄 確認模型中...' : 'Gemini 確認模型中...';
+        statusBadge.style.background = '#0e639c';
+        actionBtn.textContent = isReconnect ? '重連確認中...' : 'Gemini 確認中...';
+        actionBtn.disabled = true;
+        talkBtn.disabled = true;
+        nextStageBtn.disabled = true;
         // 注意：重連次數不在這裡歸零。連線握手成功不代表設定被接受——
         // 若模型無效，伺服器會在 setup 後立刻踢斷，在這歸零會造成無限重連迴圈。
         // 歸零改在收到 setupComplete（伺服器真正接受設定）時。
         sendSetupMessage(socket, socketToken);
-        startLessonTimer();
         if (isReconnect) {
             logSystem(resumeHandle
                 ? "🔄 已重新連上，對話記憶已透過 resumption handle 恢復。"
@@ -2068,6 +2109,10 @@ function beginTrackedAiTurn() {
 }
 
 function sendEarlyFarewellRecovery() {
+    if (closingStageActive || lessonCompletionPending) {
+        scheduleLessonCompletion();
+        return;
+    }
     if (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped) return;
     const activeStage = teachingFlow[Math.max(0, currentStageIndex - 1)];
     const stagePrompt = activeStage ? activeStage.prompt : "Continue the current lesson activity.";
@@ -2087,6 +2132,7 @@ function sendEarlyFarewellRecovery() {
 
 function scheduleLessonCompletion() {
     if (lessonFinishTimer || userStopped) return;
+    lessonCompletionPending = true;
     const queuedAudioMs = playbackContext
         ? Math.max(0, Math.ceil((nextPlayTime - playbackContext.currentTime) * 1000))
         : 0;
@@ -2103,12 +2149,14 @@ function scheduleLessonCompletion() {
 
 function handleServerMessage(response, socket, socketToken) {
     if (!liveSession.isCurrent(socket, socketToken)) return;
+    if (lessonCompletionPending) return;
     // 0) 連線生命週期訊息
     if (response.setupComplete) {
         sessionDiagnostics.record("setup_completed", {
             reconnectAttempts: liveSession.inspectState().reconnectAttempts
         });
         liveSession.markHealthy(socket, socketToken); // 伺服器接受設定，連線真正健康，重連次數才歸零
+        markSessionReady('gemini', { reconnect: sessionReady });
         // 重連完成後，重送斷線時遺失的那句話
         if (needsReplay && turnChunks.length > 0) {
             logSystem(`📤 重送剛才的語音（${turnChunks.length} 個片段，約 ${(turnChunks.length * 0.128).toFixed(1)} 秒）...`);
@@ -2292,7 +2340,10 @@ function handleServerMessage(response, socket, socketToken) {
         const completedAiTranscript = currentAiTurnTranscript;
         const practiceBoundaryDetected = practiceTurnBoundary.completeTurn();
         const practiceRequested = practiceBoundaryDetected || window.PracticeObserver.asksForPractice(completedAiTranscript);
-        const endingAction = lessonEndingGuard.completeTurn();
+        const endingAction = lessonEndingGuard.completeTurn({
+            finalStage: closingStageActive,
+            finishFinalTurn: closingStageActive
+        });
         sessionDiagnostics.record("ai_turn_completed", {
             responseToTurn: activeAiResponseStudentGeneration,
             userTranscriptLength: completedUserTranscript.length,
@@ -2424,11 +2475,18 @@ function sendStageTransition(trigger) {
     if (!useOpenAI && (!webSocket || webSocket.readyState !== WebSocket.OPEN)) return;
     if (currentStageIndex >= teachingFlow.length) { logSystem("已是最後一個階段。"); return; }
     const stage = teachingFlow[currentStageIndex];
-    lessonEndingGuard.enterStage(currentStageIndex === teachingFlow.length - 1);
+    const isFinalStage = currentStageIndex === teachingFlow.length - 1;
+    closingStageActive = isFinalStage;
+    lessonEndingGuard.enterStage(isFinalStage);
     stageIndicator.textContent = `⏳ 目前：${stage.name}`;
 
     let instruction;
-    if (trigger === 'opening') {
+    if (isFinalStage) {
+        instruction = "FINAL CLOSING STAGE. Give a concise closing now. Do not ask the student another question, " +
+            "do not restart review, and do not continue with another activity. Briefly recap what was learned, " +
+            "praise one specific thing the student did well, then end with the exact words 「今天很棒，我們下次見！Goodbye!」. " +
+            "After Goodbye, say nothing else. Stage goal: " + stage.prompt;
+    } else if (trigger === 'opening') {
         instruction = stage.prompt;
     } else {
         instruction = "Start a NEW, separate teacher turn for the stage change. The student's previous answer has already been fully handled in an earlier turn. " +
@@ -2600,13 +2658,6 @@ function stopSession(reason) {
     disarmLessonExitGuard();
     if (connectionWatchdog) clearTimeout(connectionWatchdog);
     connectionWatchdog = null;
-    if (!webSocket && !micStream && !audioContext && !liveSession.isActive() && !openaiSessionActive) {
-        if (sessionDiagnostics.inspect().active) {
-            sessionDiagnostics.finish(endReason);
-            refreshDiagnosticsStatus();
-        }
-        return; // 已清理過，避免 onclose 重複觸發
-    }
     sessionDiagnostics.record("session_stopping", {
         reason: endReason,
         elapsedSeconds: elapsedTime,
@@ -2616,7 +2667,11 @@ function stopSession(reason) {
     webSocket = null;
     if (openaiRealtime) openaiRealtime.close();
     openaiSessionActive = false;
+    sessionReady = false;
+    closingStageActive = false;
+    lessonCompletionPending = false;
     document.body.classList.remove('student-mode'); // 下課回到老師畫面
+    refreshStudentReturnButton();
     if (lessonTimer) clearInterval(lessonTimer);
     if (lessonFinishTimer) clearTimeout(lessonFinishTimer);
     lessonFinishTimer = null;

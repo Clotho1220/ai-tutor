@@ -10,6 +10,9 @@
     const index = await fetch('../index.html?test=' + Date.now()).then(response => response.text());
     check("uses GPT Realtime 2.1 mini by default", /gpt-realtime-2\.1-mini/.test(source));
     check("uses WebRTC calls endpoint", /https:\/\/api\.openai\.com\/v1\/realtime\/calls/.test(source));
+    check("GPT connect waits until session.updated confirms model readiness",
+        /event\.type === "session\.updated"/.test(source) &&
+        /await Promise\.race\(\[[\s\S]{0,180}sessionReady/.test(source));
     check("speaker mode selects speakerphone microphone when available", /speakerphone\|speaker\|擴音\|喇叭/.test(source));
     check("audio always falls back to direct WebRTC playback", /audioElement\.srcObject\s*=\s*remoteStream/.test(source));
     check("uses the current realtime transcription model", /gpt-4o-mini-transcribe/.test(source));

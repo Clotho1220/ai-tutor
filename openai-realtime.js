@@ -17,6 +17,8 @@
         let outputAudioPlaying = false;
         let cancellationPending = false;
         let responseCreatePending = false;
+        let sessionReadyResolve = null;
+        let sessionReadyReject = null;
         let connectionGeneration = 0;
         let handlers = {};
 
@@ -39,8 +41,16 @@
                 outputAudioPlaying = true;
             } else if (event.type === "output_audio_buffer.stopped" || event.type === "output_audio_buffer.cleared") {
                 outputAudioPlaying = false;
-            } else if (event.type === "session.created" || event.type === "session.updated") {
+            } else if (event.type === "session.created") {
+                emit("onState", { state: "session-created", event });
+            } else if (event.type === "session.updated") {
                 emit("onState", { state: "ready", event });
+                if (sessionReadyResolve) {
+                    const resolve = sessionReadyResolve;
+                    sessionReadyResolve = null;
+                    sessionReadyReject = null;
+                    resolve(event);
+                }
             } else if (event.type === "conversation.item.input_audio_transcription.delta") {
                 emit("onTranscript", { role: "student", text: event.delta || "", final: false, event });
             } else if (event.type === "conversation.item.input_audio_transcription.completed") {
@@ -58,7 +68,14 @@
                 }
                 emit("onTurnComplete", event);
             } else if (event.type === "error") {
-                emit("onError", new Error((event.error && event.error.message) || "OpenAI Realtime error"));
+                const error = new Error((event.error && event.error.message) || "OpenAI Realtime error");
+                if (sessionReadyReject) {
+                    const reject = sessionReadyReject;
+                    sessionReadyResolve = null;
+                    sessionReadyReject = null;
+                    reject(error);
+                }
+                emit("onError", error);
             }
         }
 
@@ -175,6 +192,10 @@
 
             if (generation !== connectionGeneration) throw new Error("OpenAI 連線已取消");
             active = true;
+            const sessionReady = new Promise((resolve, reject) => {
+                sessionReadyResolve = resolve;
+                sessionReadyReject = reject;
+            });
             send({
                 type: "session.update",
                 session: {
@@ -192,6 +213,19 @@
                 }
             });
             emit("onState", { state: "connected" });
+            let readyTimer = null;
+            try {
+                await Promise.race([
+                    sessionReady,
+                    new Promise((resolve, reject) => {
+                        readyTimer = global.setTimeout(() => reject(new Error("OpenAI 模型確認逾時")), 15000);
+                    })
+                ]);
+            } finally {
+                if (readyTimer) global.clearTimeout(readyTimer);
+                sessionReadyResolve = null;
+                sessionReadyReject = null;
+            }
             return inspect();
         }
 
@@ -243,6 +277,12 @@
         }
 
         function close() {
+            if (sessionReadyReject) {
+                const reject = sessionReadyReject;
+                sessionReadyResolve = null;
+                sessionReadyReject = null;
+                reject(new Error("OpenAI 連線已關閉"));
+            }
             if (active) {
                 if (responseInProgress) send({ type: "response.cancel" });
                 if (responseInProgress || outputAudioPlaying) send({ type: "output_audio_buffer.clear" });

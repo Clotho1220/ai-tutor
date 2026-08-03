@@ -34,12 +34,14 @@
             };
         }
 
-        function completeTurn() {
+        function completeTurn(options) {
+            const config = options || {};
+            const isFinalStage = finalStage || !!config.finalStage;
             if (!detected) {
                 turnText = "";
-                return "continue";
+                return config.finishFinalTurn && isFinalStage ? "finish" : "continue";
             }
-            const action = finalStage ? "finish" : "recover";
+            const action = isFinalStage ? "finish" : "recover";
             turnText = "";
             detected = false;
             return action;

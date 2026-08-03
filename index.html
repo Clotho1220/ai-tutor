@@ -112,6 +112,8 @@
         #personSummary { font-size:14px; color:#aaa; line-height:1.7; max-width:min(92vw,460px); }
         .audio-row { display:flex; gap:22px; font-size:17px; }
         #actionBtn { font-size:20px; padding:16px 46px; border-radius:30px; }
+        #resumeStudentBtn { display:none; font-size:18px; padding:14px 34px; border-radius:28px; background:#28a745; }
+        #resumeStudentBtn.visible { display:block; }
         #settingsBtn { background:transparent; color:#888; border:1px solid #555; border-radius:20px; padding:8px 20px; font-weight:normal; }
 
         /* ---------------- 設定畫面（預設隱藏） ---------------- */
@@ -164,6 +166,7 @@
             <label><input type="radio" name="audioMode" value="speaker" checked> 🔊 喇叭</label>
         </div>
         <button id="actionBtn">開始連線</button>
+        <button id="resumeStudentBtn" type="button">🧒 回到學生畫面</button>
         <button id="settingsBtn">⚙️ 設定</button>
         <span id="stageIndicator" style="color:#4daafc; font-size:13px;"></span>
     </div>
@@ -172,7 +175,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.06</div>
+            <div id="appVersion">AI Tutor Studio v3.07</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -337,7 +340,7 @@
     <script src="stage-transition.js?v=20260802e"></script>
     <script src="practice-observer.js?v=20260802i"></script>
     <script src="session-diagnostics.js?v=20260802h"></script>
-    <script src="lesson-ending.js?v=20260802i"></script>
-    <script src="openai-realtime.js?v=20260803e"></script>
-    <script src="app.js?v=20260803j"></script>
+    <script src="lesson-ending.js?v=20260803j"></script>
+    <script src="openai-realtime.js?v=20260803f"></script>
+    <script src="app.js?v=20260803k"></script>
 </body></html>

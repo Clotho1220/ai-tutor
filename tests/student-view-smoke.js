@@ -126,6 +126,12 @@
 
     const appSource = await fetch('../app.js?student-view-test=' + Date.now()).then(response => response.text());
     const indexSource = await fetch('../index.html?student-view-test=' + Date.now()).then(response => response.text());
+    check('home provides a return-to-student-view button',
+        /id="resumeStudentBtn"/.test(indexSource) && /回到學生畫面/.test(indexSource));
+    check('return-to-student-view is available only while the model is ready',
+        /const shouldShow = sessionReady && !document\.body\.classList\.contains\('student-mode'\)/.test(appSource));
+    check('initial startup does not enter student mode before readiness',
+        /模型 setupComplete 後才進學生畫面/.test(appSource) && /markSessionReady\('gemini'/.test(appSource));
     check('student view controller loads before app', indexSource.indexOf('src="student-view.js') < indexSource.indexOf('src="app.js'));
     check('tool responses wait for image readiness', /await showImage\(keyword\)/.test(appSource));
     check('legacy student image globals are removed', !/studentImgSeq|studentImgWord/.test(appSource));

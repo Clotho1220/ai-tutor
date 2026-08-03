@@ -17,6 +17,9 @@
 
     guard.enterStage(true);
     check("Traditional Chinese farewell is supported", guard.observe("今天很棒，我們下次見！").detected);
+    guard.enterStage(true);
+    check("final closing turn finishes even when the model omits a recognized farewell",
+        guard.completeTurn({ finalStage: true, finishFinalTurn: true }) === "finish");
     guard.resetSession();
     check("session reset clears closing state", !guard.inspect().finalStage && !guard.inspect().detected);
 
@@ -25,6 +28,12 @@
     check("guard loads before app", indexSource.indexOf('src="lesson-ending.js') < indexSource.indexOf('src="app.js'));
     check("app completes the session after a final farewell", /scheduleLessonCompletion\(\)/.test(appSource));
     check("app recovers from an early farewell", /sendEarlyFarewellRecovery\(\)/.test(appSource));
+    check("final stage cannot trigger early-farewell recovery",
+        /if \(closingStageActive \|\| lessonCompletionPending\)[\s\S]{0,100}scheduleLessonCompletion\(\)/.test(appSource));
+    check("final stage has an explicit no-more-questions closing instruction",
+        /FINAL CLOSING STAGE[\s\S]{0,300}Do not ask the student another question/.test(appSource));
+    check("late model events are ignored once completion is pending",
+        /if \(lessonCompletionPending\) return;/.test(appSource));
 
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');

@@ -77,10 +77,14 @@
 
     const appSource = await fetch('../app.js?live-session-test=' + Date.now()).then(response => response.text());
     const indexSource = await fetch('../index.html?live-session-test=' + Date.now()).then(response => response.text());
+    const socketOpenBlock = appSource.slice(appSource.indexOf('socket.onopen ='), appSource.indexOf('socket.onmessage ='));
     check('lifecycle controller loads before app', indexSource.indexOf('src="live-session.js') < indexSource.indexOf('src="app.js'));
     check('socket handlers reject stale generations', /liveSession\.isCurrent\(socket, socketToken\)/.test(appSource));
     check('disconnect clears queued playback', /release\(socket, socketToken\)[\s\S]{0,300}stopAllPlayback\(\)/.test(appSource));
     check('talk button shows reconnect state', /talkBtn\.textContent = '\uD83D\uDD04 \u6B63\u5728\u91CD\u9023\.\.\.'/u.test(appSource));
+    check('Gemini socket opening alone does not start the lesson timer', !/startLessonTimer\(\)/.test(socketOpenBlock));
+    check('Gemini setupComplete marks the model ready',
+        /if \(response\.setupComplete\)[\s\S]{0,500}markSessionReady\('gemini'/.test(appSource));
 
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');

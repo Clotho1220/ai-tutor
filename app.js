@@ -1306,7 +1306,7 @@ async function startOpenAISession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "20260803b-gpt-test",
+        appVersion: "v3.05",
         provider: "openai",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
@@ -1428,7 +1428,7 @@ async function startSession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "20260802h",
+        appVersion: "v3.05",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
         level: selectedPerson.level,

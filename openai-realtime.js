@@ -15,6 +15,8 @@
         let talking = false;
         let responseInProgress = false;
         let outputAudioPlaying = false;
+        let cancellationPending = false;
+        let responseCreatePending = false;
         let connectionGeneration = 0;
         let handlers = {};
 
@@ -49,6 +51,11 @@
                 emit("onTranscript", { role: "ai", text: event.transcript || "", final: true, event });
             } else if (event.type === "response.done") {
                 responseInProgress = false;
+                cancellationPending = false;
+                if (responseCreatePending && !talking) {
+                    responseCreatePending = false;
+                    send({ type: "response.create" });
+                }
                 emit("onTurnComplete", event);
             } else if (event.type === "error") {
                 emit("onError", new Error((event.error && event.error.message) || "OpenAI Realtime error"));
@@ -191,9 +198,10 @@
         function startTalking() {
             if (!active || !track || talking) return false;
             // Push-to-talk 沒有 VAD 幫忙插話；必須由前端主動取消生成並清掉 WebRTC 播放緩衝。
-            if (responseInProgress) send({ type: "response.cancel" });
+            cancellationPending = responseInProgress;
+            responseCreatePending = false;
+            if (cancellationPending) send({ type: "response.cancel" });
             if (responseInProgress || outputAudioPlaying) send({ type: "output_audio_buffer.clear" });
-            responseInProgress = false;
             outputAudioPlaying = false;
             muteOutput(true);
             send({ type: "input_audio_buffer.clear" });
@@ -209,7 +217,13 @@
             talking = false;
             muteOutput(false);
             send({ type: "input_audio_buffer.commit" });
-            send({ type: "response.create" });
+            if (cancellationPending || responseInProgress) {
+                // Wait for response.done from the cancelled turn. Sending response.create
+                // before that acknowledgement causes "active response in progress".
+                responseCreatePending = true;
+            } else {
+                send({ type: "response.create" });
+            }
             emit("onState", { state: "waiting" });
             return true;
         }
@@ -238,6 +252,8 @@
             talking = false;
             responseInProgress = false;
             outputAudioPlaying = false;
+            cancellationPending = false;
+            responseCreatePending = false;
             if (track) track.enabled = false;
             if (stream) stream.getTracks().forEach(item => item.stop());
             if (channel) try { channel.close(); } catch (error) {}
@@ -251,7 +267,15 @@
         }
 
         function inspect() {
-            return Object.freeze({ active, talking, responseInProgress, outputAudioPlaying, channelState: channel ? channel.readyState : "closed" });
+            return Object.freeze({
+                active,
+                talking,
+                responseInProgress,
+                outputAudioPlaying,
+                cancellationPending,
+                responseCreatePending,
+                channelState: channel ? channel.readyState : "closed"
+            });
         }
 
         return Object.freeze({ connect, startTalking, stopTalking, sendText, muteOutput, close, inspect });

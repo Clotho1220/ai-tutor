@@ -17,6 +17,9 @@
     check("Realtime session sends output speed", /output:\s*\{\s*voice:[^}]*speed:\s*outputSpeed/.test(source));
     check("push-to-talk cancels an active GPT response", /type:\s*["']response\.cancel["']/.test(source));
     check("push-to-talk clears buffered WebRTC audio", /type:\s*["']output_audio_buffer\.clear["']/.test(source));
+    check("next GPT response waits for cancellation acknowledgement",
+        /cancellationPending\s*\|\|\s*responseInProgress[\s\S]{0,260}responseCreatePending\s*=\s*true/.test(source) &&
+        /event\.type\s*===\s*["']response\.done["'][\s\S]{0,260}responseCreatePending/.test(source));
     check("closed sessions reject queued stale events", /connectionGeneration/.test(source) && /if\s*\(!active\)\s*return/.test(source));
     check("browser requests only a short-lived client secret", /openaiClientSecret/.test(source) && !/OPENAI_API_KEY/.test(source));
     check("backend reads API key from Script Properties", /getScriptProperties\(\)\.getProperty\('OPENAI_API_KEY'\)/.test(backend));

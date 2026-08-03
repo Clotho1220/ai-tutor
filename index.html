@@ -172,7 +172,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.03</div>
+            <div id="appVersion">AI Tutor Studio v3.04</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -189,6 +189,15 @@
                 </label>
                 <label class="field">GPT 聲音
                     <select id="openaiVoiceSelect"><option value="marin">Marin</option><option value="cedar">Cedar</option><option value="coral">Coral</option><option value="sage">Sage</option><option value="verse">Verse</option></select>
+                </label>
+                <label class="field">GPT 語速
+                    <select id="openaiSpeedSelect">
+                        <option value="0.75">0.75×　慢速跟讀</option>
+                        <option value="0.9">0.9×　稍慢</option>
+                        <option value="1">1.0×　正常</option>
+                        <option value="1.15">1.15×　稍快</option>
+                        <option value="1.3">1.3×　快速</option>
+                    </select>
                 </label>
             </div>
             <div hidden aria-hidden="true">
@@ -329,6 +338,6 @@
     <script src="practice-observer.js?v=20260802i"></script>
     <script src="session-diagnostics.js?v=20260802h"></script>
     <script src="lesson-ending.js?v=20260802i"></script>
-    <script src="openai-realtime.js?v=20260803c"></script>
-    <script src="app.js?v=20260803g"></script>
+    <script src="openai-realtime.js?v=20260803d"></script>
+    <script src="app.js?v=20260803h"></script>
 </body></html>

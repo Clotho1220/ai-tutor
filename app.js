@@ -15,7 +15,7 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.03";
+const APP_VERSION = "3.04";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -145,6 +145,7 @@ const voiceSelect = document.getElementById('voiceSelect');
 const providerSelect = document.getElementById('providerSelect');
 const engineSelect = document.getElementById('engineSelect');
 const openaiVoiceSelect = document.getElementById('openaiVoiceSelect');
+const openaiSpeedSelect = document.getElementById('openaiSpeedSelect');
 const openaiModelSelect = document.getElementById('openaiModelSelect');
 const talkBtn = document.getElementById('talkBtn');
 const nextStageBtn = document.getElementById('nextStageBtn');
@@ -263,10 +264,10 @@ talkBtn.addEventListener('click', () => {
 // 記住的東西：中英文比例程度、AI 聲音、正在上的單元、興趣、學過的單字、上到第幾天。
 const PROFILES_KEY = "profiles_v1";
 const PERSON_DEFAULTS = {
-    Rex:    { level: 3, voice: "Aoede", unit: null, interests: [] },              // 70% 英文
-    Jessie: { level: 2, voice: "Aoede", unit: null, interests: [] },              // 中英各半
-    Sandy:  { level: 2, voice: "Aoede", unit: null, interests: [] },              // 中英各半
-    Clotho: { level: 5, voice: "Aoede", unit: null, interests: [], adult: true }  // 成人模式：全英文
+    Rex:    { level: 3, voice: "Aoede", gptSpeed: 0.9, unit: null, interests: [] },              // 70% 英文
+    Jessie: { level: 2, voice: "Aoede", gptSpeed: 0.9, unit: null, interests: [] },              // 中英各半
+    Sandy:  { level: 2, voice: "Aoede", gptSpeed: 0.9, unit: null, interests: [] },              // 中英各半
+    Clotho: { level: 5, voice: "Aoede", gptSpeed: 1.0, unit: null, interests: [], adult: true }  // 成人模式：全英文
 };
 
 function loadProfiles() {
@@ -1167,6 +1168,7 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
         const p = currentPerson();
         if (levelSel) levelSel.value = String(p.level);
         if (voiceSelect) voiceSelect.value = p.voice;
+        if (openaiSpeedSelect) openaiSpeedSelect.value = String(p.gptSpeed || (p.adult ? 1 : 0.9));
     }
 
     personBtns.forEach(b => b.addEventListener('click', () => selectPerson(b.dataset.person)));
@@ -1177,6 +1179,9 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
     if (voiceSelect) voiceSelect.addEventListener('change', () => {
         updateCurrentPerson({ voice: voiceSelect.value });
         window.refreshPersonSummary();
+    });
+    if (openaiSpeedSelect) openaiSpeedSelect.addEventListener('change', () => {
+        updateCurrentPerson({ gptSpeed: parseFloat(openaiSpeedSelect.value) || 1 });
     });
     if (settingsBtn) settingsBtn.addEventListener('click', () => document.body.classList.add('settings-mode'));
     if (closeBtn) closeBtn.addEventListener('click', () => document.body.classList.remove('settings-mode'));
@@ -1356,6 +1361,7 @@ async function startOpenAISession() {
             learnerId: currentPersonName(),
             model: selectedOpenAIModel(),
             voice: openaiVoiceSelect ? openaiVoiceSelect.value : "marin",
+            speed: Number(currentPerson().gptSpeed || (currentPerson().adult ? 1 : 0.9)),
             audioMode: selectedAudioMode,
             instructions,
             onState(detail) {

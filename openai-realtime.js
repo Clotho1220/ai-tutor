@@ -113,6 +113,7 @@
             if (!settings || !settings.tokenEndpoint) throw new Error("尚未設定短效憑證後端網址");
             if (!PeerConnection) throw new Error("這個瀏覽器不支援 WebRTC");
             handlers = settings;
+            const outputSpeed = Math.min(1.5, Math.max(0.25, Number(settings.speed) || 1));
             const generation = ++connectionGeneration;
             emit("onState", { state: "connecting" });
 
@@ -179,7 +180,7 @@
                             turn_detection: null,
                             transcription: { model: "gpt-4o-mini-transcribe" }
                         },
-                        output: { voice: settings.voice || "marin" }
+                        output: { voice: settings.voice || "marin", speed: outputSpeed }
                     }
                 }
             });

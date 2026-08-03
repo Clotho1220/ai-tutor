@@ -5,6 +5,7 @@
 
     check("OpenAI Realtime factory is available", typeof OpenAIRealtime.create === "function");
     const source = await fetch('../openai-realtime.js?test=' + Date.now()).then(response => response.text());
+    const app = await fetch('../app.js?test=' + Date.now()).then(response => response.text());
     const backend = await fetch('../sync.gs?test=' + Date.now()).then(response => response.text());
     const index = await fetch('../index.html?test=' + Date.now()).then(response => response.text());
     check("uses GPT Realtime 2.1 mini by default", /gpt-realtime-2\.1-mini/.test(source));
@@ -12,6 +13,8 @@
     check("speaker mode selects speakerphone microphone when available", /speakerphone\|speaker\|擴音\|喇叭/.test(source));
     check("audio always falls back to direct WebRTC playback", /audioElement\.srcObject\s*=\s*remoteStream/.test(source));
     check("uses the current realtime transcription model", /gpt-4o-mini-transcribe/.test(source));
+    check("settings expose per-person GPT speed", /id="openaiSpeedSelect"/.test(index) && /gptSpeed/.test(app));
+    check("Realtime session sends output speed", /output:\s*\{\s*voice:[^}]*speed:\s*outputSpeed/.test(source));
     check("push-to-talk cancels an active GPT response", /type:\s*["']response\.cancel["']/.test(source));
     check("push-to-talk clears buffered WebRTC audio", /type:\s*["']output_audio_buffer\.clear["']/.test(source));
     check("closed sessions reject queued stale events", /connectionGeneration/.test(source) && /if\s*\(!active\)\s*return/.test(source));

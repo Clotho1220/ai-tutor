@@ -41,9 +41,9 @@ function openaiClientSecret_(input) {
   const apiKey = PropertiesService.getScriptProperties().getProperty('OPENAI_API_KEY');
   if (!apiKey) throw new Error('尚未在指令碼屬性設定 OPENAI_API_KEY');
 
-  const allowedModels = ['gpt-realtime', 'gpt-realtime-mini'];
+  const allowedModels = ['gpt-realtime-2.1-mini', 'gpt-realtime'];
   const allowedVoices = ['alloy', 'ash', 'ballad', 'coral', 'echo', 'sage', 'shimmer', 'verse', 'marin', 'cedar'];
-  const model = allowedModels.indexOf(String(input.model || '')) >= 0 ? String(input.model) : 'gpt-realtime';
+  const model = allowedModels.indexOf(String(input.model || '')) >= 0 ? String(input.model) : 'gpt-realtime-2.1-mini';
   const voice = allowedVoices.indexOf(String(input.voice || '')) >= 0 ? String(input.voice) : 'marin';
   const learner = String(input.learnerId || 'family-learner').slice(0, 100);
   const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, SECRET + '|' + learner);

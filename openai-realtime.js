@@ -51,7 +51,7 @@
                     action: "openaiClientSecret",
                     secret: settings.syncSecret || "",
                     data: {
-                        model: settings.model || "gpt-realtime",
+                        model: settings.model || "gpt-realtime-2.1-mini",
                         voice: settings.voice || "marin",
                         learnerId: settings.learnerId || "family-learner"
                     }
@@ -141,7 +141,7 @@
 
             const form = new FormData();
             form.append("sdp", peer.localDescription.sdp);
-            form.append("session", JSON.stringify({ type: "realtime", model: settings.model || "gpt-realtime" }));
+            form.append("session", JSON.stringify({ type: "realtime", model: settings.model || "gpt-realtime-2.1-mini" }));
             const sdpResponse = await fetchFn("https://api.openai.com/v1/realtime/calls", {
                 method: "POST",
                 body: form,
@@ -155,7 +155,7 @@
                 type: "session.update",
                 session: {
                     type: "realtime",
-                    model: settings.model || "gpt-realtime",
+                    model: settings.model || "gpt-realtime-2.1-mini",
                     instructions: settings.instructions || "",
                     output_modalities: ["audio"],
                     audio: {

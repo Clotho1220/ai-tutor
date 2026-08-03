@@ -169,6 +169,12 @@
             <label class="field" id="openaiVoiceField" hidden>GPT 聲音
                 <select id="openaiVoiceSelect"><option value="marin">Marin</option><option value="cedar">Cedar</option><option value="coral">Coral</option><option value="sage">Sage</option><option value="verse">Verse</option></select>
             </label>
+            <label class="field" id="openaiModelField" hidden>GPT 模型
+                <select id="openaiModelSelect">
+                    <option value="gpt-realtime-2.1-mini">GPT Realtime 2.1 mini（省費，預設）</option>
+                    <option value="gpt-realtime">GPT Realtime（高品質，較高費用）</option>
+                </select>
+            </label>
             <label class="field">上第幾天
                 <select id="daySelect" title="自動＝依日期推進，同一天重複開課上同一天">
                     <option value="auto">📅 自動排課</option>
@@ -287,6 +293,6 @@
     <script src="practice-observer.js?v=20260802i"></script>
     <script src="session-diagnostics.js?v=20260802h"></script>
     <script src="lesson-ending.js?v=20260802i"></script>
-    <script src="openai-realtime.js?v=20260803a"></script>
-    <script src="app.js?v=20260803a"></script>
+    <script src="openai-realtime.js?v=20260803b"></script>
+    <script src="app.js?v=20260803b"></script>
 </body></html>

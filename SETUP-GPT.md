@@ -1,6 +1,6 @@
 # GPT Realtime 測試模組設定
 
-GPT 模組使用 `gpt-realtime` 與 WebRTC。Gemini 現有入口保留，可在設定中切換；正式 API Key 只留在安全的短效憑證後端。
+GPT 模組預設使用較省費的 `gpt-realtime-2.1-mini` 與 WebRTC，並保留 `gpt-realtime` 品質模式。Gemini 現有入口保留，可在設定中切換；正式 API Key 只留在安全的短效憑證後端。
 
 ## 1. 建立 OpenAI API Key
 

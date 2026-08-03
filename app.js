@@ -111,6 +111,7 @@ const imageCaption = document.getElementById('imageCaption');
 const voiceSelect = document.getElementById('voiceSelect');
 const providerSelect = document.getElementById('providerSelect');
 const openaiVoiceSelect = document.getElementById('openaiVoiceSelect');
+const openaiModelSelect = document.getElementById('openaiModelSelect');
 const talkBtn = document.getElementById('talkBtn');
 const nextStageBtn = document.getElementById('nextStageBtn');
 const openaiRealtime = window.OpenAIRealtime ? window.OpenAIRealtime.create() : null;
@@ -121,14 +122,27 @@ function selectedProvider() {
     return providerSelect && providerSelect.value === 'openai' ? 'openai' : 'gemini';
 }
 
+function selectedOpenAIModel() {
+    return openaiModelSelect && openaiModelSelect.value === 'gpt-realtime'
+        ? 'gpt-realtime'
+        : 'gpt-realtime-2.1-mini';
+}
+
 (function initProviderPicker() {
     if (!providerSelect) return;
     providerSelect.value = localStorage.getItem('ai_provider') === 'openai' ? 'openai' : 'gemini';
     if (openaiVoiceSelect) openaiVoiceSelect.value = localStorage.getItem('openai_voice') || 'marin';
+    if (openaiModelSelect) {
+        openaiModelSelect.value = localStorage.getItem('openai_model') === 'gpt-realtime'
+            ? 'gpt-realtime'
+            : 'gpt-realtime-2.1-mini';
+    }
     const refresh = () => {
         const useOpenAI = selectedProvider() === 'openai';
         const field = document.getElementById('openaiVoiceField');
         if (field) field.hidden = !useOpenAI;
+        const modelField = document.getElementById('openaiModelField');
+        if (modelField) modelField.hidden = !useOpenAI;
         if (voiceSelect && voiceSelect.parentElement) voiceSelect.parentElement.hidden = useOpenAI;
         if (document.getElementById('modelSelect') && document.getElementById('modelSelect').parentElement) {
             document.getElementById('modelSelect').parentElement.hidden = useOpenAI;
@@ -140,6 +154,7 @@ function selectedProvider() {
         refresh();
     });
     if (openaiVoiceSelect) openaiVoiceSelect.addEventListener('change', () => localStorage.setItem('openai_voice', openaiVoiceSelect.value));
+    if (openaiModelSelect) openaiModelSelect.addEventListener('change', () => localStorage.setItem('openai_model', selectedOpenAIModel()));
     refresh();
 })();
 
@@ -1209,13 +1224,13 @@ async function startOpenAISession() {
     const selectedAudioMode = document.querySelector('input[name="audioMode"]:checked').value;
     const selectedPerson = currentPerson();
     sessionDiagnostics.start({
-        appVersion: "20260802j-gpt-test",
+        appVersion: "20260803b-gpt-test",
         provider: "openai",
         person: currentPersonName(),
         learnerType: selectedPerson.adult ? "adult" : "child",
         level: selectedPerson.level,
         mode: currentMode(),
-        model: "gpt-realtime",
+        model: selectedOpenAIModel(),
         voice: openaiVoiceSelect ? openaiVoiceSelect.value : "marin",
         audioMode: selectedAudioMode,
         userAgent: navigator.userAgent
@@ -1261,7 +1276,7 @@ async function startOpenAISession() {
             tokenEndpoint,
             syncSecret: localStorage.getItem(SYNC_SECRET_KEY) || "",
             learnerId: currentPersonName(),
-            model: "gpt-realtime",
+            model: selectedOpenAIModel(),
             voice: openaiVoiceSelect ? openaiVoiceSelect.value : "marin",
             audioMode: selectedAudioMode,
             instructions,

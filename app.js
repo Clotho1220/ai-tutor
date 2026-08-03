@@ -15,8 +15,38 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
+const APP_VERSION = "3.01";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
+
+// 手機返回手勢／重新整理保護：上課中先確認，避免整堂課意外消失。
+let lessonExitGuardArmed = false;
+function armLessonExitGuard() {
+    if (lessonExitGuardArmed) return;
+    history.pushState({ aiTutorLesson: true }, "", location.href);
+    lessonExitGuardArmed = true;
+}
+function disarmLessonExitGuard() {
+    if (!lessonExitGuardArmed) return;
+    lessonExitGuardArmed = false;
+    history.back();
+}
+window.addEventListener('popstate', () => {
+    if (!lessonExitGuardArmed) return;
+    if (confirm("課堂還在進行中，確定要離開網頁嗎？")) {
+        lessonExitGuardArmed = false;
+        userStopped = true;
+        stopSession("browser_back");
+        setTimeout(() => history.back(), 0);
+    } else {
+        history.pushState({ aiTutorLesson: true }, "", location.href);
+    }
+});
+window.addEventListener('beforeunload', event => {
+    if (!lessonExitGuardArmed) return;
+    event.preventDefault();
+    event.returnValue = "";
+});
 
 // API Key 不再寫死於程式碼：改由頁面輸入，記憶在瀏覽器 localStorage（只存在使用者自己的裝置）。
 // 這讓程式碼可以安全地公開部署（如 GitHub Pages）。
@@ -54,6 +84,8 @@ const practiceTurnBoundary = window.PracticeObserver.createTurnBoundary();
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
 }
+const appVersionEl = document.getElementById('appVersion');
+if (appVersionEl) appVersionEl.textContent = `AI Tutor Studio v${APP_VERSION}`;
 
 let webSocket = null;
 let audioContext = null;       // 麥克風擷取用：固定 16kHz（Gemini 上行音訊規格）
@@ -1204,7 +1236,7 @@ actionBtn.addEventListener('click', async () => {
         else { userStopped = true; stopSession("user"); }
         return;
     }
-    if (!GAS_URL && !readApiKey()) { alert("請先在設定中填入 Gemini API Key！"); apiKeyInput.focus(); return; }
+    if (!syncConfigured() && !readApiKey()) { alert("請先設定 Apps Script 同步網址，或在設定中填入 Gemini API Key！"); apiKeyInput.focus(); return; }
     if (!webSocket && !micStream) {
         const AC = window.AudioContext || window.webkitAudioContext;
         if (!audioContext) audioContext = new AC({ sampleRate: 16000 });        // 上行：麥克風
@@ -1270,6 +1302,7 @@ async function startOpenAISession() {
     });
     studentView.reset();
     document.body.classList.add('student-mode');
+    armLessonExitGuard();
     statusBadge.textContent = 'GPT 連線中...';
     statusBadge.style.background = '#0e639c';
     statusBadge.style.color = '#fff';
@@ -1389,6 +1422,7 @@ async function startSession() {
     refreshDiagnosticsStatus();
     studentView.reset();                         // 清掉上一場殘留的議題／圖片／字幕
     document.body.classList.add('student-mode'); // 上課即切到學生畫面（左上角「← 返回」可回老師畫面）
+    armLessonExitGuard();
     statusBadge.textContent = '連線中...'; statusBadge.style.background = '#0e639c'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '連線中...'; actionBtn.disabled = true;
     elapsedTime = 0; currentStageIndex = 0; stagePendingSince = null; pendingDirectorNote = null;
@@ -1438,16 +1472,22 @@ async function startSession() {
         });
         logSystem(`📋 課程結構：${teachingFlow.map(s => s.name).join(" → ")}（共 ${totalMin} 分鐘）`);
 
-        // 有 GAS 後端：先換取本場課程的臨時憑證
+        // 優先由 Apps Script 換取本場課程的 Gemini 短效憑證。
         currentToken = null;
-        if (GAS_URL) {
+        if (syncConfigured()) {
             logSystem("🔑 向後端請求臨時憑證...");
-            const result = await gasPost({ action: "getToken" });
-            if (result && result.token) {
-                currentToken = result.token;
+            try {
+                const result = await syncCall('geminiLiveToken', {});
+                currentToken = result && (result.name || result.token);
+            } catch (tokenError) {
+                logSystem(`<span style="color:#ff8800;">⚠️ Gemini 短效憑證取得失敗：${tokenError.message}</span>`);
+            }
+            if (currentToken) {
                 logSystem("🔑 已取得臨時憑證（30 分鐘有效）。");
+                localStorage.removeItem('gemini_api_key');
+                GEMINI_API_KEY = "";
+                if (apiKeyInput) apiKeyInput.value = "";
             } else {
-                logSystem(`<span style="color:#ff8800;">⚠️ 憑證取得失敗：${result && result.error ? result.error : '無回應'}，退回 API Key 模式。</span>`);
                 if (!readApiKey()) throw new Error("無憑證也無 API Key，無法連線");
             }
         }
@@ -1722,9 +1762,9 @@ function connectWebSocket(isReconnect) {
         hasTemporaryCredential: !!currentToken,
         hasResumptionHandle: !!resumeHandle
     });
-    // 臨時憑證走 v1alpha 端點（access_token 參數）；API Key 走原本的 v1beta 端點
+    // Gemini 短效憑證必須走 v1beta constrained 端點；API Key 走原本的 v1beta 端點。
     const url = currentToken
-        ? `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1alpha.GenerativeService.BidiGenerateContentConstrained?access_token=${currentToken}`
+        ? `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContentConstrained?access_token=${encodeURIComponent(currentToken)}`
         : `wss://generativelanguage.googleapis.com/ws/google.ai.generativelanguage.v1beta.GenerativeService.BidiGenerateContent?key=${GEMINI_API_KEY}`;
     const socket = new WebSocket(url);
     const socketToken = liveSession.adopt(socket);
@@ -2517,6 +2557,7 @@ function stopAllPlayback() {
 
 function stopSession(reason) {
     const endReason = reason || "stopped";
+    disarmLessonExitGuard();
     if (!webSocket && !micStream && !audioContext && !liveSession.isActive() && !openaiSessionActive) {
         if (sessionDiagnostics.inspect().active) {
             sessionDiagnostics.finish(endReason);

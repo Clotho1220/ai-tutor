@@ -11,6 +11,7 @@
 
         const elements = {
             topics: doc.getElementById('svTopics'),
+            welcome: doc.getElementById('svWelcomeImage'),
             image: doc.getElementById('svImage'),
             placeholder: doc.getElementById('svImagePlaceholder'),
             imageStatus: doc.getElementById('svImageStatus'),
@@ -87,6 +88,7 @@
 
         function showPlaceholder(icon, message, busy) {
             hideActualImage();
+            if (elements.welcome) elements.welcome.style.display = 'none';
             if (elements.placeholder) {
                 elements.placeholder.textContent = icon || '✨';
                 elements.placeholder.style.display = 'block';
@@ -300,7 +302,10 @@
                 elements.topics.replaceChildren();
                 elements.topics.style.display = 'none';
             }
-            setWordText("👂 聽老師說～", "", "", false);
+            if (elements.word) elements.word.textContent = "";
+            setWordText("", "", "", false);
+            if (elements.placeholder) elements.placeholder.style.display = 'none';
+            if (elements.welcome) elements.welcome.style.display = 'block';
             beginTranscriptTurn();
         }
 

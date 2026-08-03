@@ -64,6 +64,8 @@
         #svVisualSection, #svTranscriptSection { width:100%; min-height:75dvh; flex:0 0 auto; box-sizing:border-box; }
         #svVisualSection { display:flex; flex-direction:column; align-items:center; justify-content:center;
                            gap:12px; padding:72px 0 20px; }
+        #svWelcomeImage { display:block; width:min(76vw,420px); max-height:46dvh; object-fit:contain;
+                          border-radius:28px; box-shadow:0 8px 28px rgba(126,91,67,0.14); }
         #svTranscriptSection { display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
                                padding:24px 0 34px; }
         #svTranscriptTitle { width:min(94vw,720px); margin:0 0 10px; text-align:left; color:#8a7a64;
@@ -155,6 +157,7 @@
     <!-- ==================== 設定畫面：其餘全部收在這裡 ==================== -->
     <div id="settingsScreen">
         <button id="closeSettingsBtn">← 返回</button>
+        <div id="appVersion" style="margin:0 0 14px; color:#8f8f8f; font-size:13px;">AI Tutor Studio v3.01</div>
         <div class="settings-row">
             <label class="field">語言模型
                 <select id="providerSelect">
@@ -164,6 +167,7 @@
             </label>
             <label class="field">Gemini API Key
                 <input type="password" id="apiKeyInput" placeholder="貼上你的 API Key" style="background:#3c3c3c; color:#fff; border:1px solid #555; padding:6px 10px; border-radius:4px; width:190px;">
+                <span style="color:#888; font-size:11px; max-width:230px;">僅供舊版備援；設定後端 GEMINI_API_KEY 後會自動清除手機裡的 Key。</span>
             </label>
             <label class="field">程度（中英文比例，記在目前人員身上）
                 <select id="levelSelect">
@@ -283,10 +287,11 @@
     <div id="studentView">
         <button id="exitStudentBtn" title="回到老師畫面">← 返回</button>
         <section id="svVisualSection" aria-label="課程圖片與選項">
-            <div id="svImagePlaceholder">🎈</div>
+            <img id="svWelcomeImage" src="tutor-welcome.webp?v=301" alt="親切的 AI 英文老師向學生揮手">
+            <div id="svImagePlaceholder" style="display:none;">✨</div>
             <img id="svImage" src="" alt="教學圖片">
             <div id="svImageStatus" role="status" aria-live="polite"></div>
-            <div id="svWord">👂 聽老師說～</div>
+            <div id="svWord"></div>
             <div id="svMeaning"></div>
             <div id="svSayBox">
                 <div id="svSayLabel">🗣️ 你說說看</div>
@@ -302,7 +307,7 @@
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
     <script src="dom-utils.js?v=20260802a"></script>
-    <script src="student-view.js?v=20260803a"></script>
+    <script src="student-view.js?v=20260803b"></script>
     <script src="live-session.js?v=20260802c"></script>
     <script src="learning-records.js?v=20260802d"></script>
     <script src="stage-transition.js?v=20260802e"></script>
@@ -310,5 +315,5 @@
     <script src="session-diagnostics.js?v=20260802h"></script>
     <script src="lesson-ending.js?v=20260802i"></script>
     <script src="openai-realtime.js?v=20260803b"></script>
-    <script src="app.js?v=20260803d"></script>
+    <script src="app.js?v=20260803e"></script>
 </body></html>

@@ -29,6 +29,16 @@
 
 5. 按上方的 💾 **儲存**
 
+### 把 AI Key 安全放在 Apps Script
+
+1. 左側選 **專案設定**（齒輪圖示）
+2. 到 **指令碼屬性**，新增：
+   - `GEMINI_API_KEY`：你的 Gemini API Key
+   - `OPENAI_API_KEY`：你的 OpenAI API Key（要使用 GPT 時才需要）
+3. 儲存指令碼屬性
+
+不要把 Key 放進試算表儲存格，也不要寫死在 `sync.gs`。Gemini 連線時，後端只會發給手機一張約 30 分鐘有效的短效憑證，正式 Key 不會傳到網頁。
+
 ---
 
 ## 第 3 步：部署成網頁應用程式

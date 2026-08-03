@@ -27,12 +27,37 @@ function doPost(e) {
 
     if (req.action === 'pull') return json({ ok: true, data: readAll_() });
     if (req.action === 'push') return json({ ok: true, data: merge_(req.data || {}) });
+    if (req.action === 'geminiLiveToken') return json({ ok: true, data: geminiLiveToken_() });
     if (req.action === 'openaiClientSecret') return json({ ok: true, data: openaiClientSecret_(req.data || {}) });
     if (req.action === 'newsTopics') return json({ ok: true, data: newsTopics_() });
     return json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return json({ ok: false, error: String(err) });
   }
+}
+
+// ---------- Gemini Live 短效憑證 ----------
+// 正式 API Key 只放在 Apps Script「指令碼屬性」的 GEMINI_API_KEY，絕不傳到網頁。
+function geminiLiveToken_() {
+  const apiKey = PropertiesService.getScriptProperties().getProperty('GEMINI_API_KEY');
+  if (!apiKey) throw new Error('尚未在指令碼屬性設定 GEMINI_API_KEY');
+
+  const now = Date.now();
+  const response = UrlFetchApp.fetch('https://generativelanguage.googleapis.com/v1beta/auth_tokens', {
+    method: 'post',
+    contentType: 'application/json',
+    headers: { 'x-goog-api-key': apiKey },
+    payload: JSON.stringify({
+      uses: 1,
+      expireTime: new Date(now + 30 * 60 * 1000).toISOString(),
+      newSessionExpireTime: new Date(now + 60 * 1000).toISOString()
+    }),
+    muteHttpExceptions: true
+  });
+  const status = response.getResponseCode();
+  const body = response.getContentText();
+  if (status < 200 || status >= 300) throw new Error('Gemini 憑證請求失敗 (' + status + '): ' + body.slice(0, 300));
+  return JSON.parse(body);
 }
 
 // ---------- OpenAI Realtime 短效憑證 ----------

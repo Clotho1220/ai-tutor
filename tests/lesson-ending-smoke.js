@@ -7,9 +7,12 @@
     const guard = LessonEndingGuard.create();
     guard.enterStage(false);
     check("ordinary teaching text continues", !guard.observe("Good job! Try it once.").detected);
+    check("friendly greeting is not mistaken for goodbye", !guard.observe("It's good to see you.").detected);
     check("early goodbye is detected", guard.observe("Goodbye!").detected);
     check("early goodbye requests recovery", guard.completeTurn() === "recover");
 
+    guard.enterStage(true);
+    check("plain see you remains a valid farewell", guard.observe("See you!").detected);
     guard.enterStage(true);
     check("split farewell is detected across transcript chunks",
         !guard.observe("See ").detected && guard.observe("you next time!").detected);
@@ -28,6 +31,9 @@
     check("guard loads before app", indexSource.indexOf('src="lesson-ending.js') < indexSource.indexOf('src="app.js'));
     check("app completes the session after a final farewell", /scheduleLessonCompletion\(\)/.test(appSource));
     check("app recovers from an early farewell", /sendEarlyFarewellRecovery\(\)/.test(appSource));
+    check("recovery never tells the child the lesson is not finished",
+        /Do NOT say or imply 'we are not finished'/.test(appSource) && !/Say only 「我們還沒下課喔/.test(appSource));
+    check("early farewell clears already queued audio", /!farewellJustDetected\.finalStage\) stopAllPlayback\(\)/.test(appSource));
     check("final stage cannot trigger early-farewell recovery",
         /if \(closingStageActive \|\| lessonCompletionPending\)[\s\S]{0,100}scheduleLessonCompletion\(\)/.test(appSource));
     check("final stage has an explicit no-more-questions closing instruction",

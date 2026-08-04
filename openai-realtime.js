@@ -297,6 +297,14 @@
             return sent;
         }
 
+        function updateInstructions(instructions) {
+            if (!active) return false;
+            return send({
+                type: "session.update",
+                session: { type: "realtime", instructions: String(instructions || "") }
+            });
+        }
+
         function muteOutput(value) {
             if (audioElement) audioElement.muted = !!value;
         }
@@ -343,7 +351,7 @@
             });
         }
 
-        return Object.freeze({ connect, startTalking, stopTalking, sendText, sendToolResult, muteOutput, close, inspect });
+        return Object.freeze({ connect, startTalking, stopTalking, sendText, sendToolResult, updateInstructions, muteOutput, close, inspect });
     }
 
     global.OpenAIRealtime = Object.freeze({ create });

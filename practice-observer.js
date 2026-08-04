@@ -77,6 +77,16 @@
         return PRACTICE_INVITE_RE.test(clean(aiText));
     }
 
+    function sentenceFamily(value) {
+        let sentence = clean(value).toLowerCase()
+            .replace(/[.!?]+$/g, "")
+            .replace(/\b(?:i|you|he|she|it|we|they|[a-z]+)\s+(?:am|is|are)\b/, "<subject> be")
+            .replace(/\b(?:my|your|his|her|our|their)\s+[a-z]+\b/, "<possessive noun>")
+            .replace(/\s+/g, " ")
+            .trim();
+        return sentence.slice(0, 160);
+    }
+
     function createTurnBoundary() {
         let text = "";
         let detected = false;
@@ -131,5 +141,5 @@
         };
     }
 
-    global.PracticeObserver = { analyze, asksForPractice, createTurnBoundary };
+    global.PracticeObserver = { analyze, asksForPractice, sentenceFamily, createTurnBoundary };
 })(window);

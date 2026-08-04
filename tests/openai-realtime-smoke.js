@@ -21,6 +21,8 @@
         /type === "function_call"/.test(source) && /emit\("onToolCall"/.test(source));
     check("returns function results to the conversation",
         /type: "function_call_output"/.test(source) && /sendToolResult/.test(source));
+    check("can update session instructions without creating another response",
+        /function updateInstructions/.test(source) && /type: "session\.update"/.test(source));
     check("settings expose per-person GPT speed", /id="openaiSpeedSelect"/.test(index) && /gptSpeed/.test(app));
     check("Realtime session sends output speed", /output:\s*\{\s*voice:[^}]*speed:\s*outputSpeed/.test(source));
     check("push-to-talk cancels an active GPT response", /type:\s*["']response\.cancel["']/.test(source));

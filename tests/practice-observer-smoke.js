@@ -38,6 +38,8 @@
         userText: "好", aiText: '[DIRECTOR NOTE] You can say "Let us begin."'
     }) === null);
     check("detects Chinese and English repeat invitations", PracticeObserver.asksForPractice("要不要試試看這句話？") && PracticeObserver.asksForPractice("Please repeat."));
+    check("pronoun and name substitutions share one sentence family",
+        PracticeObserver.sentenceFamily("I am happy!") === PracticeObserver.sentenceFamily("Sandy is happy."));
 
     const boundary = PracticeObserver.createTurnBoundary();
     check("ordinary follow-up does not stop the turn", !boundary.observe("Great answer. Who is this?").detected);
@@ -51,6 +53,12 @@
     const indexSource = await fetch('../index.html?practice-observer-test=' + Date.now()).then(response => response.text());
     check("observer loads before app", indexSource.indexOf('src="practice-observer.js') < indexSource.indexOf('src="app.js'));
     check("Live setup no longer declares log_practice", !/name:\s*"log_practice"/.test(appSource));
+    check("lesson prompt limits repetition of one sentence family",
+        /PRACTICE VARIETY — mandatory/.test(appSource) && /more than three consecutive student turns/.test(appSource));
+    check("GPT treats pronoun-only substitutions as the same family",
+        /changing only the subject or name is still the SAME family/.test(appSource));
+    check("GPT receives a live instruction update after a repeated family",
+        /openaiPracticeFamilies/.test(appSource) && /updateInstructions\(instructions/.test(appSource));
     check("turnComplete records observed feedback", /PracticeObserver\.analyze\(\{[\s\S]{0,180}userText:[\s\S]{0,180}aiText:/.test(appSource));
     check("clarification requests override Chinese-to-English feedback",
         /CLARIFICATION OVERRIDE/.test(appSource) &&

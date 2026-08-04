@@ -15,7 +15,7 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.09";
+const APP_VERSION = "3.10";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -973,6 +973,7 @@ function buildSystemInstruction(lesson) {
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say tool names, '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
+        "PRACTICE VARIETY — mandatory: use one target sentence for ONE imitation and, only if needed, ONE correction retry. As soon as it is understandable, consider it mastered for this session and move to a genuinely different sentence, word, question, situation, or activity. Do not ask for the same sentence again, and do not create a long drill by merely changing I/you/he/she/a name while keeping the same adjective. Rotate through all of TODAY'S listed items and use personal questions, choices, pictures, or a short role-play. Never spend more than three consecutive student turns on one sentence-pattern family. " +
         "(6) CLARIFICATION OVERRIDE — this rule has priority over every feedback or translation rule below. If the learner says 「你在說什麼？」, 「你說什麼？」, 「什麼意思？」, 「我聽不懂」, 「蛤？」, asks you to repeat, or otherwise shows they did not understand YOUR previous words, treat it as a request for help — NOT as an answer to translate or correct. Never teach them to say 'What did you say?' in this situation. Instead, immediately repeat or rephrase YOUR last message in much simpler English; for Mandarin learners, add one short Traditional Chinese explanation when useful. Keep it to one or two short sentences, then STOP and let them respond. Do not continue the lesson topic in the same turn. " +
         "(7) MANDATORY FEEDBACK LOOP — except for the clarification requests covered by rule 6, after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
         "first, react to WHAT they said in one short sentence; " +
@@ -1412,6 +1413,12 @@ async function startOpenAISession() {
         LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
         prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
+        const totalMin = LESSON.stages.reduce((sum, stage) => sum + (stage.minutes || 0), 0);
+        sessionDiagnostics.updateMetadata({
+            unit: LESSON.unit || "一般練習",
+            plannedMinutes: totalMin,
+            plannedStages: teachingFlow.map(stage => stage.name)
+        });
         currentStageIndex = 0;
         elapsedTime = 0;
         let newsContext = "";
@@ -1427,9 +1434,11 @@ async function startOpenAISession() {
         }
         const instructions = "GPT REALTIME TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, then WAIT. " +
             "If you translate, correct, model a sentence, or ask the learner to repeat, STOP immediately after that invitation. " +
+            "Never drill one sentence family for more than three learner turns; changing only the subject or name is still the SAME family. After one successful attempt, choose a different target, situation, or open response. " +
             "Never combine practice instructions with the next lesson topic. Obey DIRECTOR NOTE messages silently; never quote or discuss them. " +
             "Use the available display and vocabulary tools silently when appropriate. " +
             buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext;
+        const openaiPracticeFamilies = {};
         await openaiRealtime.connect({
             tokenEndpoint,
             syncSecret: localStorage.getItem(SYNC_SECRET_KEY) || "",
@@ -1494,7 +1503,21 @@ async function startOpenAISession() {
             },
             onTurnComplete() {
                 openaiAiTranscriptStarted = false;
-                completeTrackedAiTurn("openai");
+                const feedback = completeTrackedAiTurn("openai");
+                if (feedback && feedback.suggestion) {
+                    const family = window.PracticeObserver.sentenceFamily(feedback.suggestion);
+                    if (family) openaiPracticeFamilies[family] = (openaiPracticeFamilies[family] || 0) + 1;
+                    const repeatedFamilies = Object.keys(openaiPracticeFamilies)
+                        .filter(key => openaiPracticeFamilies[key] >= 2)
+                        .slice(-5);
+                    if (repeatedFamilies.length) {
+                        openaiRealtime.updateInstructions(instructions +
+                            " SESSION VARIETY STATE: These sentence families are already mastered or over-practised: " +
+                            repeatedFamilies.join("; ") +
+                            ". Do not request another repetition or pronoun/name substitution from these families. Move to a different listed item, situation, question, or role-play now.");
+                        sessionDiagnostics.record("openai_practice_family_limited", { families: repeatedFamilies });
+                    }
+                }
             },
             onError(error) {
                 sessionDiagnostics.record("openai_error", { message: error.message });
@@ -2232,9 +2255,10 @@ function completeTrackedAiTurn(provider) {
     currentAiTurnTranscript = "";
     suppressAudioAfterFarewell = false;
     suppressAudioAfterPractice = false;
+    let observedFeedback = null;
     if (completesCurrentStudentTurn) {
         pendingStudentResponseGeneration = null;
-        const observedFeedback = window.PracticeObserver.analyze({
+        observedFeedback = window.PracticeObserver.analyze({
             userText: completedUserTranscript,
             aiText: completedAiTranscript
         });
@@ -2249,6 +2273,7 @@ function completeTrackedAiTurn(provider) {
     }
     if (endingAction === "finish") scheduleLessonCompletion();
     else if (endingAction === "recover") sendEarlyFarewellRecovery();
+    return observedFeedback;
 }
 
 function sendEarlyFarewellRecovery() {
@@ -2261,8 +2286,9 @@ function sendEarlyFarewellRecovery() {
     const activeStage = teachingFlow[Math.max(0, currentStageIndex - 1)];
     const stagePrompt = activeStage ? activeStage.prompt : "Continue the current lesson activity.";
     const noteText = DIRECTOR_PREFIX +
-        "The lesson is NOT finished. Your previous response ended too early. Start a fresh, short teacher turn. " +
-        "Say only 「我們還沒下課喔，繼續來練習！」, continue the CURRENT stage, ask at most ONE short question, then WAIT. " +
+        "Your previous response ended the lesson too early. Resume the CURRENT stage in a fresh, natural teacher turn. " +
+        "Do NOT say or imply 'we are not finished', do NOT mention the earlier goodbye, and do NOT repeat the same exercise. " +
+        "Use a brief natural bridge such as 「接下來我們換一個小挑戰」, introduce a DIFFERENT example or activity from the current stage, ask at most ONE short question, then WAIT. " +
         "Do not say goodbye or mention this director note. Current stage: " + stagePrompt + "]";
     sessionDiagnostics.record("early_farewell_recovery_sent", {
         stageIndex: Math.max(0, currentStageIndex - 1),
@@ -2428,6 +2454,7 @@ function handleServerMessage(response, socket, socketToken) {
             logSystem(farewellJustDetected.finalStage
                 ? "✅ 偵測到正式下課結語；結語後的額外問題將不再播放。"
                 : "⚠️ AI 提早說了再見；已阻止後續內容，將拉回目前階段。");
+            if (!farewellJustDetected.finalStage) stopAllPlayback();
         }
         if (!directorLeak && DIRECTOR_LEAK_RE.test(transcriptCandidate)) {
             directorLeak = true;

@@ -1,7 +1,8 @@
 (function (global) {
     "use strict";
 
-    const FAREWELL_RE = /\b(?:good\s*bye|bye(?:[\s-]*bye)?|see\s+you(?:\s+(?:next\s+time|soon|tomorrow))?)\b|再見|掰掰|拜拜|下次見/iu;
+    const FAREWELL_RE = /\b(?:good\s*bye|bye(?:[\s-]*bye)?|see\s+you(?:\s+(?:next\s+time|soon|tomorrow|later))?)\b|再見|掰掰|拜拜|下次見/iu;
+    const FRIENDLY_SEE_YOU_RE = /\b(?:good|nice|great|lovely|happy)\s+to\s+see\s+you\b/giu;
 
     function create() {
         let finalStage = false;
@@ -23,7 +24,10 @@
         function observe(text) {
             if (!text || detected) return { detected: false };
             turnText = (turnText + String(text)).slice(-6000);
-            const match = FAREWELL_RE.exec(turnText);
+            // Keep character positions stable while masking greetings such as
+            // "It's good to see you", so a later real farewell is still detectable.
+            const farewellCandidate = turnText.replace(FRIENDLY_SEE_YOU_RE, value => " ".repeat(value.length));
+            const match = FAREWELL_RE.exec(farewellCandidate);
             if (!match) return { detected: false };
             detected = true;
             return {

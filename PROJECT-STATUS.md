@@ -30,7 +30,7 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 課程系統
 
-- `Lesson data.xlsx` 已整理成 `units.json`，包含 Book 2、Book 3 共 18 個單元。
+- `Lesson data.xlsx` 已整理成 `units.json`，包含 Book 1、Book 2、Book 3 共 27 個單元。
 - 每個單元自動展開成 5 天課程：前 4 天教新內容，第 5 天總複習。
 - 每堂課約 15 分鐘，依序包含開場、主題／複習及總結階段。
 - 第 5 天完成後，下次上課會自動前進到下一個單元。
@@ -84,6 +84,10 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### v3.11
 
+- 匯入 Gogo Loves English 1（Book 1）共 9 個單元，課本單元庫由 18 個增為 27 個。
+- 修正 `APP_VERSION` 未隨版本更新的問題。該常數在載入時會覆蓋 `index.html` 的顯示文字，導致畫面顯示的版本與實際部署不符。
+- 新增自動更新檢查：以不走快取的方式比對伺服器版本標記，發現新版即重新載入；上課中與背景分頁不會觸發，並防止版本標記不同步時陷入重整迴圈。
+
 - 抽出共用的 `TURN_CONTRACT` 放進 `buildSystemInstruction`，Gemini 與 GPT 現在共用同一份最高優先規則。先前這段只掛在 GPT 前面，Gemini 拿不到「示範後立即停止」與「同一句型家族不得連續操練」。
 - `sentenceFamily` 先還原縮寫。`I'm happy` 與 `I am happy` 舊版會被判成不同家族，導致重複計數永遠到不了門檻、變異限制器實際上從未生效。
 - 示範句擷取補上無引號、`Say:`、`Repeat after me:`、`跟我念` 等講法。實測六種常見講法從三種可辨識提升為六種全中；漏抓時會同時失去重複計數與 `practice` 學習紀錄。
@@ -119,7 +123,7 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 | `learning-records.js` | 每位學員的句子練習記錄與合併 |
 | `session-diagnostics.js` | 課堂診斷事件及 JSON 匯出 |
 | `sync.gs` | Apps Script 後端、同步、臨時憑證及新聞來源 |
-| `units.json` | 18 個 Gogo English 單元資料 |
+| `units.json` | 27 個 Gogo English 單元資料（Book 1／2／3） |
 | `tests/` | 瀏覽器 smoke／回歸測試 |
 
 ## 5. 已知限制與待觀察項目

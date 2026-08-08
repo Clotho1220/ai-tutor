@@ -1,6 +1,340 @@
 {
  "books": [
   {
+   "name": "Book 1",
+   "units": [
+    {
+     "book": "Book 1",
+     "num": 1,
+     "title": "Hello!",
+     "desc": "本單元學習打招呼、自我介紹與說再見。",
+     "theme": "Students greet their friends and introduce themselves by name.（學生們互相問候並自我介紹姓名。）",
+     "patterns": [
+      {
+       "english": "What's your name? / I'm [Name].",
+       "chinese": "詢問對方姓名並自我介紹。",
+       "example": "1. What's your name? 2. I'm Tony."
+      },
+      {
+       "english": "Nice to meet you.",
+       "chinese": "初次見面時的禮貌問候。",
+       "example": "1. Nice to meet you, Tony. 2. Nice to meet you, Jenny."
+      }
+     ],
+     "words": [
+      {
+       "english": "hello (int.)",
+       "chinese": "哈囉／你好",
+       "example": "Hello, Gogo!"
+      },
+      {
+       "english": "goodbye (int.)",
+       "chinese": "再見",
+       "example": "Goodbye, Tony."
+      },
+      {
+       "english": "apple (n.)",
+       "chinese": "蘋果",
+       "example": "This is an apple."
+      },
+      {
+       "english": "ant (n.)",
+       "chinese": "螞蟻",
+       "example": "Look at the ant."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 2,
+     "title": "What's this?",
+     "desc": "本單元學習詢問並回答教室裡的物品名稱。",
+     "theme": "Students ask and answer about various objects found in the classroom.（學生們詢問並回答教室裡的各種物品。）",
+     "patterns": [
+      {
+       "english": "What's this? / It's a/an [object].",
+       "chinese": "詢問近處不認識的單數物品。",
+       "example": "1. What's this? It's a desk. 2. What's this? It's an eraser."
+      }
+     ],
+     "words": [
+      {
+       "english": "desk (n.)",
+       "chinese": "書桌",
+       "example": "It's a desk."
+      },
+      {
+       "english": "eraser (n.)",
+       "chinese": "橡皮擦",
+       "example": "It's an eraser."
+      },
+      {
+       "english": "book (n.)",
+       "chinese": "書本",
+       "example": "I have a book."
+      },
+      {
+       "english": "pencil (n.)",
+       "chinese": "鉛筆",
+       "example": "Show me your pencil."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 3,
+     "title": "Can you sing?",
+     "desc": "本單元學習表達自己的能力，並詢問他人會做什麼。",
+     "theme": "Students talk about their abilities and ask others what they can do.（學生們討論自己的能力並詢問他人能做些什麼。）",
+     "patterns": [
+      {
+       "english": "Can you [action]? / Yes, I can. / No, I can't.",
+       "chinese": "詢問對方是否具備某種動作或能力。",
+       "example": "1. Can you read? Yes, I can. 2. Can you fly? No, I can't."
+      }
+     ],
+     "words": [
+      {
+       "english": "sing (v.)",
+       "chinese": "唱歌",
+       "example": "I can sing."
+      },
+      {
+       "english": "read (v.)",
+       "chinese": "閱讀",
+       "example": "Can you read?"
+      },
+      {
+       "english": "draw (v.)",
+       "chinese": "畫畫",
+       "example": "She can draw."
+      },
+      {
+       "english": "cook (v.)",
+       "chinese": "烹飪",
+       "example": "My dad can cook."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 5,
+     "title": "Who's she?",
+     "desc": "本單元學習介紹與詢問家庭成員。",
+     "theme": "Students identify and ask about different members of their family.（學生們確認並詢問家中的不同成員。）",
+     "patterns": [
+      {
+       "english": "Who's she/he? / She's/He's my [family member].",
+       "chinese": "詢問某位女性或男性是誰。",
+       "example": "1. Who's she? She's my mother. 2. Who's he? He's my father."
+      }
+     ],
+     "words": [
+      {
+       "english": "mother (n.)",
+       "chinese": "母親／媽媽",
+       "example": "She's my mother."
+      },
+      {
+       "english": "father (n.)",
+       "chinese": "父親／爸爸",
+       "example": "He's my father."
+      },
+      {
+       "english": "brother (n.)",
+       "chinese": "兄弟／哥哥或弟弟",
+       "example": "He's my brother."
+      },
+      {
+       "english": "sister (n.)",
+       "chinese": "姊妹／姊姊或妹妹",
+       "example": "She's my sister."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 6,
+     "title": "What's his name?",
+     "desc": "本單元學習詢問並說出第三人的名字。",
+     "theme": "Students ask and state the names of other boys, girls, or teachers.（學生們詢問並說出其他男孩、女孩或老師的名字。）",
+     "patterns": [
+      {
+       "english": "What's his/her name? / His/Her name's [Name].",
+       "chinese": "詢問第三人（男生／女生）的名字。",
+       "example": "1. What's his name? His name's Ben. 2. What's her name? Her name's Ms. Black."
+      }
+     ],
+     "words": [
+      {
+       "english": "teacher (n.)",
+       "chinese": "老師",
+       "example": "She's my teacher."
+      },
+      {
+       "english": "student (n.)",
+       "chinese": "學生",
+       "example": "He is a student."
+      },
+      {
+       "english": "boy (n.)",
+       "chinese": "男孩",
+       "example": "The boy is Ben."
+      },
+      {
+       "english": "girl (n.)",
+       "chinese": "女孩",
+       "example": "The girl is Lisa."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 7,
+     "title": "Is this a dog?",
+     "desc": "本單元學習用是非問句辨認動物。",
+     "theme": "Students ask questions to identify various animals using yes/no questions.（學生們使用是非問句來辨認不同的動物。）",
+     "patterns": [
+      {
+       "english": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+       "chinese": "詢問這是否為某種特定的動物或物品。",
+       "example": "1. Is this a giraffe? Yes, it is. 2. Is this a whale? No, it isn't."
+      }
+     ],
+     "words": [
+      {
+       "english": "giraffe (n.)",
+       "chinese": "長頸鹿",
+       "example": "Look at the giraffe."
+      },
+      {
+       "english": "whale (n.)",
+       "chinese": "鯨魚",
+       "example": "A whale is very big."
+      },
+      {
+       "english": "penguin (n.)",
+       "chinese": "企鵝",
+       "example": "The penguin is cute."
+      },
+      {
+       "english": "polar bear (n.)",
+       "chinese": "北極熊",
+       "example": "The polar bear is white."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 9,
+     "title": "What color is this?",
+     "desc": "本單元學習描述並詢問物品的顏色。",
+     "theme": "Students describe the color of various items and ask what color they are.（學生們描述各種物品的顏色，並詢問它們是什麼顏色。）",
+     "patterns": [
+      {
+       "english": "What color is this? / It's [color].",
+       "chinese": "詢問某物品的顏色。",
+       "example": "1. What color is this? It's orange. 2. What color is this? It's red."
+      }
+     ],
+     "words": [
+      {
+       "english": "red (adj.)",
+       "chinese": "紅色／紅色的",
+       "example": "This apple is red."
+      },
+      {
+       "english": "blue (adj.)",
+       "chinese": "藍色／藍色的",
+       "example": "The sky is blue."
+      },
+      {
+       "english": "yellow (adj.)",
+       "chinese": "黃色／黃色的",
+       "example": "Bananas are yellow."
+      },
+      {
+       "english": "green (adj.)",
+       "chinese": "綠色／綠色的",
+       "example": "The grass is green."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 10,
+     "title": "How old are you?",
+     "desc": "本單元學習詢問與回答年齡，並認識生日相關的單字。",
+     "theme": "Students ask and answer about age and celebrate birthdays.（學生們詢問並回答年齡，以及慶祝生日。）",
+     "patterns": [
+      {
+       "english": "How old are you / is [someone]? / I'm [age]. / He's/She's [age].",
+       "chinese": "詢問對方或第三人的年齡。",
+       "example": "1. How old are you? I'm eight. 2. How old is your brother? He's seven."
+      }
+     ],
+     "words": [
+      {
+       "english": "present (n.)",
+       "chinese": "禮物",
+       "example": "I have a birthday present."
+      },
+      {
+       "english": "candle (n.)",
+       "chinese": "蠟燭",
+       "example": "Blow out the candle."
+      },
+      {
+       "english": "balloon (n.)",
+       "chinese": "氣球",
+       "example": "The balloon is red."
+      },
+      {
+       "english": "cookie (n.)",
+       "chinese": "餅乾",
+       "example": "I like cookies."
+      }
+     ]
+    },
+    {
+     "book": "Book 1",
+     "num": 11,
+     "title": "What do you like?",
+     "desc": "本單元學習談論喜歡的食物與喜好。",
+     "theme": "Students talk about their favorite foods and ask friends about their likes and dislikes.（學生們討論喜愛的食物，並詢問朋友的喜好與厭惡。）",
+     "patterns": [
+      {
+       "english": "What do you like? / I like [food].",
+       "chinese": "詢問對方喜愛什麼食物或事物。",
+       "example": "1. What do you like, Tony? I like cheese. 2. What do you like, Jenny? I like cake."
+      }
+     ],
+     "words": [
+      {
+       "english": "cake (n.)",
+       "chinese": "蛋糕",
+       "example": "I like chocolate cake."
+      },
+      {
+       "english": "cheese (n.)",
+       "chinese": "起司／乾酪",
+       "example": "Mice like cheese."
+      },
+      {
+       "english": "bread (n.)",
+       "chinese": "麵包",
+       "example": "This bread is fresh."
+      },
+      {
+       "english": "salad (n.)",
+       "chinese": "沙拉",
+       "example": "She eats salad."
+      }
+     ]
+    }
+   ]
+  },
+  {
    "name": "Book 2",
    "units": [
     {

@@ -15,7 +15,9 @@
 // 填了之後：連線改用後端簽發的臨時憑證（不需輸入 API Key），單字自動記錄到試算表。
 // 留空則退回舊模式：使用下方欄位手動輸入的 API Key。
 const GAS_URL = "";
-const APP_VERSION = "3.10";
+// 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
+// （更新檢查會比對兩者）。
+const APP_VERSION = "3.11";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -87,6 +89,42 @@ if ('serviceWorker' in navigator) {
 }
 const appVersionEl = document.getElementById('appVersion');
 if (appVersionEl) appVersionEl.textContent = `AI Tutor Studio v${APP_VERSION}`;
+
+// 自動更新檢查。
+// 手機（尤其已加到主畫面的 PWA）常把 index.html 留在 HTTP 快取裡，
+// 導致推了新版卻仍在跑舊程式——這個專案已為此誤判過很多次。
+// 做法：向伺服器要一份不走快取的 index.html，比對其中的版本號；
+// 不同就重新載入。上課中一律不動，避免打斷課程。
+(function initUpdateChecker() {
+    const CHECK_INTERVAL_MS = 10 * 60 * 1000;
+    let reloading = false;
+
+    function lessonInProgress() {
+        return openaiSessionActive || (webSocket && webSocket.readyState !== WebSocket.CLOSED);
+    }
+
+    async function checkForUpdate() {
+        if (reloading || lessonInProgress() || document.hidden) return;
+        try {
+            const html = await fetch('index.html?versioncheck=' + Date.now(), { cache: 'no-store' })
+                .then(response => (response.ok ? response.text() : ""));
+            const match = html.match(/id="appVersion"[^>]*>\s*AI Tutor Studio v([0-9.]+)/);
+            if (!match || match[1] === APP_VERSION) return;
+            // 防迴圈：萬一 index.html 與 app.js 的版本標記沒同步更新，
+            // 每個版本只重載一次，不會陷入不斷重整。
+            if (sessionStorage.getItem('update_reloaded_for') === match[1]) return;
+            sessionStorage.setItem('update_reloaded_for', match[1]);
+            reloading = true;
+            logSystem(`⬆️ 偵測到新版本 v${match[1]}，重新載入中…`);
+            // 加上參數，確保連 index.html 本身也重新向伺服器取得
+            location.replace(location.pathname + '?v=' + match[1] + location.hash);
+        } catch (e) { /* 離線或暫時取不到就下次再說 */ }
+    }
+
+    window.addEventListener('load', () => setTimeout(checkForUpdate, 3000));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) checkForUpdate(); });
+    setInterval(checkForUpdate, CHECK_INTERVAL_MS);
+})();
 
 let webSocket = null;
 let connectionWatchdog = null;

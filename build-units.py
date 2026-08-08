@@ -21,7 +21,7 @@ UNIT_RE = re.compile(r"^\s*(?:🌟\s*)?Unit\s+(\d+)\s*[:：]\s*(.+?)\s*$")
 
 THEME_LABELS = {"theme", "主題情境"}
 PATTERN_LABELS = {"sentence pattern", "目標句型"}
-WORD_PREFIXES = ("word", "目標單字")
+WORD_PREFIXES = ("word", "vocabulary", "目標單字", "單字")
 
 
 def clean(v):

@@ -3,7 +3,7 @@
 
     const HAN_RE = /[\u3400-\u9fff]/;
     const DIRECTOR_RE = /\[?\s*DIRECTOR\s*NOTE/i;
-    const CUE_RE = /(you can(?: also)? say|try saying|say this|say:|a better way to say(?: it)? is|the natural (?:way|phrasing) is|it's better to say|你可以(?:這樣)?說|英文(?:可以)?說|更自然(?:的說法)?是|正確(?:的說法)?是)/i;
+    const CUE_RE = /(you can(?: also)? say|try saying|say this|say:|repeat after me|say after me|a better way to say(?: it)? is|the natural (?:way|phrasing) is|it's better to say|你可以(?:這樣)?說|英文(?:可以)?說|更自然(?:的說法)?是|正確(?:的說法)?是|跟(?:著)?我(?:說|念))/i;
     const ALTERNATIVE_RE = /(you can also say|another way|more natural|more idiomatic|也可以說|另一種|更自然)/i;
     const PRACTICE_INVITE_RE = /(please\s+repeat|repeat\s+(?:after me|it|this)|try\s+(?:it|saying)|your\s+turn|can\s+you\s+say|say\s+it|跟我說|說說看|試著說|再說一次|念一次|要不要試試|換你說)/i;
     const STRONG_REPEAT_RE = /(please\s+repeat|repeat\s+(?:after\s+me|it|this)|try\s+(?:it|saying)|your\s+turn|say\s+it\s+again|跟我說|說說看|再說一次|念一次|試試看(?:這句)?|要不要試試|換你說)/i;
@@ -52,7 +52,9 @@
     }
 
     function sentenceAfterCue(text, cueMatch) {
-        const tail = text.slice(cueMatch.index + cueMatch[0].length).replace(/^\s*[:：,，-]\s*/, "");
+        // 提示語之後可能只隔一個空白（"You can say I am happy."）、也可能帶冒號或逗號。
+        // 舊版只吃掉標點、沒吃掉前導空白，導致無引號的示範句一律抓不到。
+        const tail = text.slice(cueMatch.index + cueMatch[0].length).replace(/^[\s:：,，.、-]+/, "");
         const quoted = quotedSentenceAfter(tail, 0);
         if (quoted) return quoted;
         const match = tail.match(/^([A-Za-z][A-Za-z0-9'’\- ,]+[.!?])/);
@@ -77,8 +79,24 @@
         return PRACTICE_INVITE_RE.test(clean(aiText));
     }
 
+    // 句型家族比對前先把縮寫還原。
+    // 少了這一步，"I'm happy" 與 "I am happy" 會被當成兩個不同家族，
+    // 重複練習的計數永遠到不了門檻，變異限制器等於失效。
+    function expandContractions(value) {
+        return String(value == null ? "" : value)
+            .replace(/[’]/g, "'")
+            .replace(/\bi'm\b/gi, "i am")
+            .replace(/\b(he|she|it|that|what|who|there|here)'s\b/gi, "$1 is")
+            .replace(/\b(you|we|they)'re\b/gi, "$1 are")
+            .replace(/\b(i|you|he|she|it|we|they)'ve\b/gi, "$1 have")
+            .replace(/\b(i|you|he|she|it|we|they)'ll\b/gi, "$1 will")
+            .replace(/\b(i|you|he|she|it|we|they)'d\b/gi, "$1 would")
+            .replace(/\bcan't\b/gi, "cannot")
+            .replace(/\b(do|does|did|is|are|was|were|has|have|had|would|could|should|wo)n't\b/gi, "$1 not");
+    }
+
     function sentenceFamily(value) {
-        let sentence = clean(value).toLowerCase()
+        let sentence = expandContractions(clean(value)).toLowerCase()
             .replace(/[.!?]+$/g, "")
             .replace(/\b(?:i|you|he|she|it|we|they|[a-z]+)\s+(?:am|is|are)\b/, "<subject> be")
             .replace(/\b(?:my|your|his|her|our|their)\s+[a-z]+\b/, "<possessive noun>")

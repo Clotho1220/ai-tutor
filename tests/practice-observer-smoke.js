@@ -67,6 +67,43 @@
     check("student transcript ignores chunks after a closed practice boundary",
         /boundaryAlreadyClosed\s*=\s*suppressAudioAfterFarewell\s*\|\|\s*suppressAudioAfterPractice/.test(appSource));
 
+    // --- 迴歸：縮寫必須和完整型視為同一個句型家族 ---
+    // 否則重複練習永遠計不到門檻，變異限制器等於沒作用。
+    const family = window.PracticeObserver.sentenceFamily;
+    const baseFamily = family("I am happy.");
+    check("contractions collapse into the same sentence family",
+        ["I'm happy.", "He's happy.", "She's happy.", "They're happy.", "We're happy.", "It's happy."]
+            .every(sentence => family(sentence) === baseFamily));
+    check("curly apostrophes collapse too", family("I’m happy.") === baseFamily);
+    check("different patterns stay in different families", family("I like apples.") !== baseFamily);
+
+    // --- 迴歸：常見的示範句講法都要抓得到 ---
+    // 抓不到就既不計入重複、也不會寫進 practice 學習紀錄。
+    const suggestionOf = aiText =>
+        (window.PracticeObserver.analyze({ userText: "我很開心", aiText }) || {}).suggestion || "";
+    check("extracts a modelled sentence without quotation marks",
+        suggestionOf('Good! You can say I am happy. Try it!') === "I am happy.");
+    check("extracts a modelled sentence after a bare Say:",
+        suggestionOf('Say: I am happy. Try it!') === "I am happy.");
+    check("extracts a modelled sentence after repeat after me",
+        suggestionOf('Repeat after me: I am happy.') === "I am happy.");
+    check("still extracts a quoted modelled sentence",
+        suggestionOf('Good! You can say: "I am happy." Try it!') === "I am happy.");
+    check("still extracts from a Chinese cue",
+        suggestionOf('很好！你可以說：I am happy. 說說看！') === "I am happy.");
+
+    // --- 迴歸：兩個模型必須共用同一份回合契約 ---
+    check("turn contract is shared by both models",
+        /const TURN_CONTRACT\s*=/.test(appSource) &&
+        /return TURN_CONTRACT \+/.test(appSource) &&
+        !/GPT REALTIME TURN CONTRACT/.test(appSource));
+
+    // --- 迴歸：早退復原指令不得再出現否定式禁語 ---
+    // 舊版把「不要說我們還沒下課」直接寫進提示，模型反而照著講。
+    check("early farewell recovery avoids naming the forbidden phrase",
+        /The lesson is still in progress/.test(appSource) &&
+        !/Do NOT say or imply 'we are not finished'/.test(appSource));
+
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');
     result.className = passed ? 'pass' : 'fail';

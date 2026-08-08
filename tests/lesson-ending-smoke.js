@@ -31,8 +31,13 @@
     check("guard loads before app", indexSource.indexOf('src="lesson-ending.js') < indexSource.indexOf('src="app.js'));
     check("app completes the session after a final farewell", /scheduleLessonCompletion\(\)/.test(appSource));
     check("app recovers from an early farewell", /sendEarlyFarewellRecovery\(\)/.test(appSource));
-    check("recovery never tells the child the lesson is not finished",
-        /Do NOT say or imply 'we are not finished'/.test(appSource) && !/Say only 「我們還沒下課喔/.test(appSource));
+    // 復原指令必須全部使用正向敘述。舊版寫成「不要說『我們還沒下課』」，
+    // 等於把禁語直接餵給模型，反而常被照著講出來。
+    check("recovery is phrased positively and never names the forbidden line",
+        /The lesson is still in progress/.test(appSource) &&
+        /the closing will be signalled separately/.test(appSource) &&
+        !/we are not finished/.test(appSource) &&
+        !/我們還沒下課/.test(appSource));
     check("early farewell clears already queued audio", /!farewellJustDetected\.finalStage\) stopAllPlayback\(\)/.test(appSource));
     check("final stage cannot trigger early-farewell recovery",
         /if \(closingStageActive \|\| lessonCompletionPending\)[\s\S]{0,100}scheduleLessonCompletion\(\)/.test(appSource));

@@ -4,3 +4,6 @@
 # 教材原始檔（保留在本機；網頁實際使用的是 build-units.py 產生的 units.json）
 Lesson Sample.xlsx
 Lesson data.xlsx
+
+# Codex 遠端附件暫存（不需版控）
+.codex-remote-attachments/

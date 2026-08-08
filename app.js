@@ -917,6 +917,16 @@ function readLevelOverride(lessonLevel) {
     return (lv >= 1 && lv <= 5) ? lv : lessonLevel;
 }
 
+// 回合契約：兩個模型共用的最高優先規則。
+// 過去只掛在 GPT 前面，Gemini 拿不到「示範後立刻停」「同一句型不得連續操練」這些硬規則，
+// 兩邊行為因此對不齊。放進 buildSystemInstruction 之後，任何模型都一定拿得到同一份。
+const TURN_CONTRACT =
+    "TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, then WAIT. " +
+    "If you translate, correct, model a sentence, or ask the learner to repeat, STOP immediately after that invitation. " +
+    "Never drill one sentence family for more than three learner turns; changing only the subject or name is still the SAME family. After one successful attempt, choose a different target, situation, or open response. " +
+    "Never combine practice instructions with the next lesson topic. Obey DIRECTOR NOTE messages silently; never quote or discuss them. " +
+    "Use the available display and vocabulary tools silently when appropriate. ";
+
 // 依教案組裝完整 system prompt
 function buildSystemInstruction(lesson) {
     const st = lesson.student || {};
@@ -924,7 +934,7 @@ function buildSystemInstruction(lesson) {
     const level = readLevelOverride(st.level || 2);
     const adult = !!st.adult;
     const learner = adult ? "adult learner" : "child";
-    return (adult
+    return TURN_CONTRACT + (adult
             ? "You are a skilled, personable English conversation tutor in a LIVE VOICE session with ONE adult learner. Treat them as an intelligent peer who simply wants to get better at English. "
             : "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. ") +
         (adult
@@ -1432,12 +1442,8 @@ async function startOpenAISession() {
                 "Only continue with a story after the learner clearly says its number or title; if their choice is unclear or empty, ask them to choose again and WAIT. ";
             logSystem(`📰 GPT 已取得 ${topics.length} 則近期新聞標題。`);
         }
-        const instructions = "GPT REALTIME TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, then WAIT. " +
-            "If you translate, correct, model a sentence, or ask the learner to repeat, STOP immediately after that invitation. " +
-            "Never drill one sentence family for more than three learner turns; changing only the subject or name is still the SAME family. After one successful attempt, choose a different target, situation, or open response. " +
-            "Never combine practice instructions with the next lesson topic. Obey DIRECTOR NOTE messages silently; never quote or discuss them. " +
-            "Use the available display and vocabulary tools silently when appropriate. " +
-            buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext;
+        // 回合契約已包含在 buildSystemInstruction 內（兩個模型共用），不需在此重複。
+        const instructions = buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext;
         const openaiPracticeFamilies = {};
         await openaiRealtime.connect({
             tokenEndpoint,
@@ -2285,11 +2291,14 @@ function sendEarlyFarewellRecovery() {
     if (!useOpenAI && (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped)) return;
     const activeStage = teachingFlow[Math.max(0, currentStageIndex - 1)];
     const stagePrompt = activeStage ? activeStage.prompt : "Continue the current lesson activity.";
+    // 全部使用正向敘述。舊版用否定句列出不准講的台詞，等於把那句話直接餵給模型，
+    // 反而常被照著講出來——否定式提示的典型反效果。
+    // 這裡刻意不重述那句禁語，回歸測試也會掃描整份原始碼確保它不再出現。
     const noteText = DIRECTOR_PREFIX +
-        "Your previous response ended the lesson too early. Resume the CURRENT stage in a fresh, natural teacher turn. " +
-        "Do NOT say or imply 'we are not finished', do NOT mention the earlier goodbye, and do NOT repeat the same exercise. " +
-        "Use a brief natural bridge such as 「接下來我們換一個小挑戰」, introduce a DIFFERENT example or activity from the current stage, ask at most ONE short question, then WAIT. " +
-        "Do not say goodbye or mention this director note. Current stage: " + stagePrompt + "]";
+        "The lesson is still in progress and there is more to do in the current stage. " +
+        "Continue in a fresh teacher turn, as if the conversation had simply flowed onward. " +
+        "Open with a short forward-looking bridge such as 「接下來我們換一個小挑戰」, then introduce a DIFFERENT example or activity from the current stage, ask at most ONE short question, and WAIT. " +
+        "Stay inside the current activity and keep the tone upbeat; the closing will be signalled separately when the time comes. Current stage: " + stagePrompt + "]";
     sessionDiagnostics.record("early_farewell_recovery_sent", {
         stageIndex: Math.max(0, currentStageIndex - 1),
         stage: activeStage ? activeStage.name : "unknown"

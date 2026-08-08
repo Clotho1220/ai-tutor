@@ -76,7 +76,7 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.10`。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.11`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - GPT 診斷現在也包含單元名稱、預定時間與課程階段。
 
@@ -141,7 +141,7 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 1. 讓 Rex、Jessie、Sandy 各完成至少一堂 15 分鐘課程，分別測 Gemini 與 GPT mini。
 2. 每次發生異常立即匯出診斷 JSON，記下學員、模型、大約時間及聽到的內容。
-3. 觀察 v3.10 是否已消除：
+3. 觀察 v3.11 是否已消除：
    - `good to see you` 誤判成 Goodbye。
    - Goodbye 後出現「我們還沒下課」。
    - GPT 長時間重複同一句型家族。

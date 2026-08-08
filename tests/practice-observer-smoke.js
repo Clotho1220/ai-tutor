@@ -53,8 +53,18 @@
     const indexSource = await fetch('../index.html?practice-observer-test=' + Date.now()).then(response => response.text());
     check("observer loads before app", indexSource.indexOf('src="practice-observer.js') < indexSource.indexOf('src="app.js'));
     check("Live setup no longer declares log_practice", !/name:\s*"log_practice"/.test(appSource));
-    check("lesson prompt limits repetition of one sentence family",
-        /PRACTICE VARIETY — mandatory/.test(appSource) && /more than three consecutive student turns/.test(appSource));
+    // 上限由「三個連續回合」收緊為「整堂課至多兩次」，並改由前端硬性執行。
+    check("lesson prompt caps one sentence family at two practices",
+        /PRACTICE VARIETY — mandatory/.test(appSource) &&
+        /at most TWICE in the whole session/.test(appSource) &&
+        /more than TWICE in a session/.test(appSource));
+    check("client enforces the practice cap with a director note",
+        /const PRACTICE_CAP = 2/.test(appSource) &&
+        /function enforcePracticeCap/.test(appSource) &&
+        /enforcePracticeCap[\s\S]{0,900}DIRECTOR_PREFIX/.test(appSource));
+    check("practice cap applies to both providers and resets each session",
+        /enforcePracticeCap\(observedFeedback\)/.test(appSource) &&
+        /practiceFamilyCounts = \{\}/.test(appSource));
     check("GPT treats pronoun-only substitutions as the same family",
         /changing only the subject or name is still the SAME family/.test(appSource));
     check("GPT receives a live instruction update after a repeated family",

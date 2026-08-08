@@ -34,6 +34,21 @@
     check("selected unit is updated for cross-device sync",
         /updateCurrentPerson\(\{ unit: \{ book: next\.book, num: next\.num \} \}\)/.test(appSource));
 
+    // --- 迴歸：課程長度依內容多寡決定，且不超過孩子的專注力上限 ---
+    // 起因：Book 1 第 1 天只有 2 個項目卻固定排 11 分鐘主課，
+    // 模型沒有素材可教，只能反覆操練同一句。
+    const appSourceForLength = await fetch('../app.js?course-length-test=' + Date.now()).then(r => r.text());
+    check("lesson length scales with the number of items",
+        /const MINUTES_PER_ITEM/.test(appSourceForLength) &&
+        /function minutesForItems/.test(appSourceForLength) &&
+        !/minutes: i === 0 \? 11 : 8/.test(appSourceForLength));
+    check("a total lesson cap keeps sessions within the attention limit",
+        /const MAX_LESSON_MINUTES = 15/.test(appSourceForLength) &&
+        /function capLessonMinutes/.test(appSourceForLength) &&
+        /stages: capLessonMinutes\(stages\)/.test(appSourceForLength));
+    check("review minutes use a faster per-item rate than new teaching",
+        /const REVIEW_MINUTES_PER_ITEM = 1\.5/.test(appSourceForLength));
+
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');
     result.textContent = (passed ? 'PASS' : 'FAIL') + '\n' +

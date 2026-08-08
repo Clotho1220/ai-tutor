@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.11";
+const APP_VERSION = "3.12";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -623,6 +623,36 @@ function reviewItemsFor(dayIdx, dayItems) {
 }
 
 // 單元 → 5 天週教案（沿用 lesson.json 的 week 格式，交給既有的排課機制處理）
+// 課程長度依「當天實際教多少項目」決定，而不是固定 15 分鐘。
+// 起因：Book 1 每個單元只有 1 句型 + 4 單字，第 1 天僅 2 個項目卻排 11 分鐘主課，
+// 模型沒有素材可教，只能把同一句反覆操練（診斷檔中同一句出現 4 次）。
+// 一個項目（單字或句型）對 6-8 歲大約是「示範→跟讀→自己造句→回饋」2.5 分鐘。
+const MINUTES_PER_ITEM = 2.5;
+const REVIEW_MINUTES_PER_ITEM = 1.5;   // 複習比新教學快，項目已經見過
+const MAIN_STAGE_MIN = 4;      // 再少也要夠鋪陳與收尾
+const MAIN_STAGE_MAX = 9;      // 專注力上限
+const REVIEW_MIN = 2;
+const REVIEW_MAX = 4;
+const MAX_LESSON_MINUTES = 15; // 一堂課的總長上限（6-8 歲的專注力）
+
+function minutesForItems(count, floor, ceiling, perItem) {
+    if (!count) return floor;
+    return Math.max(floor, Math.min(ceiling, Math.round(count * (perItem || MINUTES_PER_ITEM))));
+}
+
+// 依內容算出來的時間可能超過孩子的專注力上限，
+// 從最長的階段開始逐分鐘收斂，直到總長符合上限。
+function capLessonMinutes(stages, limit) {
+    const total = () => stages.reduce((sum, s) => sum + s.minutes, 0);
+    let guard = 60;
+    while (total() > (limit || MAX_LESSON_MINUTES) && guard-- > 0) {
+        const longest = stages.reduce((a, b) => (b.minutes > a.minutes ? b : a));
+        if (longest.minutes <= 2) break;      // 每個階段至少留 2 分鐘
+        longest.minutes -= 1;
+    }
+    return stages;
+}
+
 function buildWeeklyLessonFromUnit(unit, student) {
     const TEACH_DAYS = 4;                       // 前 4 天教新東西，第 5 天總複習
     const P = unit.patterns || [], W = unit.words || [];
@@ -652,16 +682,20 @@ function buildWeeklyLessonFromUnit(unit, student) {
                 `Today's focus: ${focus}.`
         });
 
+        let reviewItems = [];
         if (i > 0) {
+            reviewItems = reviewItemsFor(i, dayItems);
             stages.push({
-                label: "複習", minutes: 3,
+                label: "複習", minutes: minutesForItems(reviewItems.length, REVIEW_MIN, REVIEW_MAX, REVIEW_MINUTES_PER_ITEM),
                 goal: "Review these items from previous days ONE at a time: prompt the student to use each one in a sentence, wait for their answer, gently fix mistakes by restating.",
-                items: reviewItemsFor(i, dayItems)
+                items: reviewItems
             });
         }
 
         stages.push({
-            label: "主題課程", minutes: i === 0 ? 11 : 8,
+            label: "主題課程",
+            // 沒有新項目的日子改成延伸練習本單元句型，時間依句型數量估算
+            minutes: minutesForItems(hasNew ? items.length : P.length, MAIN_STAGE_MIN, MAIN_STAGE_MAX),
             goal: (hasNew
                 ? "Teach today's items ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. Then drill the pattern by swapping in different words. Then run the activity."
                 : "No new items today. Deepen what the student already learned this week: drill the unit's patterns in fresh, playful situations, and push for slightly longer answers. Then run the activity.") +
@@ -676,26 +710,26 @@ function buildWeeklyLessonFromUnit(unit, student) {
             goal: "Wrap up in simple terms (Traditional Chinese is fine): remind them of today's main pattern, praise ONE specific thing they did well, and say goodbye warmly."
         });
 
-        week.push({ day: i + 1, focus, stages });
+        week.push({ day: i + 1, focus, stages: capLessonMinutes(stages) });
     }
 
     // 第 5 天：總複習 + 綜合角色扮演
     const allWordsSample = W.slice(0, 6);
     week.push({
         day: 5, focus: "總複習：本單元所有句型與單字",
-        stages: [
+        stages: capLessonMinutes([
             { label: "開場暖身", minutes: 2,
               goal: `Greet the student BY NAME warmly, and tell them today is the FINAL DAY of this unit: a big game using everything we learned this week about ${themeLine}.` },
-            { label: "快問快答複習", minutes: 4,
+            { label: "快問快答複習", minutes: minutesForItems([...P, ...allWordsSample].length, 3, 6),
               goal: "Rapid review quiz, ONE at a time, keep the pace light and fun: prompt the student to produce each pattern or word, wait, gently fix by restating.",
               items: [...P, ...allWordsSample] },
-            { label: "綜合角色扮演", minutes: 7,
+            { label: "綜合角色扮演", minutes: minutesForItems(P.length, 4, 6),
               goal: "Run one big final activity that uses EVERYTHING from this week. Keep it playful and let the student do most of the talking.",
               items: P,
               activity: `A big role-play built on this unit's topic (${themeLine}). The student must naturally use ALL the patterns learned this week. Then SWAP ROLES for one short round so the student asks the questions. Make it fun.` },
             { label: "本週總結", minutes: 2,
               goal: "Celebrate finishing the whole unit! In Traditional Chinese, remind them of the patterns learned this week, praise TWO specific improvements you noticed, and say a warm goodbye." }
-        ]
+        ])
     });
 
     return { student, unit: `${unit.book} Unit ${unit.num}: ${unit.title}`, week };
@@ -961,7 +995,7 @@ function readLevelOverride(lessonLevel) {
 const TURN_CONTRACT =
     "TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, then WAIT. " +
     "If you translate, correct, model a sentence, or ask the learner to repeat, STOP immediately after that invitation. " +
-    "Never drill one sentence family for more than three learner turns; changing only the subject or name is still the SAME family. After one successful attempt, choose a different target, situation, or open response. " +
+    "Never ask the learner to practise one sentence family more than TWICE in a session; changing only the subject or name is still the SAME family. After one successful attempt, choose a different target, situation, or open response. " +
     "Never combine practice instructions with the next lesson topic. Obey DIRECTOR NOTE messages silently; never quote or discuss them. " +
     "Use the available display and vocabulary tools silently when appropriate. ";
 
@@ -1021,7 +1055,7 @@ function buildSystemInstruction(lesson) {
         "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say tool names, '[System]', braces, or any code-like text out loud. " +
         "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
-        "PRACTICE VARIETY — mandatory: use one target sentence for ONE imitation and, only if needed, ONE correction retry. As soon as it is understandable, consider it mastered for this session and move to a genuinely different sentence, word, question, situation, or activity. Do not ask for the same sentence again, and do not create a long drill by merely changing I/you/he/she/a name while keeping the same adjective. Rotate through all of TODAY'S listed items and use personal questions, choices, pictures, or a short role-play. Never spend more than three consecutive student turns on one sentence-pattern family. " +
+        "PRACTICE VARIETY — mandatory: use one target sentence for ONE imitation and, only if needed, ONE correction retry. As soon as it is understandable, consider it mastered for this session and move to a genuinely different sentence, word, question, situation, or activity. Do not ask for the same sentence again, and do not create a long drill by merely changing I/you/he/she/a name while keeping the same adjective. Rotate through all of TODAY'S listed items and use personal questions, choices, pictures, or a short role-play. A sentence-pattern family may be practised at most TWICE in the whole session — after the second time it is finished for today, whatever happens. " +
         "(6) CLARIFICATION OVERRIDE — this rule has priority over every feedback or translation rule below. If the learner says 「你在說什麼？」, 「你說什麼？」, 「什麼意思？」, 「我聽不懂」, 「蛤？」, asks you to repeat, or otherwise shows they did not understand YOUR previous words, treat it as a request for help — NOT as an answer to translate or correct. Never teach them to say 'What did you say?' in this situation. Instead, immediately repeat or rephrase YOUR last message in much simpler English; for Mandarin learners, add one short Traditional Chinese explanation when useful. Keep it to one or two short sentences, then STOP and let them respond. Do not continue the lesson topic in the same turn. " +
         "(7) MANDATORY FEEDBACK LOOP — except for the clarification requests covered by rule 6, after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
         "first, react to WHAT they said in one short sentence; " +
@@ -1608,6 +1642,7 @@ async function startSession() {
     lessonEndingGuard.resetSession();
     practiceTurnBoundary.reset();
     stageTransitionGate.consume();
+    practiceFamilyCounts = {};          // 重複上限逐堂重算
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
     currentUserTurnTranscript = ""; activeAiTurnUserTranscript = ""; currentAiTurnTranscript = "";
@@ -2309,6 +2344,7 @@ function completeTrackedAiTurn(provider) {
         if (observedFeedback) {
             recordPracticeFeedback(observedFeedback.original, observedFeedback.suggestion,
                 observedFeedback.kind, observedFeedback.focus);
+            enforcePracticeCap(observedFeedback);   // 兩個模型共用的重複上限
         }
     }
     if (endingAction === "continue" && completesCurrentStudentTurn && stagePendingSince !== null &&
@@ -2318,6 +2354,43 @@ function completeTrackedAiTurn(provider) {
     if (endingAction === "finish") scheduleLessonCompletion();
     else if (endingAction === "recover") sendEarlyFarewellRecovery();
     return observedFeedback;
+}
+
+// 同一個句型最多練幾次。超過就換題。
+const PRACTICE_CAP = 2;
+let practiceFamilyCounts = {};
+
+// 診斷檔顯示：舊機制只在 GPT 端以 updateInstructions 附加一段「請換題」，
+// 模型觸發了 8 次仍照樣重複同一句。改為在達到上限時送出導演指令——
+// 本專案中模型對導演指令的遵從度明顯高於指令附加；同時兩個模型都適用。
+function enforcePracticeCap(feedback) {
+    if (!feedback || !feedback.suggestion) return;
+    const family = window.PracticeObserver.sentenceFamily(feedback.suggestion);
+    if (!family) return;
+    const count = (practiceFamilyCounts[family] || 0) + 1;
+    practiceFamilyCounts[family] = count;
+    if (count < PRACTICE_CAP) return;
+
+    const useOpenAI = openaiSessionActive && openaiRealtime;
+    if (!useOpenAI && (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped)) return;
+    if (closingStageActive || lessonCompletionPending) return;
+
+    const activeStage = teachingFlow[Math.max(0, currentStageIndex - 1)];
+    // 刻意不複述那個句子，避免又把它推回模型的注意力焦點
+    const noteText = DIRECTOR_PREFIX +
+        "That target is now complete — the student has practised it enough for today. " +
+        "Move on to a DIFFERENT target from the current stage: another word, another pattern, or a fresh situation, question or role-play. " +
+        "Treat close variations (same sentence with a different name, pronoun or single word swapped) as the same target and skip them too. " +
+        "Continue naturally in one short teacher turn, ask at most ONE question, then WAIT. Current stage: " +
+        (activeStage ? activeStage.prompt : "Continue the current lesson activity.") + "]";
+
+    sessionDiagnostics.record("practice_cap_reached", { family, count, cap: PRACTICE_CAP });
+    logSystem(`🔁 同一句型已練 ${count} 次，已要求換題。`);
+    pendingDirectorNote = noteText;
+    if (useOpenAI) openaiRealtime.sendText(noteText, true);
+    else webSocket.send(JSON.stringify({
+        clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
+    }));
 }
 
 function sendEarlyFarewellRecovery() {

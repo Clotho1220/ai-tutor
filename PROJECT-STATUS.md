@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
 最後更新：2026-08-08  
-目前版本：v3.10  
+目前版本：v3.11  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -82,6 +82,15 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ## 3. 最近完成的重要修正
 
+### v3.11
+
+- 抽出共用的 `TURN_CONTRACT` 放進 `buildSystemInstruction`，Gemini 與 GPT 現在共用同一份最高優先規則。先前這段只掛在 GPT 前面，Gemini 拿不到「示範後立即停止」與「同一句型家族不得連續操練」。
+- `sentenceFamily` 先還原縮寫。`I'm happy` 與 `I am happy` 舊版會被判成不同家族，導致重複計數永遠到不了門檻、變異限制器實際上從未生效。
+- 示範句擷取補上無引號、`Say:`、`Repeat after me:`、`跟我念` 等講法。實測六種常見講法從三種可辨識提升為六種全中；漏抓時會同時失去重複計數與 `practice` 學習紀錄。
+- 早退復原指令改為全正向敘述。舊版以否定句列出禁語，等於把該句直接餵給模型，反而容易被照著講出來。
+
+### v3.10 以前
+
 - 修正 Gemini 將 `It's good to see you.` 的 `see you` 誤判成下課。
 - Gemini 真正提早說再見時會清除已排隊的聲音，恢復課程時不再說「我們還沒下課喔」，而是自然換到另一個小挑戰。
 - 修正正式 Goodbye 後又繼續問問題的流程。
@@ -145,8 +154,9 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ## 8. Git 狀態基準
 
-本文件建立時，最新功能提交為：
+最新功能提交為：
 
+- `7e6dd94` — 對齊兩個模型的提示詞，修復重複練習偵測與早退復原
 - `e6bcb23` — Prevent repetitive drills and false farewells
 - `253999e` — Align GPT realtime lesson behavior
 - `88147f3` — Advance completed learners to the next course unit

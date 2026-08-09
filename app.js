@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.12";
+const APP_VERSION = "3.13";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1530,6 +1530,9 @@ async function startOpenAISession() {
             onState(detail) {
                 sessionDiagnostics.record("openai_state", { state: detail.state });
             },
+            onOutputAudioStopped() {
+                handleClosingAudioStopped();   // 結語播完才真正下課
+            },
             onAudioRoute(detail) {
                 sessionDiagnostics.record("openai_audio_route", detail);
                 if (detail.route === 'speakerphone-microphone') logSystem(`🔊 GPT 已選擇擴音麥克風：${detail.label}`);
@@ -1643,6 +1646,7 @@ async function startSession() {
     practiceTurnBoundary.reset();
     stageTransitionGate.consume();
     practiceFamilyCounts = {};          // 重複上限逐堂重算
+    awaitingClosingAudio = false;       // 上一堂若在等結語播完，開新課時清掉
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
     currentUserTurnTranscript = ""; activeAiTurnUserTranscript = ""; currentAiTurnTranscript = "";
@@ -2421,21 +2425,52 @@ function sendEarlyFarewellRecovery() {
     }));
 }
 
+// 等結語真的唸完再斷線。
+// 診斷檔顯示：GPT 端 ai_turn_completed 只代表「模型產生完畢」，語音仍在播；
+// 舊版因為算不出 WebRTC 的剩餘音訊而落到 350ms 的下限，結語幾乎整段被切掉。
+const MAX_CLOSING_WAIT_MS = 25000;   // 安全上限，避免播放結束事件沒來就永遠不下課
+let awaitingClosingAudio = false;
+
+function finishLessonAfterClosing(reason) {
+    awaitingClosingAudio = false;
+    if (lessonFinishTimer) clearTimeout(lessonFinishTimer);
+    lessonFinishTimer = null;
+    sessionDiagnostics.record("lesson_completion_finished", { reason });
+    stopSession("lesson_completed");
+}
+
 function scheduleLessonCompletion() {
-    if (lessonFinishTimer || userStopped) return;
+    if (lessonFinishTimer || awaitingClosingAudio || userStopped) return;
     lessonCompletionPending = true;
-    const queuedAudioMs = playbackContext
-        ? Math.max(0, Math.ceil((nextPlayTime - playbackContext.currentTime) * 1000))
-        : 0;
-    const delayMs = Math.min(8000, Math.max(350, queuedAudioMs + 250));
-    sessionDiagnostics.record("lesson_completion_scheduled", { delayMs });
     talkBtn.disabled = true;
     nextStageBtn.disabled = true;
     stageIndicator.textContent = "✅ 本堂課完成";
+
+    // GPT：播放狀態只有伺服器知道，等 output_audio_buffer.stopped 才是真的播完
+    if (openaiSessionActive && openaiRealtime &&
+        typeof openaiRealtime.isSpeaking === 'function' && openaiRealtime.isSpeaking()) {
+        awaitingClosingAudio = true;
+        sessionDiagnostics.record("lesson_completion_waiting_audio", { maxWaitMs: MAX_CLOSING_WAIT_MS });
+        lessonFinishTimer = setTimeout(() => finishLessonAfterClosing("timeout"), MAX_CLOSING_WAIT_MS);
+        return;
+    }
+
+    // Gemini：音訊由前端排程，剩餘時間算得出來
+    const queuedAudioMs = playbackContext
+        ? Math.max(0, Math.ceil((nextPlayTime - playbackContext.currentTime) * 1000))
+        : 0;
+    const delayMs = Math.min(15000, Math.max(1200, queuedAudioMs + 600));
+    sessionDiagnostics.record("lesson_completion_scheduled", { delayMs, queuedAudioMs });
     lessonFinishTimer = setTimeout(() => {
         lessonFinishTimer = null;
         stopSession("lesson_completed");
     }, delayMs);
+}
+
+// GPT 回報語音播放結束：若正在等結語播完，此刻才真正下課
+function handleClosingAudioStopped() {
+    if (!awaitingClosingAudio) return;
+    finishLessonAfterClosing("audio-stopped");
 }
 
 function handleServerMessage(response, socket, socketToken) {

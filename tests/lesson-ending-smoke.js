@@ -39,6 +39,24 @@
         !/we are not finished/.test(appSource) &&
         !/我們還沒下課/.test(appSource));
     check("early farewell clears already queued audio", /!farewellJustDetected\.finalStage\) stopAllPlayback\(\)/.test(appSource));
+
+    // --- 迴歸：結語必須播完才斷線 ---
+    // 診斷檔顯示 GPT 端只等 350ms 就關閉連線，但 ai_turn_completed 只代表
+    // 「模型產生完畢」，語音仍在播，結語幾乎整段被切掉。
+    const realtimeSource = await fetch('../openai-realtime.js?lesson-ending-test=' + Date.now()).then(r => r.text());
+    check("realtime module reports when output audio really finished",
+        /emit\("onOutputAudioStopped"/.test(realtimeSource) &&
+        /function isSpeaking\(\)/.test(realtimeSource) &&
+        /isSpeaking,/.test(realtimeSource));
+    check("completion waits for the closing audio instead of a fixed short delay",
+        /awaitingClosingAudio = true/.test(appSource) &&
+        /openaiRealtime\.isSpeaking\(\)/.test(appSource) &&
+        !/Math\.max\(350, queuedAudioMs \+ 250\)/.test(appSource));
+    check("a safety timeout still ends the lesson if the stop event never arrives",
+        /MAX_CLOSING_WAIT_MS = 25000/.test(appSource) &&
+        /finishLessonAfterClosing\("timeout"\)/.test(appSource));
+    check("the wait flag resets when a new session starts",
+        /awaitingClosingAudio = false/.test(appSource));
     check("final stage cannot trigger early-farewell recovery",
         /if \(closingStageActive \|\| lessonCompletionPending\)[\s\S]{0,100}scheduleLessonCompletion\(\)/.test(appSource));
     check("final stage has an explicit no-more-questions closing instruction",

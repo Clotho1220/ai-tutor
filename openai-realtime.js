@@ -41,6 +41,9 @@
                 outputAudioPlaying = true;
             } else if (event.type === "output_audio_buffer.stopped" || event.type === "output_audio_buffer.cleared") {
                 outputAudioPlaying = false;
+                // 播放真正結束的唯一可靠訊號。response.done 只代表「產生完畢」，
+                // 此時語音通常還在播；下課流程要等這個事件才能安全斷線。
+                emit("onOutputAudioStopped", { cleared: event.type === "output_audio_buffer.cleared", event });
             } else if (event.type === "session.created") {
                 emit("onState", { state: "session-created", event });
             } else if (event.type === "session.updated") {
@@ -351,7 +354,10 @@
             });
         }
 
-        return Object.freeze({ connect, startTalking, stopTalking, sendText, sendToolResult, updateInstructions, muteOutput, close, inspect });
+        // 語音是否仍在播放（WebRTC 播放不在前端的排程裡，只能靠伺服器事件判斷）
+        function isSpeaking() { return !!outputAudioPlaying; }
+
+        return Object.freeze({ connect, startTalking, stopTalking, sendText, sendToolResult, updateInstructions, muteOutput, isSpeaking, close, inspect });
     }
 
     global.OpenAIRealtime = Object.freeze({ create });

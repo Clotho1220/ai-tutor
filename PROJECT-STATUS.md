@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
-最後更新：2026-08-08  
-目前版本：v3.12  
+最後更新：2026-08-09  
+目前版本：v3.13  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -76,11 +76,17 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.12`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.13`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - GPT 診斷現在也包含單元名稱、預定時間與課程階段。
 
 ## 3. 最近完成的重要修正
+
+### v3.13
+
+- 下課時改為等結語真的播完再斷線。`ai_turn_completed` 只代表模型產生完畢，語音仍在播；GPT 走 WebRTC 播放，前端估不出剩餘音訊，舊版因此永遠落到 350 毫秒下限，結語幾乎整段被切掉。
+- `openai-realtime.js` 對外提供 `isSpeaking()`，並在 `output_audio_buffer.stopped` 時發出事件，作為播放結束的可靠訊號；下課最長等待 25 秒。
+- Gemini 路徑仍依前端排程估算剩餘音訊，但下限由 350 毫秒提高到 1200 毫秒。
 
 ### v3.12
 

@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.13";
+const APP_VERSION = "3.14";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1057,6 +1057,9 @@ function buildSystemInstruction(lesson) {
         "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
         "PRACTICE VARIETY — mandatory: use one target sentence for ONE imitation and, only if needed, ONE correction retry. As soon as it is understandable, consider it mastered for this session and move to a genuinely different sentence, word, question, situation, or activity. Do not ask for the same sentence again, and do not create a long drill by merely changing I/you/he/she/a name while keeping the same adjective. Rotate through all of TODAY'S listed items and use personal questions, choices, pictures, or a short role-play. A sentence-pattern family may be practised at most TWICE in the whole session — after the second time it is finished for today, whatever happens. " +
         "(6) CLARIFICATION OVERRIDE — this rule has priority over every feedback or translation rule below. If the learner says 「你在說什麼？」, 「你說什麼？」, 「什麼意思？」, 「我聽不懂」, 「蛤？」, asks you to repeat, or otherwise shows they did not understand YOUR previous words, treat it as a request for help — NOT as an answer to translate or correct. Never teach them to say 'What did you say?' in this situation. Instead, immediately repeat or rephrase YOUR last message in much simpler English; for Mandarin learners, add one short Traditional Chinese explanation when useful. Keep it to one or two short sentences, then STOP and let them respond. Do not continue the lesson topic in the same turn. " +
+        "(6b) PROGRESS REPORTING — mandatory and completely silent: every time the " + learner + " attempts a target word or sentence, call report_item_result right after you have judged it and given your feedback. " +
+        "One call per attempt, including the retry after a correction (attempt 2). Report what you actually heard them say, and whether it was correct, incorrect, or not attempted. " +
+        "This is how the lesson system knows what they have mastered, so never skip it — but never say the tool's name, never announce that you are recording anything, and never let it interrupt the conversation. " +
         "(7) MANDATORY FEEDBACK LOOP — except for the clarification requests covered by rule 6, after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
         "first, react to WHAT they said in one short sentence; " +
         "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it; " +
@@ -1647,6 +1650,8 @@ async function startSession() {
     stageTransitionGate.consume();
     practiceFamilyCounts = {};          // 重複上限逐堂重算
     awaitingClosingAudio = false;       // 上一堂若在等結語播完，開新課時清掉
+    itemResults = [];                   // 練習結果回報逐堂重算
+    practiceTurnsObserved = 0;
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
     currentUserTurnTranscript = ""; activeAiTurnUserTranscript = ""; currentAiTurnTranscript = "";
@@ -2135,37 +2140,88 @@ function tutorToolDeclarations() {
     return [{
         type: "function",
         name: "show_image",
-        description: "Show an educational illustration for a concrete noun before or while teaching it.",
+        description: "Show the learner an educational illustration of a concrete noun. Call this every time you mention or teach a visual, concrete noun (e.g. 'apple', 'UFO', 'elephant'), BEFORE or WHILE you talk about it. When teaching vocabulary, include the exact vocabulary word in the keyword and keep the description short.",
         parameters: {
             type: "object",
-            properties: { keyword: { type: "string", description: "Short English noun phrase to illustrate." } },
+            properties: { keyword: { type: "string", description: "A short English noun phrase describing what to draw, e.g. 'red apple' or 'UFO in the sky'." } },
             required: ["keyword"]
         }
     }, {
         type: "function",
         name: "log_vocabulary",
-        description: "Silently save a newly taught or difficult word in the learner's record.",
+        description: "Silently save a vocabulary word to the learner's record. Call this every time you TEACH a new word, or the learner struggles with a word worth reviewing later.",
         parameters: {
             type: "object",
             properties: {
-                word: { type: "string" },
-                meaning: { type: "string", description: "Traditional Chinese meaning." },
-                example: { type: "string", description: "Short English example sentence." }
+                word: { type: "string", description: "The English word or phrase taught." },
+                meaning: { type: "string", description: "Traditional Chinese meaning, e.g. 雨傘" },
+                example: { type: "string", description: "A short example sentence in English." }
             },
             required: ["word", "meaning"]
         }
     }, {
         type: "function",
         name: "show_topics",
-        description: "Display exactly five short choices on the learner's screen.",
+        description: "Display a short numbered list of choices on the learner's screen so they can SEE them and pick one. Use this in the news chat when offering today's story options — a young child cannot remember five options by ear.",
         parameters: {
             type: "object",
             properties: {
-                topics: { type: "array", items: { type: "string" }, description: "Five concise titles." }
+                topics: { type: "array", items: { type: "string" }, description: "Exactly 5 very short titles (max ~12 characters each), in the language the learner understands best." }
             },
             required: ["topics"]
         }
+    }, {
+        type: "function",
+        name: "report_item_result",
+        description: "Silently report the outcome of ONE practice attempt by the learner. " +
+            "Call it immediately after you have judged their attempt and given your feedback, once per attempt including retries. " +
+            "This is how the lesson system knows what the learner has actually mastered. Never say its name and never mention reporting out loud.",
+        parameters: {
+            type: "object",
+            properties: {
+                target: { type: "string", description: "The English word or sentence the learner was asked to produce." },
+                outcome: {
+                    type: "string",
+                    enum: ["correct", "incorrect", "no_response"],
+                    description: "correct = understandable and accurate enough; incorrect = wrong or incomplete; no_response = they did not attempt it."
+                },
+                studentSaid: { type: "string", description: "What the learner actually said, as you heard it. Empty if they said nothing." },
+                attempt: { type: "integer", description: "1 for the first try, 2 for the retry after your correction." },
+                kind: {
+                    type: "string",
+                    enum: ["review_word", "review_pattern", "new_word", "extension_word", "pattern_drill", "free"],
+                    description: "Which kind of practice item this was."
+                },
+                issue: { type: "string", description: "Optional short note on what was off, e.g. missing verb, wrong word order, sounded unsure." }
+            },
+            required: ["target", "outcome"]
+        }
     }];
+}
+
+// Gemini 的函式宣告格式與 OpenAI 幾乎相同，只差型別要大寫。
+// 兩邊各寫一份會分歧（提示詞就吃過這個虧），因此統一由上面那份轉換產生。
+function toGeminiSchema(schema) {
+    if (!schema || typeof schema !== "object") return schema;
+    const out = {};
+    Object.keys(schema).forEach(key => {
+        const value = schema[key];
+        if (key === "type" && typeof value === "string") out.type = value.toUpperCase();
+        else if (key === "properties") {
+            out.properties = {};
+            Object.keys(value).forEach(prop => { out.properties[prop] = toGeminiSchema(value[prop]); });
+        } else if (key === "items") out.items = toGeminiSchema(value);
+        else out[key] = value;
+    });
+    return out;
+}
+
+function geminiToolDeclarations() {
+    return tutorToolDeclarations().map(tool => ({
+        name: tool.name,
+        description: tool.description,
+        parameters: toGeminiSchema(tool.parameters)
+    }));
 }
 
 async function executeTutorTool(name, args) {
@@ -2186,6 +2242,9 @@ async function executeTutorTool(name, args) {
         recordVocab(a.word || "", a.meaning || "", a.example || "");
         logVocabToSheet(a.word || "", a.meaning || "", a.example || "");
         return { status: "vocabulary saved" };
+    }
+    if (name === "report_item_result") {
+        return recordItemResult(a);
     }
     return { status: "unsupported tool" };
 }
@@ -2229,46 +2288,10 @@ function sendSetupMessage(socket, socketToken) {
             realtimeInputConfig: {
                 automaticActivityDetection: { disabled: true }
             },
-            // 工具：時事模式才開 Google 搜尋（一般課程不需要，也避免它跑去搜尋離題）
-            tools: (LESSON && LESSON.mode === 'news' ? [{ googleSearch: {} }] : []).concat([{
-                functionDeclarations: [{
-                    name: "show_image",
-                    description: "Show the student an educational illustration of a concrete noun. Call this every time you mention or teach a visual, concrete noun (e.g. 'apple', 'UFO', 'elephant'). Call it BEFORE or WHILE you talk about the noun. When teaching vocabulary, include the exact vocabulary word in the keyword and keep the description short.",
-                    parameters: {
-                        type: "OBJECT",
-                        properties: {
-                            keyword: { type: "STRING", description: "A short English noun phrase describing what to draw, e.g. 'red apple' or 'UFO in the sky'." }
-                        },
-                        required: ["keyword"]
-                    }
-                }, {
-                    name: "log_vocabulary",
-                    description: "Silently save a vocabulary word to the student's learning record. Call this every time you TEACH a new word or the student LEARNS/struggles with a word worth reviewing later.",
-                    parameters: {
-                        type: "OBJECT",
-                        properties: {
-                            word: { type: "STRING", description: "The English word or phrase taught" },
-                            meaning: { type: "STRING", description: "Traditional Chinese meaning, e.g. 雨傘" },
-                            example: { type: "STRING", description: "A short example sentence in English" }
-                        },
-                        required: ["word", "meaning"]
-                    }
-                }, {
-                    name: "show_topics",
-                    description: "Display a short numbered list of choices on the student's screen so the child can SEE them and pick one. Use this in the news chat when offering today's story options — a young child cannot remember five options by ear.",
-                    parameters: {
-                        type: "OBJECT",
-                        properties: {
-                            topics: {
-                                type: "ARRAY",
-                                description: "Exactly 5 very short titles (max ~12 characters each), written in the language the child understands best.",
-                                items: { type: "STRING" }
-                            }
-                        },
-                        required: ["topics"]
-                    }
-                }]
-            }]),
+            // 工具：時事模式才開 Google 搜尋（一般課程不需要，也避免它跑去搜尋離題）。
+            // 函式宣告與 GPT 共用同一份來源，避免兩邊分歧。
+            tools: (LESSON && LESSON.mode === 'news' ? [{ googleSearch: {} }] : [])
+                .concat([{ functionDeclarations: geminiToolDeclarations() }]),
             systemInstruction: {
                 parts: [{
                     // system prompt 依本堂教案動態組裝（學生檔案、語言配比、教學風格、既有嚴格規則）
@@ -2317,6 +2340,7 @@ function completeTrackedAiTurn(provider) {
     const completedAiTranscript = currentAiTurnTranscript;
     const practiceBoundaryDetected = practiceTurnBoundary.completeTurn();
     const practiceRequested = practiceBoundaryDetected || window.PracticeObserver.asksForPractice(completedAiTranscript);
+    if (practiceRequested) practiceTurnsObserved += 1;   // 階段 1：用來比對模型的回報遵從率
     const endingAction = lessonEndingGuard.completeTurn({
         finalStage: closingStageActive,
         finishFinalTurn: closingStageActive
@@ -2358,6 +2382,68 @@ function completeTrackedAiTurn(provider) {
     if (endingAction === "finish") scheduleLessonCompletion();
     else if (endingAction === "recover") sendEarlyFarewellRecovery();
     return observedFeedback;
+}
+
+// ---------------- 練習結果回報（計畫驅動架構的地基） ----------------
+// 階段 1：只收集與觀察，先不改變上課流程。
+// 目的是回答兩個問題：模型願不願意每次都回報？回報的內容準不準？
+// 之後（階段 3）計畫才會改由這些回報來推進，同一題最多兩次也會變成結構保證。
+const ITEM_OUTCOMES = ["correct", "incorrect", "no_response"];
+let itemResults = [];              // 本堂課收到的所有回報
+let practiceTurnsObserved = 0;     // 前端獨立偵測到的「有邀請學生練習」的回合數
+
+function recordItemResult(args) {
+    const a = args || {};
+    const target = String(a.target || "").trim().slice(0, 200);
+    if (!target) return { status: "ignored: missing target" };
+    const outcome = ITEM_OUTCOMES.indexOf(String(a.outcome)) >= 0 ? String(a.outcome) : "incorrect";
+    const attemptRaw = Number(a.attempt);
+    const entry = {
+        at: new Date().toISOString(),
+        target,
+        outcome,
+        studentSaid: String(a.studentSaid || "").trim().slice(0, 300),
+        attempt: Number.isFinite(attemptRaw) && attemptRaw >= 1 ? Math.min(9, Math.round(attemptRaw)) : 1,
+        kind: String(a.kind || "free").slice(0, 40),
+        issue: String(a.issue || "").trim().slice(0, 200),
+        stage: teachingFlow[Math.max(0, currentStageIndex - 1)]
+            ? teachingFlow[Math.max(0, currentStageIndex - 1)].name : "",
+        unit: (LESSON && LESSON.unit) || "",
+        mode: currentMode()
+    };
+    itemResults.push(entry);
+    sessionDiagnostics.record("item_result", entry);
+    const mark = { correct: "✅", incorrect: "✏️", no_response: "🤐" }[outcome];
+    logSystem(`${mark} 練習回報（第 ${entry.attempt} 次）：${target}${entry.issue ? " — " + entry.issue : ""}`);
+    return { status: "result recorded" };
+}
+
+// 課程結束時比對「模型回報了幾次」與「前端偵測到幾次練習邀請」，
+// 這個比值就是階段 1 要驗證的遵從率。
+function summariseItemResults(reason) {
+    const byOutcome = itemResults.reduce((acc, item) => {
+        acc[item.outcome] = (acc[item.outcome] || 0) + 1;
+        return acc;
+    }, {});
+    const retried = itemResults.filter(item => item.attempt >= 2).length;
+    const overCap = itemResults.filter(item => item.attempt > 2).length;
+    const summary = {
+        reason,
+        reported: itemResults.length,
+        practiceTurnsObserved,
+        adherence: practiceTurnsObserved
+            ? Math.round((itemResults.length / practiceTurnsObserved) * 100) / 100 : null,
+        byOutcome,
+        retried,
+        overCap,
+        distinctTargets: new Set(itemResults.map(item => item.target.toLowerCase())).size
+    };
+    sessionDiagnostics.record("item_result_summary", summary);
+    if (itemResults.length || practiceTurnsObserved) {
+        logSystem(`📊 本堂練習回報 ${summary.reported} 筆／偵測到 ${practiceTurnsObserved} 次練習邀請` +
+            (summary.adherence !== null ? `（遵從率 ${Math.round(summary.adherence * 100)}%）` : ""));
+    }
+    return summary;
 }
 
 // 同一個句型最多練幾次。超過就換題。
@@ -2944,6 +3030,7 @@ function stopSession(reason) {
         elapsedSeconds: elapsedTime,
         stageIndex: currentStageIndex
     });
+    summariseItemResults(endReason);   // 階段 1：把回報遵從率寫進診斷
     const socketToClose = liveSession.stop(); // 先讓所有遲到事件失效，再關閉實體 socket
     webSocket = null;
     if (openaiRealtime) openaiRealtime.close();

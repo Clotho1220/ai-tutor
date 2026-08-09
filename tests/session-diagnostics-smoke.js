@@ -89,6 +89,34 @@
     check("settings provide export and clear controls", /id="exportDiagnosticsBtn"/.test(indexSource) && /id="clearDiagnosticsBtn"/.test(indexSource));
     check("app records transcripts without audio chunks", /sessionDiagnostics\.transcript/.test(appSource) && !/sessionDiagnostics\.(?:record|transcript)\([^\n]*(?:turnChunks|inlineData)/.test(appSource));
 
+    // --- 階段 1：練習結果回報（計畫驅動架構的地基） ---
+    check("report_item_result is declared once and shared by both providers",
+        /name: "report_item_result"/.test(appSource) &&
+        /function geminiToolDeclarations\(\)/.test(appSource) &&
+        /functionDeclarations: geminiToolDeclarations\(\)/.test(appSource) &&
+        (appSource.match(/name: "report_item_result"/g) || []).length === 1);
+    check("gemini declarations are converted from the shared source, not duplicated",
+        /function toGeminiSchema/.test(appSource) &&
+        (appSource.match(/name: "show_image"/g) || []).length === 1);
+    check("the tool dispatcher handles the new report",
+        /if \(name === "report_item_result"\)[\s\S]{0,80}recordItemResult/.test(appSource));
+    check("outcomes are validated against a fixed list",
+        /ITEM_OUTCOMES = \["correct", "incorrect", "no_response"\]/.test(appSource) &&
+        /ITEM_OUTCOMES\.indexOf\(String\(a\.outcome\)\) >= 0/.test(appSource));
+    check("reports without a target are ignored",
+        /if \(!target\) return \{ status: "ignored: missing target" \}/.test(appSource));
+    check("每堂課結束會輸出遵從率摘要",
+        /function summariseItemResults/.test(appSource) &&
+        /item_result_summary/.test(appSource) &&
+        /summariseItemResults\(endReason\)/.test(appSource));
+    check("practice invitations are counted for the adherence comparison",
+        /if \(practiceRequested\) practiceTurnsObserved \+= 1/.test(appSource));
+    check("item state resets for each new session",
+        /itemResults = \[\];\s*\/\/ 練習結果回報逐堂重算/.test(appSource));
+    check("the prompt requires silent reporting after every attempt",
+        /PROGRESS REPORTING — mandatory and completely silent/.test(appSource) &&
+        /never say the tool's name/.test(appSource));
+
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');
     result.className = passed ? 'pass' : 'fail';

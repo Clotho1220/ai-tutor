@@ -175,7 +175,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.14</div>
+            <div id="appVersion">AI Tutor Studio v3.15</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -238,7 +238,7 @@
         </section>
         <div class="advanced-heading">進階設定與資料</div>
     <details id="unitPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
-        <summary style="cursor:pointer; font-weight:bold; color:#f39c12;">📖 課本單元（Gogo English，共 18 個單元）</summary>
+        <summary style="cursor:pointer; font-weight:bold; color:#f39c12;">📖 課本單元（Gogo English，共 27 個單元）</summary>
         <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:10px;">
             <select id="bookSelect" title="選擇冊別"></select>
             <select id="unitSelect" title="選擇單元" style="max-width:260px;"></select>
@@ -251,6 +251,19 @@
             選定後每個單元會自動展開成 5 天：前 4 天分批教句型與單字（每天複習前幾天的），第 5 天總複習。
             要上第幾天，用上方「排課」選單指定，或讓它自動依日期推進。
         </div>
+    </details>
+    <details id="planPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
+        <summary style="cursor:pointer; font-weight:bold; color:#4af6d0;">🗒️ 今日課程計畫（課前預覽）</summary>
+        <div style="margin-top:10px; font-size:13px; color:#aaa;">
+            課前就把今天要做的每一件事列出來：複習哪些單字與句型、教哪些新單字、延伸一個什麼字、練哪些句型。
+            目前僅供你檢查，尚未接手上課流程。
+        </div>
+        <div style="margin-top:10px;">
+            <button id="previewPlanBtn">產生今日計畫</button>
+        </div>
+        <pre id="planPreview" style="margin-top:10px; max-height:320px; overflow:auto; white-space:pre-wrap;
+             background:#1e1e1e; border:1px solid #3c3c3c; border-radius:6px; padding:10px;
+             font-size:12px; line-height:1.6; color:#d4d4d4;"></pre>
     </details>
     <details id="materialPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#4daafc;">📋 自訂教材（貼上課本以外的單元）</summary>
@@ -337,11 +350,12 @@
     <script src="student-view.js?v=20260803b"></script>
     <script src="live-session.js?v=20260802c"></script>
     <script src="learning-records.js?v=20260802d"></script>
-    <script src="course-progression.js?v=20260803a"></script>
+    <script src="course-progression.js?v=20260809c"></script>
+    <script src="lesson-plan.js?v=20260809c"></script>
     <script src="stage-transition.js?v=20260802e"></script>
-    <script src="practice-observer.js?v=20260809b"></script>
+    <script src="practice-observer.js?v=20260809c"></script>
     <script src="session-diagnostics.js?v=20260802h"></script>
     <script src="lesson-ending.js?v=20260803j"></script>
-    <script src="openai-realtime.js?v=20260809b"></script>
-    <script src="app.js?v=20260809b"></script>
+    <script src="openai-realtime.js?v=20260809c"></script>
+    <script src="app.js?v=20260809c"></script>
 </body></html>

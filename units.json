@@ -268,7 +268,7 @@
      "theme": "Students ask and answer about age and celebrate birthdays.（學生們詢問並回答年齡，以及慶祝生日。）",
      "patterns": [
       {
-       "english": "How old are you / is [someone]? / I'm [age]. / He's/She's [age].",
+       "english": "How old are you/is [someone]? / I'm [age]. / He's/She's [age].",
        "chinese": "詢問對方或第三人的年齡。",
        "example": "1. How old are you? I'm eight. 2. How old is your brother? He's seven."
       }

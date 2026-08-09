@@ -74,7 +74,8 @@ UNITS = [
 
     (10, "How old are you?", "本單元學習詢問與回答年齡，並認識生日相關的單字。",
      ("Students ask and answer about age and celebrate birthdays.", "學生們詢問並回答年齡，以及慶祝生日。"),
-     [("How old are you / is [someone]? / I'm [age]. / He's/She's [age].", "詢問對方或第三人的年齡。", "1. How old are you? I'm eight. 2. How old is your brother? He's seven.")],
+     # 句型內部的斜線不加空白，避免和「 / 」這個問答分隔符混淆
+     [("How old are you/is [someone]? / I'm [age]. / He's/She's [age].", "詢問對方或第三人的年齡。", "1. How old are you? I'm eight. 2. How old is your brother? He's seven.")],
      [("present (n.)", "禮物", "I have a birthday present."),
       ("candle (n.)", "蠟燭", "Blow out the candle."),
       ("balloon (n.)", "氣球", "The balloon is red."),

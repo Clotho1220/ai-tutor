@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.14";
+const APP_VERSION = "3.15";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -2383,6 +2383,55 @@ function completeTrackedAiTurn(provider) {
     else if (endingAction === "recover") sendEarlyFarewellRecovery();
     return observedFeedback;
 }
+
+// ---------------- 今日課程計畫（計畫驅動架構的階段 2） ----------------
+// 課前就把今天要做的每一件事算清楚。目前只用於預覽與診斷，
+// 尚未接手上課流程（階段 3 才會改由計畫推進）。
+async function buildTodayLessonPlan() {
+    const person = currentPerson();
+    const selection = person.unit;
+    if (!selection || !selection.book) return null;
+    await loadUnitsData();
+    const unit = findUnit(selection.book, selection.num);
+    if (!unit || !UNITS_DATA) return null;
+
+    let day = 1;
+    try {
+        const progress = JSON.parse(localStorage.getItem(weekProgressKey(
+            `${unit.book} Unit ${unit.num}: ${unit.title}`)));
+        if (progress && progress.day) day = Number(progress.day) || 1;
+    } catch (e) {}
+    const daySelect = document.getElementById('daySelect');
+    if (daySelect && daySelect.value !== 'auto') day = Number(daySelect.value) || day;
+
+    return window.LessonPlan.build({
+        person: currentPersonName(),
+        day,
+        unit,
+        reviewUnits: window.CourseProgression.previousUnits(UNITS_DATA.books, unit, 2),
+        learnedWords: loadVocabLog()
+    });
+}
+
+(function initLessonPlanPreview() {
+    const button = document.getElementById('previewPlanBtn');
+    const box = document.getElementById('planPreview');
+    if (!button || !box) return;
+    button.addEventListener('click', async () => {
+        setText(box, "計算中…");
+        try {
+            const plan = await buildTodayLessonPlan();
+            if (!plan) { setText(box, "這位學員還沒選定課本單元，無法產生計畫。"); return; }
+            const header = `${plan.person}｜${plan.unitLabel}｜第 ${plan.day} 天\n` +
+                (plan.reviewUnitLabels.length ? `複習來源：${plan.reviewUnitLabels.join("、")}\n` : "沒有可複習的舊單元\n") +
+                `共 ${plan.items.length} 個項目（其中 ${plan.practiceItemCount} 項要實際練習）\n` +
+                "──────────\n";
+            setText(box, header + window.LessonPlan.describe(plan));
+        } catch (error) {
+            setText(box, "產生計畫失敗：" + error.message);
+        }
+    });
+})();
 
 // ---------------- 練習結果回報（計畫驅動架構的地基） ----------------
 // 階段 1：只收集與觀察，先不改變上課流程。

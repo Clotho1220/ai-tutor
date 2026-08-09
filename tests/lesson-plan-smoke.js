@@ -105,14 +105,76 @@
         check("the very first unit has nothing to review",
             CP.previousUnits(units.books, { book: "Book 1", num: 1 }, 2).length === 0);
 
+        // ---- 執行器：同一題最多兩次是結構保證 ----
+        const runnerPlan = LP.build({ person: "R", day: 2, unit, reviewUnits: [reviewUnit], learnedWords: [] });
+        let runner = LP.createRunner(runnerPlan);
+        check("a runner starts on the opening item", runner.current().type === "opening");
+
+        runner.recordAttempt("correct");
+        const firstPractice = runner.current().id;
+        const miss1 = runner.recordAttempt("incorrect");
+        check("a wrong first attempt stays on the same item",
+            !miss1.advanced && miss1.attempts === 1 && runner.current().id === firstPractice);
+        const miss2 = runner.recordAttempt("incorrect");
+        check("the second attempt always moves on, whatever the outcome",
+            miss2.advanced && miss2.item.attemptsUsed === 2 && runner.current().id !== firstPractice);
+        check("an item still wrong after two tries is flagged for review",
+            miss2.item.status === "needs_review");
+
+        runner = LP.createRunner(runnerPlan);
+        runner.recordAttempt("correct");
+        check("a correct answer advances immediately",
+            runner.recordAttempt("correct").advanced === true);
+
+        // 模型沒回報時的兜底，一樣受兩次上限約束
+        runner = LP.createRunner(runnerPlan);
+        runner.recordAttempt("correct");
+        runner.recordAttempt("unknown");
+        const fallback = runner.recordAttempt("unknown");
+        check("unreported turns still advance within the two-attempt cap",
+            fallback.advanced && fallback.item.status === "done");
+
+        // 全部答錯也必須跑得完，且沒有任何項目超過兩次
+        runner = LP.createRunner(runnerPlan);
+        let guard = 0;
+        while (!runner.isFinished() && guard < 500) { runner.recordAttempt("incorrect"); guard += 1; }
+        const finalSnapshot = runner.snapshot();
+        check("the plan always terminates", runner.isFinished() && guard < 500);
+        check("no item is ever practised more than twice",
+            finalSnapshot.every(item => (item.attemptsUsed || 0) <= 2));
+        check("every item ends with a recorded status",
+            finalSnapshot.every(item => item.status && item.status !== "pending"));
+
+        const directive = LP.itemDirective(runnerPlan.items[1], { index: 1, total: runnerPlan.items.length });
+        check("a directive names the position and the target",
+            /Item 2 of/.test(directive) && directive.indexOf(runnerPlan.items[1].target) >= 0);
+
         const appSource = await fetch('../app.js?lesson-plan-test=' + Date.now()).then(r => r.text());
         const indexSource = await fetch('../index.html?lesson-plan-test=' + Date.now()).then(r => r.text());
         check("plan module loads before app",
             indexSource.indexOf('src="lesson-plan.js') < indexSource.indexOf('src="app.js'));
         check("settings offer a pre-class plan preview",
             /id="previewPlanBtn"/.test(indexSource) && /buildTodayLessonPlan/.test(appSource));
-        check("the plan does not yet drive the lesson flow",
-            !/sendStageTransition\([^)]*plan/.test(appSource));
+        // ---- 計畫驅動上課（階段 3） ----
+        check("plan mode is opt-in and off by default",
+            /id="planModeToggle"/.test(indexSource) &&
+            /localStorage\.getItem\(PLAN_MODE_KEY\) === "on"/.test(appSource));
+        check("plan mode replaces the timed stage driver",
+            /if \(planDriving\(\)\) sendCurrentPlanItem\(\);\s*\/\/[^\n]*\n\s*else startLessonTimer\(\)/.test(appSource));
+        check("a reported result advances the plan",
+            /planItemReported = true;\s*\n\s*advancePlan\(outcome, "report"\)/.test(appSource));
+        check("an unreported exchange still advances the plan",
+            /planFallbackAfterTurn\(completesCurrentStudentTurn\)/.test(appSource) &&
+            /advancePlan\("unknown", "turn-fallback"\)/.test(appSource));
+        check("finishing the plan ends the lesson",
+            /planRunner\.isFinished\(\)[\s\S]{0,220}scheduleLessonCompletion\(\)/.test(appSource));
+        check("the closing item tells the ending guard this farewell is real",
+            /closingStageActive = item\.type === "closing"/.test(appSource));
+        check("the model is told it may only perform one given item",
+            /PLAN MODE \(highest priority\)/.test(appSource) &&
+            /never decide on your own that the lesson is over/.test(appSource));
+        check("news mode keeps the original flow",
+            /if \(currentMode\(\) !== 'lesson'\)[\s\S]{0,140}return null/.test(appSource));
 
         report();
     })().catch(error => {

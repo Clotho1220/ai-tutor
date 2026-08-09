@@ -262,5 +262,92 @@
         }).join("\n");
     }
 
-    global.LessonPlan = Object.freeze({ build, describe, splitPattern, spreadAcrossDays, chunkInOrder, rotatePick });
+    // ---------------- 執行器：依計畫逐項推進 ----------------
+    // 「同一題最多兩次」在這裡是結構保證，而不是提示詞的請求：
+    // 第二次嘗試結束後，不論對錯都一定往下一項走。
+    function createRunner(plan) {
+        const items = ((plan && plan.items) || []).map(item => Object.assign({}, item));
+        let cursor = 0;
+        let attempts = 0;
+
+        function current() {
+            return cursor < items.length ? items[cursor] : null;
+        }
+
+        function isFinished() {
+            return cursor >= items.length;
+        }
+
+        function advance(status) {
+            const item = items[cursor];
+            if (item) {
+                item.status = status;
+                item.attemptsUsed = attempts;
+            }
+            cursor += 1;
+            attempts = 0;
+            return item;
+        }
+
+        // outcome：correct / incorrect / no_response / unknown
+        // unknown 用於「模型沒回報，但前端確定發生過一次師生問答」的兜底情境。
+        function recordAttempt(outcome) {
+            const item = current();
+            if (!item) return { advanced: false, finished: true };
+            attempts += 1;
+            const limit = Math.max(1, Number(item.maxAttempts) || 1);
+            const success = outcome === "correct";
+            if (success) {
+                return { advanced: true, item: advance("correct"), next: current(), finished: isFinished() };
+            }
+            if (attempts >= limit) {
+                // 練了上限次數仍不理想：標記起來供日後複習，但一定要往前走
+                const status = outcome === "no_response" ? "no_response"
+                    : (outcome === "unknown" ? "done" : "needs_review");
+                return { advanced: true, item: advance(status), next: current(), finished: isFinished() };
+            }
+            return { advanced: false, item, attempts, retry: true, finished: false };
+        }
+
+        function skipCurrent(reason) {
+            if (isFinished()) return null;
+            const item = advance(reason || "skipped");
+            return item;
+        }
+
+        function progress() {
+            return { index: Math.min(cursor, items.length), total: items.length, attempts };
+        }
+
+        function snapshot() {
+            return items.map(item => ({
+                id: item.id, type: item.type, target: item.target || "",
+                status: item.status, attemptsUsed: item.attemptsUsed || 0
+            }));
+        }
+
+        return Object.freeze({ current, isFinished, recordAttempt, skipCurrent, progress, snapshot });
+    }
+
+    // 把一個項目轉成給模型的具體指示（導演指令的內容）
+    function itemDirective(item, progressInfo) {
+        if (!item) return "";
+        const position = progressInfo
+            ? `Item ${progressInfo.index + 1} of ${progressInfo.total}. ` : "";
+        const target = item.target ? ` 目標句／單字：「${item.target}」。` : "";
+        const alternatives = (item.alternatives || []).length
+            ? ` 也可以接受：${item.alternatives.join("、")}。` : "";
+        const prompt = item.promptZh ? ` 要給學員的中文提示：「${item.promptZh}」。` : "";
+        const meaning = item.meaning ? ` 中文意思：${item.meaning}。` : "";
+        const example = item.example ? ` 例句：${item.example}。` : "";
+        const seeds = (item.seeds || []).length ? ` 今天的單字：${item.seeds.join("、")}。` : "";
+        const avoid = (item.avoid || []).length
+            ? ` 已經學過、不可以再選的字：${item.avoid.slice(0, 60).join("、")}。` : "";
+        return position + item.instruction + target + alternatives + prompt + meaning + example + seeds + avoid;
+    }
+
+    global.LessonPlan = Object.freeze({
+        build, describe, splitPattern, spreadAcrossDays, chunkInOrder, rotatePick,
+        createRunner, itemDirective
+    });
 })(window);

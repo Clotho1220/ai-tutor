@@ -103,9 +103,11 @@
         suggestionOf('很好！你可以說：I am happy. 說說看！') === "I am happy.");
 
     // --- 迴歸：兩個模型必須共用同一份回合契約 ---
+    // 重點是「兩個模型共用同一份合約」，而不是 return 那行的確切寫法
+    // （計畫模式會在前面再串一段合約，寫法允許改變）。
     check("turn contract is shared by both models",
         /const TURN_CONTRACT\s*=/.test(appSource) &&
-        /return TURN_CONTRACT \+/.test(appSource) &&
+        /return [^;]*TURN_CONTRACT \+/.test(appSource) &&
         !/GPT REALTIME TURN CONTRACT/.test(appSource));
 
     // --- 迴歸：早退復原指令不得再出現否定式禁語 ---

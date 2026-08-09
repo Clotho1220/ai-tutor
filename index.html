@@ -175,7 +175,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.15</div>
+            <div id="appVersion">AI Tutor Studio v3.16</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -258,8 +258,15 @@
             課前就把今天要做的每一件事列出來：複習哪些單字與句型、教哪些新單字、延伸一個什麼字、練哪些句型。
             目前僅供你檢查，尚未接手上課流程。
         </div>
-        <div style="margin-top:10px;">
+        <div style="margin-top:10px; display:flex; flex-wrap:wrap; gap:14px; align-items:center;">
             <button id="previewPlanBtn">產生今日計畫</button>
+            <label style="display:flex; gap:6px; align-items:center; font-size:13px; color:#4af6d0;">
+                <input type="checkbox" id="planModeToggle"> 🧪 用計畫驅動上課（實驗中，下次連線生效）
+            </label>
+        </div>
+        <div style="margin-top:6px; font-size:12px; color:#888;">
+            開啟後，上課會一次只做一個項目：做完才進下一項，同一題最多練兩次是程式保證的。
+            關閉則維持原本依時間切換階段的流程。時事討論不受影響。
         </div>
         <pre id="planPreview" style="margin-top:10px; max-height:320px; overflow:auto; white-space:pre-wrap;
              background:#1e1e1e; border:1px solid #3c3c3c; border-radius:6px; padding:10px;
@@ -350,12 +357,12 @@
     <script src="student-view.js?v=20260803b"></script>
     <script src="live-session.js?v=20260802c"></script>
     <script src="learning-records.js?v=20260802d"></script>
-    <script src="course-progression.js?v=20260809c"></script>
-    <script src="lesson-plan.js?v=20260809c"></script>
+    <script src="course-progression.js?v=20260809e"></script>
+    <script src="lesson-plan.js?v=20260809e"></script>
     <script src="stage-transition.js?v=20260802e"></script>
-    <script src="practice-observer.js?v=20260809c"></script>
+    <script src="practice-observer.js?v=20260809e"></script>
     <script src="session-diagnostics.js?v=20260802h"></script>
     <script src="lesson-ending.js?v=20260803j"></script>
-    <script src="openai-realtime.js?v=20260809c"></script>
-    <script src="app.js?v=20260809c"></script>
+    <script src="openai-realtime.js?v=20260809e"></script>
+    <script src="app.js?v=20260809e"></script>
 </body></html>

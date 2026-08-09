@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.15";
+const APP_VERSION = "3.16";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -218,7 +218,8 @@ function markSessionReady(provider, options) {
         document.body.classList.remove('settings-mode');
         document.body.classList.add('student-mode');
         armLessonExitGuard();
-        startLessonTimer();
+        if (planDriving()) sendCurrentPlanItem();   // 計畫模式：直接送出第一個項目
+        else startLessonTimer();
     }
     refreshStudentReturnButton();
 }
@@ -1006,7 +1007,15 @@ function buildSystemInstruction(lesson) {
     const level = readLevelOverride(st.level || 2);
     const adult = !!st.adult;
     const learner = adult ? "adult learner" : "child";
-    return TURN_CONTRACT + (adult
+    // 計畫模式：模型只負責把每一個項目演出來，不負責決定下一步
+    const planContract = planDriving()
+        ? "PLAN MODE (highest priority): today's lesson is a fixed list of items decided in advance. " +
+          "Each DIRECTOR NOTE gives you exactly ONE item. Do that one item only — present it, ask, wait for the learner, " +
+          "judge their attempt, give brief feedback, call report_item_result, then STOP and wait for the next note. " +
+          "Never invent extra practice, never jump ahead to another word or pattern, never decide on your own that the lesson is over. " +
+          "If the learner asks something off-topic, answer briefly and warmly, then return to the current item. "
+        : "";
+    return planContract + TURN_CONTRACT + (adult
             ? "You are a skilled, personable English conversation tutor in a LIVE VOICE session with ONE adult learner. Treat them as an intelligent peer who simply wants to get better at English. "
             : "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. ") +
         (adult
@@ -1498,6 +1507,7 @@ async function startOpenAISession() {
         LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
         prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
+        await preparePlanRunner();   // 計畫模式：改由項目清單推進，不用時間排程
         const totalMin = LESSON.stages.reduce((sum, stage) => sum + (stage.minutes || 0), 0);
         sessionDiagnostics.updateMetadata({
             unit: LESSON.unit || "一般練習",
@@ -1652,6 +1662,8 @@ async function startSession() {
     awaitingClosingAudio = false;       // 上一堂若在等結語播完，開新課時清掉
     itemResults = [];                   // 練習結果回報逐堂重算
     practiceTurnsObserved = 0;
+    planRunner = null;                  // 計畫執行器由 preparePlanRunner 重建
+    planItemReported = false;
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
     currentUserTurnTranscript = ""; activeAiTurnUserTranscript = ""; currentAiTurnTranscript = "";
@@ -1676,6 +1688,7 @@ async function startSession() {
         LESSON = applyStudentOverride(resolveLessonForToday(await loadLesson()));
         prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
+        await preparePlanRunner();   // 計畫模式：改由項目清單推進，不用時間排程
         if (currentMode() === 'news' && syncConfigured()) {
             statusBadge.textContent = '載入新聞...';
             actionBtn.textContent = '載入新聞...';
@@ -2375,6 +2388,12 @@ function completeTrackedAiTurn(provider) {
             enforcePracticeCap(observedFeedback);   // 兩個模型共用的重複上限
         }
     }
+    // 計畫模式由計畫本身推進，不走時間排程的階段切換
+    if (planDriving()) {
+        if (endingAction === "finish") scheduleLessonCompletion();
+        else planFallbackAfterTurn(completesCurrentStudentTurn);
+        return observedFeedback;
+    }
     if (endingAction === "continue" && completesCurrentStudentTurn && stagePendingSince !== null &&
         stageTransitionGate.completeAiTurn({ practiceRequested })) {
         sendStageTransition('after-feedback');
@@ -2433,6 +2452,123 @@ async function buildTodayLessonPlan() {
     });
 })();
 
+// ---------------- 計畫驅動上課（階段 3） ----------------
+// 一次只送一個項目給模型，依「回報」推進；沒收到回報時用對話輪替兜底，
+// 因此不論模型的回報遵從率如何都跑得動。
+// 同一題最多兩次是由 LessonPlan 執行器保證的，不再是提示詞的請求。
+const PLAN_MODE_KEY = "plan_mode";
+let planRunner = null;
+let planItemReported = false;   // 這一輪是否已收到模型的結果回報
+
+function planModeEnabled() {
+    return localStorage.getItem(PLAN_MODE_KEY) === "on";
+}
+
+function planDriving() {
+    return !!planRunner;
+}
+
+function sendPlanDirective(noteBody) {
+    const useOpenAI = openaiSessionActive && openaiRealtime;
+    if (!useOpenAI && (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped)) return false;
+    const noteText = DIRECTOR_PREFIX + noteBody + "]";
+    pendingDirectorNote = noteText;
+    if (useOpenAI) openaiRealtime.sendText(noteText, true);
+    else webSocket.send(JSON.stringify({
+        clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
+    }));
+    return true;
+}
+
+// 送出目前這個項目；已經沒有項目就收尾下課
+function sendCurrentPlanItem() {
+    if (!planRunner) return;
+    if (planRunner.isFinished()) {
+        sessionDiagnostics.record("plan_completed", { snapshot: planRunner.snapshot() });
+        logSystem("🗒️ 課程計畫全部完成，準備下課。");
+        scheduleLessonCompletion();
+        return;
+    }
+    const item = planRunner.current();
+    const progress = planRunner.progress();
+    planItemReported = false;
+    // 結尾項目要讓下課守衛知道，這時候的道別是正式的
+    closingStageActive = item.type === "closing";
+    stageIndicator.textContent = `🗒️ 項目 ${progress.index + 1}/${progress.total}：${item.type}`;
+    sessionDiagnostics.record("plan_item_sent", {
+        id: item.id, type: item.type, target: item.target || "",
+        index: progress.index, total: progress.total, attempt: progress.attempts + 1
+    });
+    logSystem(`🗒️ [${progress.index + 1}/${progress.total}] ${item.type}${item.target ? "：" + item.target : ""}`);
+    sendPlanDirective(window.LessonPlan.itemDirective(item, progress) +
+        " 只做這一件事，做完就停下來等待，不要自己接著做下一項。");
+}
+
+// 收到一次結果（可能來自模型回報，也可能是兜底判定）
+function advancePlan(outcome, source) {
+    if (!planRunner || planRunner.isFinished()) return;
+    const before = planRunner.current();
+    const result = planRunner.recordAttempt(outcome);
+    sessionDiagnostics.record("plan_attempt", {
+        id: before ? before.id : "", outcome, source,
+        advanced: !!result.advanced, attempts: result.attempts || null
+    });
+    if (result.advanced) {
+        sendCurrentPlanItem();
+        return;
+    }
+    // 還沒過但沒到上限：留在同一項，請模型再帶一次
+    logSystem(`🔁 同一項再練一次（第 ${result.attempts} 次，上限 ${before.maxAttempts}）。`);
+    sendPlanDirective(
+        "The learner's attempt was not right yet. Give the correct version once more, clearly and slowly, " +
+        "then ask them to try this SAME target one final time, and WAIT." +
+        (before.target ? ` 目標：「${before.target}」。` : ""));
+}
+
+// 兜底：模型沒回報，但確實完成了一次「學生說話 → AI 回應」的問答
+function planFallbackAfterTurn(completedStudentTurn) {
+    if (!planRunner || planItemReported || !completedStudentTurn) return;
+    const item = planRunner.current();
+    if (!item) return;
+    sessionDiagnostics.record("plan_fallback_advance", { id: item.id, type: item.type });
+    advancePlan("unknown", "turn-fallback");
+}
+
+// 課前準備執行器。條件不成立（沒開、時事模式、沒選單元）就回到原本的階段流程。
+async function preparePlanRunner() {
+    planRunner = null;
+    planItemReported = false;
+    if (!planModeEnabled()) return null;
+    if (currentMode() !== 'lesson') {
+        logSystem("🗒️ 時事討論不使用計畫驅動，改用原本的流程。");
+        return null;
+    }
+    const plan = await buildTodayLessonPlan();
+    if (!plan || !plan.items.length) {
+        logSystem("🗒️ 計畫模式已開啟，但這位學員尚未選定課本單元，改用原本的階段流程。");
+        return null;
+    }
+    planRunner = window.LessonPlan.createRunner(plan);
+    sessionDiagnostics.updateMetadata({ planMode: true, planItems: plan.items.length });
+    sessionDiagnostics.record("plan_built", {
+        unit: plan.unitLabel, day: plan.day, items: plan.items.length, counts: plan.counts
+    });
+    logSystem(`🗒️ 計畫驅動模式：${plan.unitLabel} 第 ${plan.day} 天，共 ${plan.items.length} 個項目。`);
+    return plan;
+}
+
+(function initPlanModeToggle() {
+    const toggle = document.getElementById('planModeToggle');
+    if (!toggle) return;
+    toggle.checked = planModeEnabled();
+    toggle.addEventListener('change', () => {
+        localStorage.setItem(PLAN_MODE_KEY, toggle.checked ? "on" : "off");
+        logSystem(toggle.checked
+            ? "🗒️ 已開啟計畫驅動模式（下次連線生效）。"
+            : "🗒️ 已關閉計畫驅動模式，改用原本的階段流程。");
+    });
+})();
+
 // ---------------- 練習結果回報（計畫驅動架構的地基） ----------------
 // 階段 1：只收集與觀察，先不改變上課流程。
 // 目的是回答兩個問題：模型願不願意每次都回報？回報的內容準不準？
@@ -2464,6 +2600,11 @@ function recordItemResult(args) {
     sessionDiagnostics.record("item_result", entry);
     const mark = { correct: "✅", incorrect: "✏️", no_response: "🤐" }[outcome];
     logSystem(`${mark} 練習回報（第 ${entry.attempt} 次）：${target}${entry.issue ? " — " + entry.issue : ""}`);
+    // 計畫模式：這份回報就是推進的依據
+    if (planDriving()) {
+        planItemReported = true;
+        advancePlan(outcome, "report");
+    }
     return { status: "result recorded" };
 }
 

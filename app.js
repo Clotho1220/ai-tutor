@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.16";
+const APP_VERSION = "3.17";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1508,6 +1508,7 @@ async function startOpenAISession() {
         prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
         await preparePlanRunner();   // 計畫模式：改由項目清單推進，不用時間排程
+        applyLessonTargetsToEndingGuard();
         const totalMin = LESSON.stages.reduce((sum, stage) => sum + (stage.minutes || 0), 0);
         sessionDiagnostics.updateMetadata({
             unit: LESSON.unit || "一般練習",
@@ -1664,6 +1665,7 @@ async function startSession() {
     practiceTurnsObserved = 0;
     planRunner = null;                  // 計畫執行器由 preparePlanRunner 重建
     planItemReported = false;
+    farewellRecoveryCount = 0;          // 早退復原次數逐堂重算
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
     currentUserTurnTranscript = ""; activeAiTurnUserTranscript = ""; currentAiTurnTranscript = "";
@@ -1689,6 +1691,7 @@ async function startSession() {
         prefetchLessonImages(LESSON);
         teachingFlow = buildTeachingFlow(LESSON);
         await preparePlanRunner();   // 計畫模式：改由項目清單推進，不用時間排程
+        applyLessonTargetsToEndingGuard();
         if (currentMode() === 'news' && syncConfigured()) {
             statusBadge.textContent = '載入新聞...';
             actionBtn.textContent = '載入新聞...';
@@ -2538,7 +2541,12 @@ function planFallbackAfterTurn(completedStudentTurn) {
 async function preparePlanRunner() {
     planRunner = null;
     planItemReported = false;
-    if (!planModeEnabled()) return null;
+    if (!planModeEnabled()) {
+        // 明確講出來。先前一次實測全程以為在跑計畫模式，其實開關是關的。
+        logSystem("📋 流程模式：依時間切換階段（計畫驅動未開啟）。");
+        sessionDiagnostics.updateMetadata({ planMode: false });
+        return null;
+    }
     if (currentMode() !== 'lesson') {
         logSystem("🗒️ 時事討論不使用計畫驅動，改用原本的流程。");
         return null;
@@ -2673,9 +2681,43 @@ function enforcePracticeCap(feedback) {
     }));
 }
 
+// 早退復原的次數上限。
+// 診斷檔顯示過一次失控迴圈：教材正在教 goodbye，AI 每次講到它就被判定為提早下課，
+// 復原指令又產生一模一樣的內容，80 秒內連續觸發 6 次、課程完全卡死。
+// 復原若連續失效，代表判定本身有問題，繼續送只會惡化，不如放手讓課程走下去。
+const MAX_FAREWELL_RECOVERIES = 2;
+let farewellRecoveryCount = 0;
+
+// 把今天實際要教的單字與句型交給下課守衛。
+// 教材本身在教 goodbye／再見時（Book 1 Unit 1 就是），課中不能再用該詞判定下課。
+function applyLessonTargetsToEndingGuard() {
+    const targets = [];
+    (LESSON && LESSON.stages ? LESSON.stages : []).forEach(stage => {
+        (stage.items || []).forEach(item => {
+            if (item && item.english) targets.push(item.english);
+        });
+    });
+    if (planRunner) {
+        planRunner.snapshot().forEach(item => { if (item.target) targets.push(item.target); });
+    }
+    const teaches = lessonEndingGuard.setLessonTargets(targets);
+    sessionDiagnostics.record("ending_guard_targets", { count: targets.length, teachesFarewell: teaches });
+    if (teaches) {
+        logSystem("🛡️ 今天的教材本身在教「再見」類的詞，課中不再用它判定下課。");
+    }
+}
+
 function sendEarlyFarewellRecovery() {
     if (closingStageActive || lessonCompletionPending) {
         scheduleLessonCompletion();
+        return;
+    }
+    farewellRecoveryCount += 1;
+    if (farewellRecoveryCount > MAX_FAREWELL_RECOVERIES) {
+        sessionDiagnostics.record("early_farewell_recovery_suppressed", {
+            count: farewellRecoveryCount, limit: MAX_FAREWELL_RECOVERIES
+        });
+        logSystem("<span style='color:#ff8800;'>⚠️ 早退判定連續觸發多次，已停止介入，讓課程自然進行。</span>");
         return;
     }
     const useOpenAI = openaiSessionActive && openaiRealtime;

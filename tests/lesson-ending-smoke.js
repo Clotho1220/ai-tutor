@@ -26,6 +26,49 @@
     guard.resetSession();
     check("session reset clears closing state", !guard.inspect().finalStage && !guard.inspect().detected);
 
+    // --- 迴歸：教材本身在教 goodbye 時不可誤判成下課 ---
+    // 實際課堂（Book 1 Unit 1 Day 2，目標字就是 goodbye）曾因此在 80 秒內
+    // 連續觸發 6 次早退復原，課程完全卡死。
+    const farewellTargets = ['Nice to meet you.', 'goodbye (int.)', 'hello (int.)'];
+    const teachingLines = [
+        '好喔! 那如果你要跟新朋友說再見呢? 試試說 "Goodbye." 換你說!',
+        '一下, 你要離開玩具店了, 你會怎麼跟店員說再見呢? 試試看!'
+    ];
+    check("a lesson that teaches goodbye suppresses mid-lesson farewell detection",
+        teachingLines.every(line => {
+            const guard = window.LessonEndingGuard.create();
+            guard.setLessonTargets(farewellTargets);
+            guard.enterStage(false);
+            return guard.observe(line).detected === false;
+        }));
+    check("setLessonTargets reports whether the lesson teaches a farewell word",
+        window.LessonEndingGuard.create().setLessonTargets(farewellTargets) === true &&
+        window.LessonEndingGuard.create().setLessonTargets(['apple', 'banana']) === false);
+    check("the closing stage still recognises a real farewell even in such a lesson", (() => {
+        const guard = window.LessonEndingGuard.create();
+        guard.setLessonTargets(farewellTargets);
+        guard.enterStage(true);
+        return guard.observe('今天很棒，我們下次見！Goodbye!').detected === true;
+    })());
+    check("a quoted demonstration is never treated as a farewell", (() => {
+        const guard = window.LessonEndingGuard.create();
+        guard.setLessonTargets(['apple']);
+        guard.enterStage(false);
+        return guard.observe('你可以說 "Goodbye." 試試看!').detected === false;
+    })());
+    check("an unquoted early farewell is still caught", (() => {
+        const guard = window.LessonEndingGuard.create();
+        guard.setLessonTargets(['apple']);
+        guard.enterStage(false);
+        return guard.observe('好，今天就上到這裡，我們下次見！').detected === true;
+    })());
+    check("a new session clears the taught-farewell flag", (() => {
+        const guard = window.LessonEndingGuard.create();
+        guard.setLessonTargets(farewellTargets);
+        guard.resetSession();
+        return guard.inspect().lessonTeachesFarewell === false;
+    })());
+
     const appSource = await fetch('../app.js?lesson-ending-test=' + Date.now()).then(response => response.text());
     const indexSource = await fetch('../index.html?lesson-ending-test=' + Date.now()).then(response => response.text());
     check("guard loads before app", indexSource.indexOf('src="lesson-ending.js') < indexSource.indexOf('src="app.js'));
@@ -39,6 +82,15 @@
         !/we are not finished/.test(appSource) &&
         !/我們還沒下課/.test(appSource));
     check("early farewell clears already queued audio", /!farewellJustDetected\.finalStage\) stopAllPlayback\(\)/.test(appSource));
+    check("repeated recoveries stop instead of looping forever",
+        /MAX_FAREWELL_RECOVERIES = 2/.test(appSource) &&
+        /farewellRecoveryCount > MAX_FAREWELL_RECOVERIES/.test(appSource) &&
+        /early_farewell_recovery_suppressed/.test(appSource));
+    check("the lesson's own vocabulary is handed to the ending guard",
+        /function applyLessonTargetsToEndingGuard/.test(appSource) &&
+        /lessonEndingGuard\.setLessonTargets\(targets\)/.test(appSource) &&
+        (appSource.match(/applyLessonTargetsToEndingGuard\(\);/g) || []).length === 2);
+    check("the recovery counter resets each session", /farewellRecoveryCount = 0;/.test(appSource));
 
     // --- 迴歸：結語必須播完才斷線 ---
     // 診斷檔顯示 GPT 端只等 350ms 就關閉連線，但 ai_turn_completed 只代表

@@ -189,6 +189,45 @@
             return state.contentVersion;
         }
 
+        // 計畫驅動的提示階梯用：每個欄位都由呼叫端明確控制（給空值就是清掉）。
+        // showWord / showImage 是為模型的工具呼叫設計的，帶有「同題材保留」邏輯，
+        // 沒辦法表達「只給圖不給字」「只給字不給圖」這種逐層揭露。
+        function showCard(card) {
+            const data = card || {};
+            hideTopics();
+            state.contentVersion += 1;
+            state.wordKey = normalize(data.word || "");
+            if (elements.word) elements.word.textContent = data.word || "";
+            if (elements.meaning) elements.meaning.textContent = data.meaning || "";
+            if (elements.sayBox && elements.say) {
+                if (data.example) {
+                    elements.say.textContent = data.example;
+                    elements.sayBox.style.display = 'block';
+                } else {
+                    elements.say.textContent = "";
+                    elements.sayBox.style.display = 'none';
+                }
+            }
+            if (data.imageUrl) {
+                // 本地圖庫的檔案，直接載入，不走生圖的載入管線
+                cancelPendingImage('plan card replaced this image');
+                cancelTimeout();
+                state.imageWordKey = normalize(data.word || "");
+                state.imageState = "shown";
+                if (elements.welcome) elements.welcome.style.display = 'none';
+                if (elements.placeholder) elements.placeholder.style.display = 'none';
+                if (elements.imageStatus) elements.imageStatus.style.display = 'none';
+                if (elements.image) {
+                    elements.image.src = data.imageUrl;
+                    elements.image.style.display = 'block';
+                    elements.image.removeAttribute('aria-busy');
+                }
+            } else {
+                invalidateImage(data.icon || '🎧', "");
+            }
+            return state.contentVersion;
+        }
+
         function retryUrl(url) {
             const separator = String(url).includes('?') ? '&' : '?';
             return `${url}${separator}seed=${Date.now()}`;
@@ -323,6 +362,7 @@
             showTopics,
             hideTopics,
             showWord,
+            showCard,
             showImage,
             beginTranscriptTurn,
             appendTranscript,

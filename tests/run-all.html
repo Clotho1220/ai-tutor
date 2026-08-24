@@ -1,0 +1,33 @@
+<!doctype html><meta charset="utf-8"><title>all tests</title>
+<body><pre id="out">RUNNING</pre>
+<script>
+const PAGES = ["course-progression","learning-records","lesson-ending","lesson-plan",
+ "live-session","openai-realtime","practice-observer","security",
+ "session-diagnostics","stage-transition","student-view"];
+(async function(){
+  const lines=[];
+  for (const name of PAGES) {
+    const frame=document.createElement('iframe');
+    frame.style.display='none';
+    frame.src=`${name}-smoke.html?all=${Date.now()}`;
+    document.body.appendChild(frame);
+    const title=await new Promise(resolve=>{
+      let tries=0;
+      const poll=setInterval(()=>{
+        tries++;
+        let t=""; try{t=frame.contentDocument.title;}catch(e){}
+        if (/^(PASS|FAIL)/.test(t)||tries>100){clearInterval(poll);resolve(t||"TIMEOUT");}
+      },150);
+    });
+    let detail="";
+    if (!/^PASS/.test(title)) {
+      try{detail="\n"+frame.contentDocument.getElementById('result').textContent
+        .split("\n").filter(l=>l.startsWith("NOT OK")).join("\n");}catch(e){}
+    }
+    lines.push(`${/^PASS/.test(title)?"✅":"❌"} ${name}: ${title}${detail}`);
+    frame.remove();
+    document.getElementById('out').textContent=lines.join('\n');
+  }
+  document.title=(lines.every(l=>l.startsWith("✅"))?"ALLPASS":"SOMEFAIL");
+})();
+</script></body>

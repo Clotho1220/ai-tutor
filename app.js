@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.17";
+const APP_VERSION = "3.19";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -592,7 +592,9 @@ function buildLessonFromMaterial(m, student) {
 }
 
 // ---------------- 課本單元庫（units.json → 自動展開成 5 天課表） ----------------
-// units.json 由 build-units.py 從 Lesson data.xlsx 產生（Gogo English 各冊）。
+// units.json 由 build-units-from-gogo.py 產生：教材來自「Gogo English」專案的
+// 教材資料/gogo{1,2,3}.json（課本翻拍照片逐頁核對），本專案只保留 units-overlay.json
+// 裡人工整理的模板化句型、英文 theme 與單字例句。
 // 老師只要在畫面上挑「哪一冊、哪一單元」，程式就把句型與單字分散到 5 天，
 // 並自動安排間隔重複的複習（第 N 天回收第 1~N-1 天教過的內容）。
 const UNIT_KEY = "selected_unit_v1";
@@ -665,6 +667,8 @@ function buildWeeklyLessonFromUnit(unit, student) {
     const dayWords = chunk(W, TEACH_DAYS);
     const dayItems = Array.from({ length: TEACH_DAYS }, (_, i) => [...dayPatterns[i], ...dayWords[i]]);
     const themeLine = unit.theme || unit.title;
+    // 課本的 Review 單元彙整前三個單元，沒有新內容，教法要換成複習
+    const isReviewUnit = String(unit.type || "unit") === "review";
     const week = [];
 
     for (let i = 0; i < TEACH_DAYS; i++) {
@@ -678,7 +682,7 @@ function buildWeeklyLessonFromUnit(unit, student) {
         stages.push({
             label: "開場暖身", minutes: 2,
             goal: (i === 0
-                ? `Greet the student warmly BY NAME, make light small talk with ONE simple question (use their interests), then tell them what this week is about: ${themeLine}. `
+                ? `Greet the student warmly BY NAME, make light small talk with ONE simple question (use their interests), then tell them what this week is about: ${themeLine}. ${isReviewUnit ? "Make clear this is a review week — no new material, just showing off what they already know. " : ""}`
                 : `Greet the student BY NAME, ONE short small-talk question, then remind them briefly what we learned last time and introduce today's focus. `) +
                 `Today's focus: ${focus}.`
         });
@@ -697,7 +701,9 @@ function buildWeeklyLessonFromUnit(unit, student) {
             label: "主題課程",
             // 沒有新項目的日子改成延伸練習本單元句型，時間依句型數量估算
             minutes: minutesForItems(hasNew ? items.length : P.length, MAIN_STAGE_MIN, MAIN_STAGE_MAX),
-            goal: (hasNew
+            goal: (isReviewUnit
+                ? "This is a REVIEW unit — the student has already learned all of these. Do NOT teach them as new. Take them ONE at a time: say the Traditional Chinese and let the student produce the English, wait for their answer, and only demonstrate when they cannot recall it. Then drill the patterns in fresh situations. Then run the activity."
+                : hasNew
                 ? "Teach today's items ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. Then drill the pattern by swapping in different words. Then run the activity."
                 : "No new items today. Deepen what the student already learned this week: drill the unit's patterns in fresh, playful situations, and push for slightly longer answers. Then run the activity.") +
                 " Before this stage ends, leave time for the student to say something of their OWN using today's pattern — their real answer, choice or opinion, not a repeat after you. " +
@@ -1013,7 +1019,10 @@ function buildSystemInstruction(lesson) {
           "Each DIRECTOR NOTE gives you exactly ONE item. Do that one item only — present it, ask, wait for the learner, " +
           "judge their attempt, give brief feedback, call report_item_result, then STOP and wait for the next note. " +
           "Never invent extra practice, never jump ahead to another word or pattern, never decide on your own that the lesson is over. " +
-          "If the learner asks something off-topic, answer briefly and warmly, then return to the current item. "
+          "If the learner asks something off-topic, answer briefly and warmly, then return to the current item. " +
+          "The screen (picture, English word, Chinese meaning) is controlled by the lesson system, not by you: " +
+          "do NOT call show_image during plan items, and never read out loud anything the note says is still hidden from the learner — " +
+          "the hint ladder only works if each hint appears exactly when the note says so. "
         : "";
     return planContract + TURN_CONTRACT + (adult
             ? "You are a skilled, personable English conversation tutor in a LIVE VOICE session with ONE adult learner. Treat them as an intelligent peer who simply wants to get better at English. "
@@ -2205,7 +2214,7 @@ function tutorToolDeclarations() {
                 attempt: { type: "integer", description: "1 for the first try, 2 for the retry after your correction." },
                 kind: {
                     type: "string",
-                    enum: ["review_word", "review_pattern", "new_word", "extension_word", "pattern_drill", "free"],
+                    enum: ["word_image", "word_read", "pattern_substitute", "pattern_respond", "free"],
                     description: "Which kind of practice item this was."
                 },
                 issue: { type: "string", description: "Optional short note on what was off, e.g. missing verb, wrong word order, sounded unsure." }
@@ -2464,7 +2473,9 @@ let planRunner = null;
 let planItemReported = false;   // 這一輪是否已收到模型的結果回報
 
 function planModeEnabled() {
-    return localStorage.getItem(PLAN_MODE_KEY) === "on";
+    // v3.19 起預設開啟：使用者已決定放棄舊的階段式上課，改用計畫驅動的新模板。
+    // 舊流程只剩兜底用途（時事模式、未選單元）。明確存過 "off" 才關。
+    return localStorage.getItem(PLAN_MODE_KEY) !== "off";
 }
 
 function planDriving() {
@@ -2481,6 +2492,20 @@ function sendPlanDirective(noteBody) {
         clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
     }));
     return true;
+}
+
+// 提示階梯：這一階該讓學生看到什麼，由前端直接控制學生畫面。
+// 模型不需要呼叫 show_image——圖是本地圖庫的檔案，前端自己載比較快也比較準。
+function applyPlanReveal(item, attempts) {
+    if (!window.LessonPlan.revealFor) return;
+    const reveal = window.LessonPlan.revealFor(item, attempts);
+    if (item.type === "opening" || item.type === "closing") return;   // 保留畫面現狀
+    studentView.showCard({
+        imageUrl: reveal.image && reveal.picture ? "images/" + reveal.picture : "",
+        word: reveal.english ? reveal.word : "",
+        meaning: reveal.chinese ? reveal.meaning : "",
+        icon: item.type === "pattern_substitute" ? "💬" : "🎧"
+    });
 }
 
 // 送出目前這個項目；已經沒有項目就收尾下課
@@ -2503,6 +2528,7 @@ function sendCurrentPlanItem() {
         index: progress.index, total: progress.total, attempt: progress.attempts + 1
     });
     logSystem(`🗒️ [${progress.index + 1}/${progress.total}] ${item.type}${item.target ? "：" + item.target : ""}`);
+    applyPlanReveal(item, progress.attempts);
     sendPlanDirective(window.LessonPlan.itemDirective(item, progress) +
         " 只做這一件事，做完就停下來等待，不要自己接著做下一項。");
 }
@@ -2520,12 +2546,12 @@ function advancePlan(outcome, source) {
         sendCurrentPlanItem();
         return;
     }
-    // 還沒過但沒到上限：留在同一項，請模型再帶一次
-    logSystem(`🔁 同一項再練一次（第 ${result.attempts} 次，上限 ${before.maxAttempts}）。`);
-    sendPlanDirective(
-        "The learner's attempt was not right yet. Give the correct version once more, clearly and slowly, " +
-        "then ask them to try this SAME target one final time, and WAIT." +
-        (before.target ? ` 目標：「${before.target}」。` : ""));
+    // 還沒過但沒到上限：留在同一項，走提示階梯的下一階。
+    // 揭露層級（圖、中文、英文）跟著嘗試次數升級，指示也換成那一階的做法。
+    logSystem(`🔁 同一項升到第 ${result.attempts + 1} 階（共 ${before.maxAttempts} 階）。`);
+    applyPlanReveal(before, result.attempts);
+    sendPlanDirective(window.LessonPlan.itemDirective(before, planRunner.progress()) +
+        " 只做這一件事，做完就停下來等待。");
 }
 
 // 兜底：模型沒回報，但確實完成了一次「學生說話 → AI 回應」的問答

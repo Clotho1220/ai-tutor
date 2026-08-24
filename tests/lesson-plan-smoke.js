@@ -161,6 +161,15 @@
         runner.recordAttempt("unknown");                       // 開場只有一階
         const firstWord = runner.current();
         check("after the opening comes a practice item", !!firstWord.target);
+        // 兜底（unknown）直接前進、不爬階梯——爬梯會把答對的孩子當成不會
+        const fbRunner = LP.createRunner(day2);
+        fbRunner.recordAttempt("unknown");            // 開場
+        const fbItem = fbRunner.current();
+        const fbResult = fbRunner.recordAttempt("unknown");
+        check("an unreported exchange advances without climbing the ladder",
+            fbResult.advanced && fbRunner.current() !== fbItem &&
+            fbRunner.snapshot().find(item => item.id === fbItem.id).status === "done");
+
         const stay = runner.recordAttempt("incorrect");
         check("a wrong attempt climbs the ladder instead of advancing",
             !stay.advanced && runner.current() === firstWord && runner.progress().attempts === 1);
@@ -209,7 +218,16 @@
         check("an unreported exchange still advances the plan",
             /planFallbackAfterTurn/.test(appSource));
         check("retries climb the hint ladder with a fresh directive",
-            /applyPlanReveal\(before, result\.attempts\)/.test(appSource));
+            /queuePlanDirective\(\{\s*body: window\.LessonPlan\.itemDirective\(before/.test(appSource));
+        // 2026-08-24 實測修正：指令不能在 AI 講話或學生說話時硬送
+        check("directives queue while the AI or the student is speaking",
+            /if \(aiTurnActive \|\| isTalking\) \{ pendingPlanDirective = payload; return; \}/.test(appSource) &&
+            /flushPendingPlanDirective\(\)/.test(appSource));
+        check("exchanges that began before the item was sent never count against it",
+            /completedGeneration <= planItemSentGeneration/.test(appSource) &&
+            /if \(pendingPlanDirective\) return;/.test(appSource));
+        check("plan images are preloaded from the local library",
+            /new Image\(\)\.src = "images\/" \+ name/.test(appSource));
         check("the frontend drives the student screen from the ladder",
             /studentView\.showCard\(/.test(appSource) && /revealFor/.test(appSource));
         check("finishing the plan ends the lesson",

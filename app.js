@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.19";
+const APP_VERSION = "3.20";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1674,6 +1674,7 @@ async function startSession() {
     practiceTurnsObserved = 0;
     planRunner = null;                  // 計畫執行器由 preparePlanRunner 重建
     planItemReported = false;
+    pendingPlanDirective = null; planItemSentGeneration = -1;
     farewellRecoveryCount = 0;          // 早退復原次數逐堂重算
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
@@ -1789,6 +1790,8 @@ async function gasPost(data) {
 // 開課時在背景預先繪製本課單字的圖片（同樣的網址進瀏覽器快取，
 // AI 課中呼叫 show_image 時圖片幾乎瞬間顯示，解決生圖跟不上教學節奏的問題）
 function prefetchLessonImages(lesson) {
+    // 計畫模式用本地圖庫（preparePlanRunner 已預載），不需要花流量請 Pollinations 畫圖
+    if (planModeEnabled() && currentMode() === 'lesson') return;
     const words = [];
     (lesson.stages || []).forEach(s => (s.items || []).forEach(it => {
         const w = (it.english || "").trim();
@@ -2361,6 +2364,7 @@ function beginTrackedAiTurn() {
 function completeTrackedAiTurn(provider) {
     const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
         activeAiResponseStudentGeneration === pendingStudentResponseGeneration;
+    const completedStudentGeneration = activeAiResponseStudentGeneration;
     const completedUserTranscript = activeAiTurnUserTranscript;
     const completedAiTranscript = currentAiTurnTranscript;
     const practiceBoundaryDetected = practiceTurnBoundary.completeTurn();
@@ -2403,7 +2407,9 @@ function completeTrackedAiTurn(provider) {
     // 計畫模式由計畫本身推進，不走時間排程的階段切換
     if (planDriving()) {
         if (endingAction === "finish") scheduleLessonCompletion();
-        else planFallbackAfterTurn(completesCurrentStudentTurn);
+        else planFallbackAfterTurn(completesCurrentStudentTurn, completedStudentGeneration);
+        // AI 這一輪講完了，排隊中的指令現在送才不會切斷語音
+        flushPendingPlanDirective();
         return observedFeedback;
     }
     if (endingAction === "continue" && completesCurrentStudentTurn && stagePendingSince !== null &&
@@ -2508,6 +2514,34 @@ function applyPlanReveal(item, attempts) {
     });
 }
 
+// ---- 導演指令的排隊 ----
+// 指令一旦送出，Gemini 會把它當成新的一輪輸入而中斷手上的語音。
+// 實測（2026-08-24 診斷檔）立刻送會發生兩種災難：
+//   1. 模型回報後推進 → 指令把 AI 還在講的回饋攔腰切斷（ai_interrupted）
+//   2. 孩子說到一半時升階 → AI 疊在孩子的聲音上講話
+// 所以 AI 還在講或學生正在說時先排隊，等這一輪自然結束再送。
+let pendingPlanDirective = null;    // { body, item, attempts }
+let planItemSentGeneration = -1;    // 指令「實際送出」時的學生回合數（兜底計數的分界線）
+
+function deliverPlanDirective(payload) {
+    applyPlanReveal(payload.item, payload.attempts);
+    planItemSentGeneration = studentTurnGeneration;
+    sendPlanDirective(payload.body);
+}
+
+function queuePlanDirective(payload) {
+    if (aiTurnActive || isTalking) { pendingPlanDirective = payload; return; }
+    pendingPlanDirective = null;
+    deliverPlanDirective(payload);
+}
+
+function flushPendingPlanDirective() {
+    if (!pendingPlanDirective || isTalking) return;
+    const payload = pendingPlanDirective;
+    pendingPlanDirective = null;
+    deliverPlanDirective(payload);
+}
+
 // 送出目前這個項目；已經沒有項目就收尾下課
 function sendCurrentPlanItem() {
     if (!planRunner) return;
@@ -2528,9 +2562,12 @@ function sendCurrentPlanItem() {
         index: progress.index, total: progress.total, attempt: progress.attempts + 1
     });
     logSystem(`🗒️ [${progress.index + 1}/${progress.total}] ${item.type}${item.target ? "：" + item.target : ""}`);
-    applyPlanReveal(item, progress.attempts);
-    sendPlanDirective(window.LessonPlan.itemDirective(item, progress) +
-        " 只做這一件事，做完就停下來等待，不要自己接著做下一項。");
+    queuePlanDirective({
+        body: window.LessonPlan.itemDirective(item, progress) +
+            " 只做這一件事，做完就停下來等待，不要自己接著做下一項。" +
+            "（判斷完學員的嘗試後，記得立刻悄悄呼叫 report_item_result 回報結果。）",
+        item, attempts: progress.attempts
+    });
 }
 
 // 收到一次結果（可能來自模型回報，也可能是兜底判定）
@@ -2549,14 +2586,22 @@ function advancePlan(outcome, source) {
     // 還沒過但沒到上限：留在同一項，走提示階梯的下一階。
     // 揭露層級（圖、中文、英文）跟著嘗試次數升級，指示也換成那一階的做法。
     logSystem(`🔁 同一項升到第 ${result.attempts + 1} 階（共 ${before.maxAttempts} 階）。`);
-    applyPlanReveal(before, result.attempts);
-    sendPlanDirective(window.LessonPlan.itemDirective(before, planRunner.progress()) +
-        " 只做這一件事，做完就停下來等待。");
+    queuePlanDirective({
+        body: window.LessonPlan.itemDirective(before, planRunner.progress()) +
+            " 只做這一件事，做完就停下來等待。",
+        item: before, attempts: result.attempts
+    });
 }
 
 // 兜底：模型沒回報，但確實完成了一次「學生說話 → AI 回應」的問答
-function planFallbackAfterTurn(completedStudentTurn) {
+function planFallbackAfterTurn(completedStudentTurn, completedGeneration) {
     if (!planRunner || planItemReported || !completedStudentTurn) return;
+    // 新項目的指令還在排隊（學生根本沒聽到題目）就不能計數
+    if (pendingPlanDirective) return;
+    // 這輪問答若在項目指令送出「之前」就開始，它屬於上一個項目。
+    // 少了這道防護時，回報推進後緊接著的 turn completed 會把全新項目
+    // 立刻打成一次「沒回應」（實測 25 毫秒內就發生）。
+    if (completedGeneration != null && completedGeneration <= planItemSentGeneration) return;
     const item = planRunner.current();
     if (!item) return;
     sessionDiagnostics.record("plan_fallback_advance", { id: item.id, type: item.type });
@@ -2583,6 +2628,10 @@ async function preparePlanRunner() {
         return null;
     }
     planRunner = window.LessonPlan.createRunner(plan);
+    // 手機實測圖片切換慢半拍：課前把今天會用到的圖全抓進快取（每張約 35KB）
+    const planImages = [...new Set(plan.items.map(item => item.image).filter(Boolean))];
+    planImages.forEach(name => { new Image().src = "images/" + name; });
+    if (planImages.length) logSystem(`🖼️ 已預載今天的 ${planImages.length} 張單字卡。`);
     sessionDiagnostics.updateMetadata({ planMode: true, planItems: plan.items.length });
     sessionDiagnostics.record("plan_built", {
         unit: plan.unitLabel, day: plan.day, items: plan.items.length, counts: plan.counts

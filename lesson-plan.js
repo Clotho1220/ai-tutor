@@ -256,7 +256,8 @@
             maxAttempts: 1,
             ladder: [{ reveal: {},
                 instruction: "先說明目前上到哪個單元、第幾天、之前學過什麼，" +
-                    "再用一句話說今天要做什麼，最後問學員準備好了嗎，然後停下來等回答。" }]
+                    "再用一句話說今天要做什麼，最後問學員準備好了嗎，然後停下來等回答。" +
+                    "聽到回應後也不要自己開始教任何單字或句型——下一個指令會告訴你第一個項目是什麼。" }]
         }));
 
         // ---- 跨單元複習：前兩個單元的字，用「看英文字」的方式複習 ----
@@ -431,6 +432,13 @@
         function recordAttempt(outcome) {
             const item = current();
             if (!item) return { advanced: false, finished: true };
+            if (outcome === "unknown") {
+                // 兜底一律直接前進，不碰提示階梯。實測（2026-08-24 診斷檔）模型的
+                // 回報遵從率很低，若把沒回報的問答當「答不出來」去爬梯，
+                // 階梯指示都是「他不會，給提示再問一次」——孩子明明答對了
+                // 還被重複問同一個字，整堂課變成鬼打牆。
+                return { advanced: true, item: advance("done"), next: current(), finished: isFinished() };
+            }
             attempts += 1;
             const limit = Math.max(1, Number(item.maxAttempts) || 1);
             if (outcome === "correct") {

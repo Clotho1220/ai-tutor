@@ -68,9 +68,20 @@
             day2.items.some(item => item.type === "word_image" && item.image));
         check("review words from earlier units are read-the-word items",
             day2.items.some(item => item.type === "word_read" && item.source === "Book 1 Unit 2"));
-        check("day 5 switches this unit's words to read-the-word",
-            LP.build({ person: "Rex", day: 5, unit, reviewUnits: [reviewUnit], learnedWords: [] })
+        check("day 4 switches this unit's words to read-the-word",
+            LP.build({ person: "Rex", day: 4, unit, reviewUnits: [reviewUnit], learnedWords: [] })
                 .items.some(item => item.type === "word_read" && item.source.indexOf("Unit 3") >= 0));
+        const day5 = LP.build({ person: "Rex", day: 5, unit, reviewUnits: [reviewUnit], learnedWords: [] });
+        const spellItem = day5.items.find(item => item.type === "word_spell");
+        check("day 5 asks the student to spell this unit's words",
+            !!spellItem && spellItem.letters.indexOf("-") > 0);
+        check("spelling starts from memory and only then shows the word",
+            spellItem.ladder.length === 3 &&
+            !spellItem.ladder[0].reveal.english && spellItem.ladder[0].reveal.image &&
+            spellItem.ladder[1].reveal.english);
+        check("spelling directives carry the letter-by-letter answer",
+            LP.itemDirective(spellItem, { index: 1, total: 9, attempts: 0 })
+                .indexOf(spellItem.letters) >= 0);
         check("extension words learned earlier come back for review during the week",
             [1, 2, 3, 4, 5].some(day =>
                 LP.build({ person: "Rex", day, unit, reviewUnits: [reviewUnit], learnedWords: learned })
@@ -238,8 +249,10 @@
             /PLAN MODE \(highest priority\)/.test(appSource));
         check("the model is told the screen is system-controlled",
             /do NOT call show_image during plan items/.test(appSource));
+        check("stale reports for another item never advance the plan",
+            /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",
-            appSource.indexOf('"word_image", "word_read", "pattern_substitute", "pattern_respond"') >= 0);
+            appSource.indexOf('"word_image", "word_read", "word_spell", "pattern_substitute", "pattern_respond"') >= 0);
         check("news mode keeps the original flow",
             /時事討論不使用計畫驅動/.test(appSource));
 

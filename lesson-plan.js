@@ -139,6 +139,22 @@
         ];
     }
 
+    // 拼字：憑記憶拼 → 看著字拼 → AI 示範跟拼
+    // 語音轉文字會把逐字母拼讀轉爛（HANDOFF 已知陷阱），所以對錯只能靠
+    // 原生音訊模型自己聽，前端不做驗證——與發音判斷同一個信任模式。
+    function spellLadder() {
+        return [
+            { reveal: { image: true, chinese: true },
+              instruction: "先請學員說出這個東西的英文，說對後請他憑記憶一個字母一個字母拼出來，" +
+                  "然後停下來等他拼。畫面上沒有英文字，這一階練的是記憶。" },
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "拼不出來。把英文字顯示出來，請他看著字把字母一個一個唸出來，然後等他唸。" },
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "還是不行。你一個字母一個字母慢慢示範拼一次，請他跟著拼一次。" +
+                  "這是最後一階，拼完就往下走。" }
+        ];
+    }
+
     // 句型代換與對答：原本 + 糾正兩次（使用者要求最多糾正 2 次）
     function sentenceLadder(kind) {
         // 對答題有情境圖就全程顯示——答案是看圖決定的
@@ -193,6 +209,21 @@
             image: text(word.image),
             source: sourceLabel || "",
             ladder: readLadder()
+        }));
+    }
+
+    function spellWordItems(words, idPrefix, sourceLabel) {
+        return (words || []).map((word, index) => makeItem({
+            id: `${idPrefix}-${index + 1}`,
+            type: "word_spell",
+            target: bareWord(word.english),
+            display: text(word.english),
+            meaning: text(word.chinese),
+            // 給模型的逐字母參考：t-a-b-l-e（判斷與示範都用得到）
+            letters: bareWord(word.english).replace(/[^a-z0-9]/g, "").split("").join("-"),
+            image: text(word.image),
+            source: sourceLabel || "",
+            ladder: spellLadder()
         }));
     }
 
@@ -285,14 +316,16 @@
         });
 
         // ---- 本單元的字 ----
-        if (isFinalDay || isReviewUnit) {
-            // 第 5 天：整個單元的字改成看英文字認。這一週都是看圖學的，
-            // 最後一天檢查她是不是真的認得那些字。
-            // Review 單元每天都是複習，字數是正課的三倍，五天平均攤開。
-            const words = isReviewUnit
-                ? spreadAcrossDays(unitWords, WEEK_DAYS)[day - 1] || []
-                : unitWords;
+        // 整週的遞進：第 1~3 天看圖會說 → 第 4 天看字會唸 → 第 5 天會拼
+        // （拼字是使用者 2026-08-24 實測後要求加入的）。
+        // Review 單元每天都是複習，字數是正課的三倍，五天平均攤開、只認字。
+        if (isReviewUnit) {
+            const words = spreadAcrossDays(unitWords, WEEK_DAYS)[day - 1] || [];
             items.push(...readWordItems(words, "uw", unitLabel));
+        } else if (day === 4) {
+            items.push(...readWordItems(unitWords, "uw", unitLabel));
+        } else if (isFinalDay) {
+            items.push(...spellWordItems(unitWords, "uw", unitLabel));
         } else {
             const todays = spreadAcrossDays(unitWords, WEEK_DAYS)[day - 1] || [];
             items.push(...imageWordItems(todays, "uw", unitLabel));
@@ -379,13 +412,13 @@
         if (!plan || !plan.items) return "";
         const label = {
             opening: "開場", closing: "結尾",
-            word_image: "看圖說英文", word_read: "看字說意思",
+            word_image: "看圖說英文", word_read: "看字說意思", word_spell: "拼單字",
             pattern_substitute: "句型代換", pattern_respond: "聽問題答句"
         };
         return plan.items.map((item, index) => {
             const name = label[item.type] || item.type;
             let detail = "";
-            if (item.type === "word_image" || item.type === "word_read") {
+            if (item.type === "word_image" || item.type === "word_read" || item.type === "word_spell") {
                 detail = `${item.display}（${item.meaning}）` +
                     (item.image ? "" : "　⚠️ 沒有圖");
             } else if (item.type === "pattern_substitute") {
@@ -500,7 +533,12 @@
             : "";
 
         const bits = [position, text(step.instruction)];
-        if (item.type === "word_image" || item.type === "word_read") {
+        if (item.type === "word_spell") {
+            bits.push(` 目標單字：「${item.display || item.target}」`,
+                item.meaning ? `，中文是「${item.meaning}」` : "",
+                `。正確拼法是「${item.letters}」，判斷與示範都以此為準。`);
+            bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
+        } else if (item.type === "word_image" || item.type === "word_read") {
             bits.push(` 目標單字：「${item.display || item.target}」`,
                 item.meaning ? `，中文是「${item.meaning}」` : "", "。");
             if (item.example) bits.push(` 例句：${item.example}。`);

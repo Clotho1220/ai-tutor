@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.20";
+const APP_VERSION = "3.21";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -2217,7 +2217,7 @@ function tutorToolDeclarations() {
                 attempt: { type: "integer", description: "1 for the first try, 2 for the retry after your correction." },
                 kind: {
                     type: "string",
-                    enum: ["word_image", "word_read", "pattern_substitute", "pattern_respond", "free"],
+                    enum: ["word_image", "word_read", "word_spell", "pattern_substitute", "pattern_respond", "free"],
                     description: "Which kind of practice item this was."
                 },
                 issue: { type: "string", description: "Optional short note on what was off, e.g. missing verb, wrong word order, sounded unsure." }
@@ -2683,12 +2683,42 @@ function recordItemResult(args) {
     sessionDiagnostics.record("item_result", entry);
     const mark = { correct: "✅", incorrect: "✏️", no_response: "🤐" }[outcome];
     logSystem(`${mark} 練習回報（第 ${entry.attempt} 次）：${target}${entry.issue ? " — " + entry.issue : ""}`);
-    // 計畫模式：這份回報就是推進的依據
+    // 計畫模式：這份回報就是推進的依據——但目標要對得上目前的項目。
+    // 實測（2026-08-24 第二份診斷檔）模型會對同一項回報多次（第一次唸＋複誦），
+    // 慢一拍的那筆流到下一個項目頭上，會讓新項目沒練到就被跳過。
     if (planDriving()) {
-        planItemReported = true;
-        advancePlan(outcome, "report");
+        const currentItem = planRunner ? planRunner.current() : null;
+        if (currentItem && !reportMatchesPlanItem(target, currentItem)) {
+            sessionDiagnostics.record("plan_report_ignored", {
+                reported: target, expected: currentItem.target || currentItem.id, outcome
+            });
+            logSystem(`↩️ 回報目標「${target}」與目前項目「${currentItem.target || currentItem.type}」不符，視為上一項的重複回報，不推進。`);
+        } else {
+            planItemReported = true;
+            advancePlan(outcome, "report");
+        }
     }
     return { status: "result recorded" };
+}
+
+// 回報的 target 與目前項目是否指同一件事。字串不會逐字相同
+// （模型可能回報整句、項目存的是單字），所以雙向包含即算相符。
+function normalizeReportTarget(value) {
+    return String(value || "").toLowerCase()
+        .replace(/\([^)]*\)/g, " ")
+        .replace(/[^a-z0-9']+/g, " ")
+        .replace(/\s+/g, " ").trim();
+}
+
+function reportMatchesPlanItem(reported, item) {
+    const report = normalizeReportTarget(reported);
+    if (!report) return true;
+    const candidates = [item.target, item.display, item.ask, item.slotWord]
+        .concat(item.alternatives || [])
+        .map(normalizeReportTarget).filter(Boolean);
+    if (!candidates.length) return true;   // 開場、結尾這類沒有目標的項目
+    return candidates.some(candidate =>
+        report === candidate || report.indexOf(candidate) >= 0 || candidate.indexOf(report) >= 0);
 }
 
 // 課程結束時比對「模型回報了幾次」與「前端偵測到幾次練習邀請」，

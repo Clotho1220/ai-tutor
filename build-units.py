@@ -10,6 +10,16 @@
     Book 3 風格：Theme / Sentence Pattern / Word（含 Word (Noun)、Word (Verb)）
 單元標題列可為「Unit 3: ...」或「🌟 Unit 3: ...」，標題下方可有一行中文說明。
 """
+# ⚠️ 已停用（v3.18）
+# units.json 的產生方式已改為 build-units-from-gogo.py，教材來源是
+# 「Gogo English」專案的 教材資料/gogo{1,2,3}.json（課本翻拍照片逐頁核對）。
+# 這支腳本產出的資料比較薄（第 2 冊每個單元只有 2 個單字，且沒有 Review 單元），
+# 直接執行會把 units.json 覆寫回舊版。留著只為保存當初的解析邏輯。
+import sys as _sys
+if "--i-know-this-is-deprecated" not in _sys.argv:
+    _sys.exit("此腳本已停用，請改用：python build-units-from-gogo.py"
+              "\n（若真的要跑舊版，加上 --i-know-this-is-deprecated）")
+
 import json
 import re
 import openpyxl

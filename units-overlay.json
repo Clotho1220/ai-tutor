@@ -1,0 +1,1023 @@
+{
+  "_readme": "人工整理的欄位；build-units-from-gogo.py 會把這裡的內容疊回 gogo 教材資料上。改這裡不會被覆蓋。",
+  "units": {
+    "Book 1|1": {
+      "desc": "本單元學習打招呼、自我介紹與說再見。",
+      "theme": "Students greet their friends and introduce themselves by name.（學生們互相問候並自我介紹姓名。）",
+      "patterns": [
+        {
+          "english": "What's your name? / I'm [Name].",
+          "chinese": "詢問對方姓名並自我介紹。",
+          "example": "1. What's your name? 2. I'm Tony.",
+          "slot": null
+        },
+        {
+          "english": "Nice to meet you.",
+          "chinese": "初次見面時的禮貌問候。",
+          "example": "1. Nice to meet you, Tony. 2. Nice to meet you, Jenny.",
+          "slot": null
+        }
+      ],
+      "words": {
+        "hello": {
+          "display": "hello (int.)",
+          "example": "Hello, Gogo!"
+        },
+        "goodbye": {
+          "display": "goodbye (int.)",
+          "example": "Goodbye, Tony."
+        },
+        "apple": {
+          "display": "apple (n.)",
+          "example": "This is an apple."
+        },
+        "ant": {
+          "display": "ant (n.)",
+          "example": "Look at the ant."
+        }
+      },
+      "wordSlot": "greeting"
+    },
+    "Book 1|2": {
+      "desc": "本單元學習詢問並回答教室裡的物品名稱。",
+      "theme": "Students ask and answer about various objects found in the classroom.（學生們詢問並回答教室裡的各種物品。）",
+      "patterns": [
+        {
+          "english": "What's this? / It's a/an [object].",
+          "chinese": "詢問近處不認識的單數物品。",
+          "example": "1. What's this? It's a desk. 2. What's this? It's an eraser.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "desk": {
+          "display": "desk (n.)",
+          "example": "It's a desk."
+        },
+        "eraser": {
+          "display": "eraser (n.)",
+          "example": "It's an eraser."
+        },
+        "book": {
+          "display": "book (n.)",
+          "example": "I have a book."
+        },
+        "pencil": {
+          "display": "pencil (n.)",
+          "example": "Show me your pencil."
+        }
+      },
+      "wordSlot": "object"
+    },
+    "Book 1|3": {
+      "desc": "本單元學習表達自己的能力，並詢問他人會做什麼。",
+      "theme": "Students talk about their abilities and ask others what they can do.（學生們討論自己的能力並詢問他人能做些什麼。）",
+      "patterns": [
+        {
+          "english": "Can you [action]? / Yes, I can. / No, I can't.",
+          "chinese": "詢問對方是否具備某種動作或能力。",
+          "example": "1. Can you read? Yes, I can. 2. Can you fly? No, I can't.",
+          "slot": "action"
+        }
+      ],
+      "words": {
+        "sing": {
+          "display": "sing (v.)",
+          "example": "I can sing."
+        },
+        "read": {
+          "display": "read (v.)",
+          "example": "Can you read?"
+        },
+        "draw": {
+          "display": "draw (v.)",
+          "example": "She can draw."
+        },
+        "cook": {
+          "display": "cook (v.)",
+          "example": "My dad can cook."
+        }
+      },
+      "wordSlot": "action"
+    },
+    "Book 1|5": {
+      "desc": "本單元學習介紹與詢問家庭成員。",
+      "theme": "Students identify and ask about different members of their family.（學生們確認並詢問家中的不同成員。）",
+      "patterns": [
+        {
+          "english": "Who's she/he? / She's/He's my [family member].",
+          "chinese": "詢問某位女性或男性是誰。",
+          "example": "1. Who's she? She's my mother. 2. Who's he? He's my father.",
+          "slot": "person"
+        }
+      ],
+      "words": {
+        "mother": {
+          "display": "mother (n.)",
+          "example": "She's my mother."
+        },
+        "father": {
+          "display": "father (n.)",
+          "example": "He's my father."
+        },
+        "brother": {
+          "display": "brother (n.)",
+          "example": "He's my brother."
+        },
+        "sister": {
+          "display": "sister (n.)",
+          "example": "She's my sister."
+        }
+      },
+      "wordSlot": "person",
+      "wordSlots": {
+        "family": "other"
+      }
+    },
+    "Book 1|6": {
+      "desc": "本單元學習詢問並說出第三人的名字。",
+      "theme": "Students ask and state the names of other boys, girls, or teachers.（學生們詢問並說出其他男孩、女孩或老師的名字。）",
+      "patterns": [
+        {
+          "english": "What's his/her name? / His/Her name's [Name].",
+          "chinese": "詢問第三人（男生／女生）的名字。",
+          "example": "1. What's his name? His name's Ben. 2. What's her name? Her name's Ms. Black.",
+          "slot": null
+        }
+      ],
+      "words": {
+        "teacher": {
+          "display": "teacher (n.)",
+          "example": "She's my teacher."
+        },
+        "student": {
+          "display": "student (n.)",
+          "example": "He is a student."
+        },
+        "boy": {
+          "display": "boy (n.)",
+          "example": "The boy is Ben."
+        },
+        "girl": {
+          "display": "girl (n.)",
+          "example": "The girl is Lisa."
+        }
+      },
+      "wordSlot": "person"
+    },
+    "Book 1|7": {
+      "desc": "本單元學習用是非問句辨認動物。",
+      "theme": "Students ask questions to identify various animals using yes/no questions.（學生們使用是非問句來辨認不同的動物。）",
+      "patterns": [
+        {
+          "english": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+          "chinese": "詢問這是否為某種特定的動物或物品。",
+          "example": "1. Is this a giraffe? Yes, it is. 2. Is this a whale? No, it isn't.",
+          "slot": "animal"
+        }
+      ],
+      "words": {
+        "giraffe": {
+          "display": "giraffe (n.)",
+          "example": "Look at the giraffe."
+        },
+        "whale": {
+          "display": "whale (n.)",
+          "example": "A whale is very big."
+        },
+        "penguin": {
+          "display": "penguin (n.)",
+          "example": "The penguin is cute."
+        },
+        "polar bear": {
+          "display": "polar bear (n.)",
+          "example": "The polar bear is white."
+        }
+      },
+      "wordSlot": "animal"
+    },
+    "Book 1|9": {
+      "desc": "本單元學習描述並詢問物品的顏色。",
+      "theme": "Students describe the color of various items and ask what color they are.（學生們描述各種物品的顏色，並詢問它們是什麼顏色。）",
+      "patterns": [
+        {
+          "english": "What color is this? / It's [color].",
+          "chinese": "詢問某物品的顏色。",
+          "example": "1. What color is this? It's orange. 2. What color is this? It's red.",
+          "slot": "color"
+        }
+      ],
+      "words": {
+        "red": {
+          "display": "red (adj.)",
+          "example": "This apple is red."
+        },
+        "blue": {
+          "display": "blue (adj.)",
+          "example": "The sky is blue."
+        },
+        "yellow": {
+          "display": "yellow (adj.)",
+          "example": "Bananas are yellow."
+        },
+        "green": {
+          "display": "green (adj.)",
+          "example": "The grass is green."
+        }
+      },
+      "wordSlot": "color"
+    },
+    "Book 1|10": {
+      "desc": "本單元學習詢問與回答年齡，並認識生日相關的單字。",
+      "theme": "Students ask and answer about age and celebrate birthdays.（學生們詢問並回答年齡，以及慶祝生日。）",
+      "patterns": [
+        {
+          "english": "How old are you/is [someone]? / I'm [age]. / He's/She's [age].",
+          "chinese": "詢問對方或第三人的年齡。",
+          "example": "1. How old are you? I'm eight. 2. How old is your brother? He's seven.",
+          "slot": null
+        }
+      ],
+      "words": {
+        "present": {
+          "display": "present (n.)",
+          "example": "I have a birthday present."
+        },
+        "candle": {
+          "display": "candle (n.)",
+          "example": "Blow out the candle."
+        },
+        "balloon": {
+          "display": "balloon (n.)",
+          "example": "The balloon is red."
+        },
+        "cookie": {
+          "display": "cookie (n.)",
+          "example": "I like cookies."
+        }
+      },
+      "wordSlot": "object"
+    },
+    "Book 1|11": {
+      "desc": "本單元學習談論喜歡的食物與喜好。",
+      "theme": "Students talk about their favorite foods and ask friends about their likes and dislikes.（學生們討論喜愛的食物，並詢問朋友的喜好與厭惡。）",
+      "patterns": [
+        {
+          "english": "What do you like? / I like [food].",
+          "chinese": "詢問對方喜愛什麼食物或事物。",
+          "example": "1. What do you like, Tony? I like cheese. 2. What do you like, Jenny? I like cake.",
+          "slot": "food"
+        }
+      ],
+      "words": {
+        "cake": {
+          "display": "cake (n.)",
+          "example": "I like chocolate cake."
+        },
+        "cheese": {
+          "display": "cheese (n.)",
+          "example": "Mice like cheese."
+        },
+        "bread": {
+          "display": "bread (n.)",
+          "example": "This bread is fresh."
+        },
+        "salad": {
+          "display": "salad (n.)",
+          "example": "She eats salad."
+        }
+      },
+      "wordSlot": "food"
+    },
+    "Book 2|1": {
+      "desc": "",
+      "theme": "Gogo introduces himself to Peter and talks about school items and favorite foods.（Gogo 向 Peter 自我介紹，並聊到學校用品與喜愛的食物。）",
+      "patterns": [
+        {
+          "english": "What's this? / It's a...",
+          "chinese": "用於詢問與回答近處的單數物品是什麼。",
+          "example": "1. What's this? It's a pencil.2. What's this? It's a notebook.",
+          "slot": "object"
+        },
+        {
+          "english": "What do you like? / I like...",
+          "chinese": "用於詢問並表達喜愛的食物或事物。",
+          "example": "1. What do you like? I like steak.2. What do you like? I like chicken.",
+          "slot": "food"
+        }
+      ],
+      "words": {
+        "butterfly": {
+          "display": "butterfly (n.)",
+          "example": "It's a butterfly."
+        },
+        "notebook": {
+          "display": "notebook (n.)",
+          "example": "He has a notebook."
+        }
+      },
+      "wordSlots": {
+        "pink": "color",
+        "gray": "color"
+      }
+    },
+    "Book 2|2": {
+      "desc": "",
+      "theme": "Characters describe themselves and others using adjectives of size, mood, and temperature.（角色們使用描述大小、心情和溫度的形容詞來描繪自己與他人。）",
+      "patterns": [
+        {
+          "english": "Subject + be + adjective.",
+          "chinese": "用於描述人物、動物或事物的狀態與特徵。",
+          "example": "1. We're happy.2. They're cold.",
+          "slot": "adjective"
+        }
+      ],
+      "words": {
+        "happy": {
+          "display": "happy (adj.)",
+          "example": "We are happy."
+        },
+        "heavy": {
+          "display": "heavy (adj.)",
+          "example": "This box is heavy."
+        }
+      },
+      "wordSlot": "adjective"
+    },
+    "Book 2|3": {
+      "desc": "",
+      "theme": "Friends ask each other about their sports preferences and invite each other to play.（朋友們互相詢問對球類運動的喜好並邀請一同玩耍。）",
+      "patterns": [
+        {
+          "english": "Do you like...? / Yes, I do. (No, I don't.)",
+          "chinese": "用於詢問他人是否喜愛某項運動並做回答。",
+          "example": "1. Do you like tennis? No, I don't. I like badminton.2. Do you like soccer? Yes, I do.",
+          "slot": "sport"
+        }
+      ],
+      "words": {
+        "baseball": {
+          "display": "baseball (n.)",
+          "example": "Do you like baseball?"
+        },
+        "soccer": {
+          "display": "soccer (n.)",
+          "example": "I play soccer on weekends."
+        }
+      },
+      "wordSlot": "sport"
+    },
+    "Book 2|5": {
+      "desc": "",
+      "theme": "Identifying household items and their colors from a distance in a bedroom.（在房間中指認與詢問遠處的家用品及其顏色。）",
+      "patterns": [
+        {
+          "english": "What's that? / It's a...",
+          "chinese": "用於詢問遠處的單數物品是什麼並回答。",
+          "example": "1. What's that? It's a pink lamp.2. What's that? It's a blue desk.",
+          "slot": "object"
+        },
+        {
+          "english": "Is that a...? / Yes, it is. (No, it isn't.)",
+          "chinese": "用於確認遠處的單數物品是否為某物並回答。",
+          "example": "1. Is that a brown door? Yes, it is.2. Is that a black pillow? No, it isn't.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "mirror": {
+          "display": "mirror (n.)",
+          "example": "Look at the mirror."
+        },
+        "pillow": {
+          "display": "pillow (n.)",
+          "example": "It's a white pillow."
+        }
+      },
+      "wordSlot": "object"
+    },
+    "Book 2|6": {
+      "desc": "",
+      "theme": "Asking about and identifying different kinds of plural fruits nearby.（詢問並指認近處各種複數水果。）",
+      "patterns": [
+        {
+          "english": "What are these? / They're...",
+          "chinese": "用於詢問近處的多個複數物品或水果是什麼並回答。",
+          "example": "1. What are these? They're pears.2. What are these? They're grapes.",
+          "slot": "food"
+        },
+        {
+          "english": "Are these...? / Yes, they are. (No, they aren't.)",
+          "chinese": "用於確認近處的多個複數物品/水果是否為某物並回答。",
+          "example": "1. Are these peaches? No, they aren't. They're oranges.2. Are these grapes? Yes, they are.",
+          "slot": "food"
+        }
+      ],
+      "words": {
+        "peaches": {
+          "display": "peaches (n. pl.)",
+          "example": "Are these peaches?"
+        },
+        "grapes": {
+          "display": "grapes (n. pl.)",
+          "example": "Yes, they are. They're grapes."
+        }
+      },
+      "wordSlot": "food",
+      "plural": true
+    },
+    "Book 2|7": {
+      "desc": "",
+      "theme": "Searching for lost clothes and personal items by describing their spatial positions.（尋找遺失的衣物或個人用品，並描述其確切的空間位置。）",
+      "patterns": [
+        {
+          "english": "Where's my [singular]? / It's [prep.] the...",
+          "chinese": "用於尋找與回答單數物品的位置。",
+          "example": "1. Where's my skirt? It's on the bed.2. Where's my eraser? It's under the desk.",
+          "slot": "object"
+        },
+        {
+          "english": "Where are my [plural]? / They're [prep.] the...",
+          "chinese": "用於尋找與回答複數物品的位置。",
+          "example": "1. Where are my socks? They're under the pillow.2. Where are my pants? They're on the bed.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "under": {
+          "display": "under (prep.)",
+          "example": "They're under the pillow."
+        },
+        "jacket": {
+          "display": "jacket (n.)",
+          "example": "My jacket is on the chair."
+        }
+      }
+    },
+    "Book 2|9": {
+      "desc": "",
+      "theme": "Asking about and telling the exact hours of the clock throughout the day.（詢問與告知一天中的整點時間。）",
+      "patterns": [
+        {
+          "english": "What time is it? / It's... o'clock.",
+          "chinese": "用於詢問時間並以整點回答。",
+          "example": "1. What time is it? It's eleven o'clock.2. What time is it? It's five o'clock.",
+          "slot": "time"
+        },
+        {
+          "english": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+          "chinese": "用於確認是否為某個整點時間並做回答。",
+          "example": "1. Is it twelve o'clock? Yes, it is.2. Is it one o'clock? No, it isn't. It's two o'clock.",
+          "slot": "time"
+        }
+      ],
+      "words": {
+        "o'clock": {
+          "display": "o'clock (adv.)",
+          "example": "It's eleven o'clock."
+        },
+        "twelve": {
+          "display": "twelve (num.)",
+          "example": "It's twelve o'clock."
+        }
+      },
+      "wordSlot": "time"
+    },
+    "Book 2|10": {
+      "desc": "",
+      "theme": "Counting and describing the quantities of fruits and various objects.（數數並描述水果及各式物品的數量。）",
+      "patterns": [
+        {
+          "english": "How many... are there? / There are...",
+          "chinese": "用於詢問複數物品的數量並進行回答。",
+          "example": "1. How many cherries are there? There are twenty.2. How many strawberries are there? There are thirteen strawberries.",
+          "slot": "number"
+        }
+      ],
+      "words": {
+        "thirteen": {
+          "display": "thirteen (num.)",
+          "example": "There are thirteen strawberries."
+        },
+        "twenty": {
+          "display": "twenty (num.)",
+          "example": "There are twenty cherries."
+        }
+      },
+      "wordSlot": "number"
+    },
+    "Book 2|11": {
+      "desc": "",
+      "theme": "Asking and answering questions about tablewares and household possessions.（詢問並回答關於餐具與個人物品的擁有狀況。）",
+      "patterns": [
+        {
+          "english": "Do you have...? / Yes, we do. (No, we don't.)",
+          "chinese": "用於詢問第二人稱或複數主詞是否擁有某物。",
+          "example": "1. Do you have forks? Yes, we do.2. Do you have spoons? No, we don't.",
+          "slot": "object"
+        },
+        {
+          "english": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+          "chinese": "用於詢問第三人稱單數主詞是否擁有某物。",
+          "example": "1. Does she have napkins? No, she doesn't. She has bowls.2. Does he have knives? Yes, he does.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "chopsticks": {
+          "display": "chopsticks (n.)",
+          "example": "We have chopsticks."
+        },
+        "napkins": {
+          "display": "napkins (n.)",
+          "example": "Does she have napkins?"
+        }
+      },
+      "wordSlot": "object",
+      "plural": true
+    },
+    "Book 3|1": {
+      "desc": "本單元引導學生與 Gogo 進行問候，並學習描述身體感受、家族成員與日常文具。",
+      "theme": "Greeting Gogo and identifying people's feelings, family members, and school items.（問候與辨識狀態：與 Gogo 問候，並描述生理感受、家族成員與學校文具。）",
+      "patterns": [
+        {
+          "english": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
+          "chinese": "你感到...嗎？／是的，我是。（不，我不是。）用於詢問並回答對方的生理感受或狀態。",
+          "example": "1. Are you hungry? - Yes, I am.2. Are you thirsty? - No, I'm not.",
+          "slot": "adjective"
+        },
+        {
+          "english": "Who's she? / She's my [relationship].",
+          "chinese": "她是誰？／她是我的...。用於詢問並回答第三者（女性成員）的身份與關係。",
+          "example": "1. Who's she? - She's my grandmother.2. Who's he? - He's my grandfather.",
+          "slot": "person"
+        },
+        {
+          "english": "What's that? / It's a [noun].",
+          "chinese": "那是什麼？／它是一部/個...。用於詢問並回答單數的事物。",
+          "example": "1. What's that? - It's a stapler.2. Is it a jet? - No, it isn't. It's a bird.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "hungry": {
+          "display": "hungry (adj.)",
+          "example": "Are you hungry?"
+        },
+        "thirsty": {
+          "display": "thirsty (adj.)",
+          "example": "I am thirsty."
+        },
+        "grandmother": {
+          "display": "grandmother (n.)",
+          "example": "She is my grandmother."
+        },
+        "grandfather": {
+          "display": "grandfather (n.)",
+          "example": "He is my grandfather."
+        },
+        "short": {
+          "display": "short (adj.)",
+          "example": "We're short."
+        },
+        "tall": {
+          "display": "tall (adj.)",
+          "example": "He is tall."
+        },
+        "ruler": {
+          "display": "ruler (n.)",
+          "example": "This is a ruler."
+        },
+        "stapler": {
+          "display": "stapler (n.)",
+          "example": "It's a stapler."
+        }
+      }
+    },
+    "Book 3|2": {
+      "desc": "本單元引導學生認識星期，並學習描述在特定星期進行的休閒與樂器活動。",
+      "theme": "Asking and answering about the days of the week and daily activities.（詢問與回答星期與日常活動：詢問今天星期幾，並描述在特定星期進行的活動。）",
+      "patterns": [
+        {
+          "english": "What day is it today? / It's [Day].",
+          "chinese": "今天星期幾？／今天是星期...。用於詢問並回答當天的星期。",
+          "example": "1. What day is it today? - It's Monday.2. What day is it today? - It's Sunday.",
+          "slot": "day"
+        },
+        {
+          "english": "What do you do on [Day]? / I [action] on [Day].",
+          "chinese": "你在星期...做什麼？／我在星期...做...。用於詢問與描述在特定星期的例行活動或才藝。",
+          "example": "1. What do you do on Monday? - I play the violin on Monday.2. What do you do on Tuesday? - I play badminton on Tuesday.",
+          "slot": "action"
+        }
+      ],
+      "words": {
+        "sunday": {
+          "display": "Sunday (n.)",
+          "example": "It's Sunday today."
+        },
+        "monday": {
+          "display": "Monday (n.)",
+          "example": "I play the violin on Monday."
+        },
+        "tuesday": {
+          "display": "Tuesday (n.)",
+          "example": "I play badminton on Tuesday."
+        },
+        "wednesday": {
+          "display": "Wednesday (n.)",
+          "example": "Do you play soccer on Wednesday?"
+        },
+        "thursday": {
+          "display": "Thursday (n.)",
+          "example": "I play the piano on Thursday."
+        },
+        "friday": {
+          "display": "Friday (n.)",
+          "example": "Gogo plays soccer on Friday."
+        },
+        "saturday": {
+          "display": "Saturday (n.)",
+          "example": "What day is it today? It's Saturday."
+        },
+        "week": {
+          "display": "week (n.)",
+          "example": "There are seven days in a week."
+        }
+      },
+      "wordSlot": "day",
+      "wordSlots": {
+        "week": "other"
+      }
+    },
+    "Book 3|3": {
+      "desc": "本單元學習有禮貌地請求許可（借用或索取日常物品），並給予適當的回應。",
+      "theme": "Asking for permission and responding to requests for having or borrowing everyday items.（請求允許與回應：學習如何有禮貌地請求允許取得或借用日常物品，以及如何給予或拒絕許可。）",
+      "patterns": [
+        {
+          "english": "Can I have a/an [noun], please? / Sure. Here you are.",
+          "chinese": "我可以拿/要一個...嗎？／當然可以，拿去吧。用於有禮貌地向他人請求給予某物，並同意給予。",
+          "example": "1. Can I have a peach? - Sure. Here you are.2. Can I have a yellow balloon, please?",
+          "slot": "object"
+        },
+        {
+          "english": "Can I borrow your [noun]? / No. Sorry.",
+          "chinese": "我可以借用你的...嗎？／不行，抱歉。用於有禮貌地向他人借用物品，並在無法出借時給予委婉回應。",
+          "example": "1. Can I borrow your ruler? - No. Sorry.2. Can I borrow your pen? - Sure. Here you are.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "go": {
+          "display": "go (v.)",
+          "example": "Can I go to school?"
+        },
+        "use": {
+          "display": "use (v.)",
+          "example": "Can I use your pen?"
+        },
+        "have": {
+          "display": "have (v.)",
+          "example": "Can I have an apple?"
+        },
+        "borrow": {
+          "display": "borrow (v.)",
+          "example": "Can I borrow your ruler?"
+        },
+        "buy": {
+          "display": "buy (v.)",
+          "example": "Can I buy a balloon?"
+        },
+        "watch": {
+          "display": "watch (v.)",
+          "example": "Can we watch TV?"
+        },
+        "call": {
+          "display": "call (v.)",
+          "example": "Can I call my mother?"
+        },
+        "listen": {
+          "display": "listen (v.)",
+          "example": "Can I listen to music?"
+        }
+      },
+      "wordSlot": "action"
+    },
+    "Book 3|5": {
+      "desc": "本單元引導學生討論學校學科，並表達自己或他人對不同科目的喜好。",
+      "theme": "Asking about and expressing likes, dislikes, and school subjects.（表達學科喜好：詢問並表達自己或他人對學校科目的喜歡或不喜歡。）",
+      "patterns": [
+        {
+          "english": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+          "chinese": "你喜歡...（科目）嗎？／是的，我喜歡。（不，我不喜歡。）用於詢問並回答對某學科的喜好。",
+          "example": "1. Do you like math? - Yes, I do.2. Do you like science? - No, I don't.",
+          "slot": "subject"
+        },
+        {
+          "english": "What subjects do you like? / I like [subject 1] and [subject 2].",
+          "chinese": "你喜歡哪些學科？／我喜歡...和...。用於詢問並具體列出喜愛的學校科目。",
+          "example": "1. What subjects do you like, Gogo? - I like art and history.2. What subjects do they like? - They like P.E.",
+          "slot": "subject"
+        }
+      ],
+      "words": {
+        "english": {
+          "display": "English (n.)",
+          "example": "I like English."
+        },
+        "science": {
+          "display": "science (n.)",
+          "example": "Do you like science?"
+        },
+        "music": {
+          "display": "music (n.)",
+          "example": "We sing in music class."
+        },
+        "art": {
+          "display": "art (n.)",
+          "example": "I like art."
+        },
+        "p.e.": {
+          "display": "P.E. (n.)",
+          "example": "Do you like P.E.?"
+        },
+        "math": {
+          "display": "math (n.)",
+          "example": "Do you like math?"
+        },
+        "history": {
+          "display": "history (n.)",
+          "example": "I like history."
+        },
+        "subjects": {
+          "display": "subjects (n.)",
+          "example": "What subjects do you like?"
+        }
+      },
+      "wordSlot": "subject",
+      "wordSlots": {
+        "subjects": "other"
+      }
+    },
+    "Book 3|6": {
+      "desc": "本單元探討各種玩具與休閒物品，學習詢問與描述自己、他人及複數主詞想要的物品。",
+      "theme": "Asking about and expressing wants and wishes of oneself and others.（表達想要與需求：詢問與表達自己、他人（單數/複數）想要得到的玩具或物品。）",
+      "patterns": [
+        {
+          "english": "Do you want [item]? / Yes, please. (No, thank you.)",
+          "chinese": "你想要...嗎？／是的，請給我。（不，謝謝。）用於詢問並回答自身的意願或需求。",
+          "example": "1. Do you want a guitar? - Yes, please.2. Do you want a game? - No, thank you.",
+          "slot": "object"
+        },
+        {
+          "english": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+          "chinese": "她/他想要...嗎？／是的，她/他想要。（不，她/他不想。）用於詢問並回答第三人稱單數的意願與需求。",
+          "example": "1. Does she want a doll? - No, she doesn't.2. Does he want a toy car? - Yes, he does.",
+          "slot": "object"
+        },
+        {
+          "english": "What do they want? / They want [item].",
+          "chinese": "他們想要什麼？／他們想要...。用於詢問並說明複數第三人稱想要的物品。",
+          "example": "1. What do they want? - They want a computer game.2. What do you want? - I want a doll.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "computer game": {
+          "display": "computer game (n.)",
+          "example": "They want a computer game."
+        },
+        "doll": {
+          "display": "doll (n.)",
+          "example": "Does she want a doll?"
+        },
+        "puzzle": {
+          "display": "puzzle (n.)",
+          "example": "I want a puzzle."
+        },
+        "stuffed animal": {
+          "display": "stuffed animal (n.)",
+          "example": "They want that stuffed animal."
+        },
+        "skateboard": {
+          "display": "skateboard (n.)",
+          "example": "Gogo is on the skateboard."
+        },
+        "drum": {
+          "display": "drum (n.)",
+          "example": "Can she play the drum?"
+        },
+        "toy car": {
+          "display": "toy car (n.)",
+          "example": "Does he want a toy car?"
+        },
+        "guitar": {
+          "display": "guitar (n.)",
+          "example": "Do you want a guitar?"
+        }
+      },
+      "wordSlot": "object"
+    },
+    "Book 3|7": {
+      "desc": "本單元引導學生使用常見的空間介系詞（如 behind, next to 等），詢問並說明個人隨身物品的所在位置。",
+      "theme": "Asking about and describing the location of everyday things using prepositions.（詢問與描述位置：使用空間介系詞（在...後面、在...前面等）詢問並說明日常用品的位置。）",
+      "patterns": [
+        {
+          "english": "Where's my [item]? / It's [preposition] the [furniture].",
+          "chinese": "我的...（單數）在哪裡？／它在...的（後面/前面/旁邊）。用於詢問並描述單數物品的位置。",
+          "example": "1. Where's my wallet? - It's behind the sofa.2. Where's my white sock? - It's behind the door.",
+          "slot": "object"
+        },
+        {
+          "english": "Where are my [items]? / They're [preposition] the [furniture].",
+          "chinese": "我的...（複數）們在哪裡？／它們在...的...。用於詢問並描述複數或對稱物品（如眼鏡、襪子們）的位置。",
+          "example": "1. Where are my glasses? - They're in front of the bookcase.2. Where are they? - They're on the floor.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "closet": {
+          "display": "closet (n.)",
+          "example": "The sock is in the closet."
+        },
+        "glasses": {
+          "display": "glasses (n.)",
+          "example": "Where are my glasses?"
+        },
+        "sofa": {
+          "display": "sofa (n.)",
+          "example": "It's behind the sofa."
+        },
+        "wallet": {
+          "display": "wallet (n.)",
+          "example": "Where's my wallet?"
+        },
+        "bookcase": {
+          "display": "bookcase (n.)",
+          "example": "They are in front of the bookcase."
+        },
+        "next to": {
+          "display": "next to (prep.)",
+          "example": "The clock is next to the box."
+        },
+        "behind": {
+          "display": "behind (prep.)",
+          "example": "It's behind the door."
+        },
+        "in front of": {
+          "display": "in front of (prep. phrase)",
+          "example": "The dog is in front of the bookcase."
+        }
+      }
+    },
+    "Book 3|9": {
+      "desc": "本單元引導學生學習現在進行式（Present Progressive），詢問並具體描述他人當下正在進行的活動。",
+      "theme": "Asking about and describing what people are doing using the present progressive tense.（描述當下正在進行的活動：使用現在進行式詢問與描述人們當下正在做的事情。）",
+      "patterns": [
+        {
+          "english": "What's she/he doing? / She's/He's [action-ing].",
+          "chinese": "她/他正在做什麼？／她/他正在...。用於詢問並描述第三人稱單數（女性/男性）當下進行的動作。",
+          "example": "1. What's she doing? - She's writing.2. What's he doing? - He's reading.",
+          "slot": "action_ing"
+        },
+        {
+          "english": "What are they doing? / They're [action-ing].",
+          "chinese": "他們正在做什麼？／他們正在...。用於詢問並描述複數第三人稱當下的活動。",
+          "example": "1. What are they doing? - They're painting.2. What are you doing? - We're shopping, Gogo.",
+          "slot": "action_ing"
+        }
+      ],
+      "words": {
+        "playing": {
+          "display": "playing (v-ing)",
+          "example": "They are playing."
+        },
+        "eating": {
+          "display": "eating (v-ing)",
+          "example": "He's eating noodles."
+        },
+        "shopping": {
+          "display": "shopping (v-ing)",
+          "example": "We're shopping, Gogo."
+        },
+        "running": {
+          "display": "running (v-ing)",
+          "example": "He is running."
+        },
+        "studying": {
+          "display": "studying (v-ing)",
+          "example": "She's studying English."
+        },
+        "sleeping": {
+          "display": "sleeping (v-ing)",
+          "example": "She's sleeping."
+        },
+        "painting": {
+          "display": "painting (v-ing)",
+          "example": "They're painting."
+        },
+        "writing": {
+          "display": "writing (v-ing)",
+          "example": "She's writing."
+        }
+      },
+      "wordSlot": "action_ing"
+    },
+    "Book 3|10": {
+      "desc": "本單元引導學生認識人體的主要外觀構造，並能聽懂祈使句指令、做出相對應的身體動作。",
+      "theme": "Identifying parts of the body and responding to commands or instructions.（辨識身體部位與指令：辨識身體各部位名稱，並對身體動作的命令或指令做出反應。）",
+      "patterns": [
+        {
+          "english": "Touch your [body part]! / Close (Open) your [body part]!",
+          "chinese": "觸碰你的...！／閉上（張開）你的...！祈使句句型，用於發出與執行身體感官的動作指令。",
+          "example": "1. Touch your nose!2. Close your eyes!",
+          "slot": "body_part"
+        }
+      ],
+      "words": {
+        "eyes": {
+          "display": "eyes (n.)",
+          "example": "Close your eyes!"
+        },
+        "ears": {
+          "display": "ears (n.)",
+          "example": "Touch your ears."
+        },
+        "nose": {
+          "display": "nose (n.)",
+          "example": "Touch your nose!"
+        },
+        "mouth": {
+          "display": "mouth (n.)",
+          "example": "Open your mouth!"
+        },
+        "arms": {
+          "display": "arms (n.)",
+          "example": "Stretch your arms."
+        },
+        "legs": {
+          "display": "legs (n.)",
+          "example": "Touch your legs."
+        },
+        "hands": {
+          "display": "hands (n.)",
+          "example": "Close your hands."
+        },
+        "feet": {
+          "display": "feet (n.)",
+          "example": "Touch your feet!"
+        }
+      },
+      "wordSlot": "body_part",
+      "plural": true
+    },
+    "Book 3|11": {
+      "desc": "本單元引導學生學習所有格代名詞與名字所有格，詢問並辨識日常隨身物品究竟是「誰的」。",
+      "theme": "Asking about and identifying ownership of everyday items using possessive pronouns.（詢問與辨識物品所有權：使用所有格代名詞或所有格，詢問並辨識日常用品是誰的所有物。）",
+      "patterns": [
+        {
+          "english": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+          "chinese": "這是誰的...？／它是（我的/他的/Jenny的）。用於詢問並回答單數物品的所有權。",
+          "example": "1. Whose skateboard is this? - It's my skateboard.2. Whose ruler is this? - It's Jenny's.",
+          "slot": "object"
+        }
+      ],
+      "words": {
+        "mine": {
+          "display": "mine (pron.)",
+          "example": "It's mine."
+        },
+        "yours": {
+          "display": "yours (pron.)",
+          "example": "Is it yours?"
+        },
+        "his": {
+          "display": "his (pron.)",
+          "example": "It's his."
+        },
+        "hers": {
+          "display": "hers (pron.)",
+          "example": "It's hers."
+        },
+        "ours": {
+          "display": "ours (pron.)",
+          "example": "It's ours."
+        },
+        "theirs": {
+          "display": "theirs (pron.)",
+          "example": "It's theirs."
+        },
+        "jenny's": {
+          "display": "Jenny's (n. possessive)",
+          "example": "It's Jenny's."
+        },
+        "gogo's": {
+          "display": "Gogo's (n. possessive)",
+          "example": "They are Gogo's."
+        }
+      },
+      "wordSlot": "possessive"
+    }
+  },
+  "_slots": "句型代換用的槽位。pattern.slot 指這個句型的空格收哪一類的字（null = 不做代換）；unit.wordSlot 指這個單元的單字都屬於哪一類，wordSlots 是個別覆寫，都沒有的話由 build-units-from-gogo.py 依詞性標記與圖庫的 kind 推導。slot 名稱：object / action / action_ing / animal / food / person / color / sport / adjective / preposition / number / time / day / subject / body_part / possessive / greeting / place / other（other = 不可代換）。"
+}

@@ -30,6 +30,7 @@ function doPost(e) {
     if (req.action === 'geminiLiveToken') return json({ ok: true, data: geminiLiveToken_() });
     if (req.action === 'openaiClientSecret') return json({ ok: true, data: openaiClientSecret_(req.data || {}) });
     if (req.action === 'newsTopics') return json({ ok: true, data: newsTopics_() });
+    if (req.action === 'wipeRecords') return json({ ok: true, data: wipeRecords_() });
     return json({ ok: false, error: 'unknown action' });
   } catch (err) {
     return json({ ok: false, error: String(err) });
@@ -123,6 +124,27 @@ function newsTopics_() {
 }
 
 // 方便你用瀏覽器打開網址確認部署成功
+// ---------- 全部重來 ----------
+// 清空三個工作表的資料列（保留表頭）。設定與進度（state）也一併清掉，
+// 讓每位學員回到所選單元的第 1 天。手機端的「🧹 重置學習紀錄」按鈕會呼叫這裡。
+function wipeRecords_() {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(20000);
+  try {
+    [ { name: VOCAB_SHEET, header: VOCAB_HEADER },
+      { name: PRACTICE_SHEET, header: PRACTICE_HEADER },
+      { name: STATE_SHEET, header: ['person', 'json', 'updatedAt'] }
+    ].forEach(function(t) {
+      const sh = sheet_(t.name, t.header);
+      const last = sh.getLastRow();
+      if (last > 1) sh.deleteRows(2, last - 1);
+    });
+    return { wiped: true, at: new Date().toISOString() };
+  } finally {
+    lock.releaseLock();
+  }
+}
+
 function doGet() {
   return json({ ok: true, msg: 'AI Tutor sync is running.' });
 }

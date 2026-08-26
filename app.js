@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.22";
+const APP_VERSION = "3.23";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -433,12 +433,6 @@ async function loadLesson() {
             : "📰 時事討論模式：AI 會用 Google 搜尋找近一週的新聞。");
         return buildNewsLesson({ name: currentPersonName(), level: p.level, interests: p.interests || [], adult: !!p.adult });
     }
-    // 0) 老師在畫面上貼的自訂教材，優先於一切
-    const custom = readCustomMaterial();
-    if (custom) {
-        logSystem(`📋 使用自訂教材（單元：${custom.unit}）。`);
-        return custom;
-    }
     // 0.5) 從課本單元庫挑的單元（自動展開成 5 天）
     const picked = await readSelectedUnit();
     if (picked) {
@@ -549,66 +543,6 @@ function buildTeachingFlow(lesson) {
         t += (s.minutes || 1) * 60;
         return entry;
     });
-}
-
-// ---------------- 自訂教材（老師從 Excel 貼上課本單元表格） ----------------
-// 表格四欄：type / english / chinese / example。
-// 只認得 type 欄含 Theme / Sentence Pattern / Word 的列，標題列、表頭、雜訊列自動略過。
-const MATERIAL_KEY = "custom_material_v1";
-
-function parseMaterial(raw) {
-    let theme = "";
-    const patterns = [];
-    const words = [];
-    (raw || "").split(/\r?\n/).forEach(line => {
-        const cells = line.split("\t").map(c => c.trim());
-        if (cells.length < 2) return;
-        const type = (cells[0] || "").toLowerCase();
-        const english = cells[1] || "";
-        const chinese = (cells[2] || "").replace(/\*\*/g, "").trim();
-        let example = (cells[3] || "").trim();
-        if (example === "-" || example === "—") example = "";
-        if (!english) return;
-        // 同時認得英文標籤（Theme / Sentence Pattern / Word）與中文標籤（主題情境 / 目標句型 / 目標單字）
-        if (type.includes("theme") || type.includes("主題")) {
-            theme = english + (chinese ? "（" + chinese + "）" : "");
-        } else if (type.includes("sentence") || type.includes("pattern") || type.includes("句型")) {
-            patterns.push({ english, chinese, example });
-        } else if (type.includes("word") || type.includes("單字")) {
-            words.push({ english, chinese, example });
-        }
-    });
-    if (!patterns.length && !words.length) return null;
-    return { theme, patterns, words };
-}
-
-function describeMaterial(m) {
-    const t = m.theme ? "主題「" + (m.theme.length > 24 ? m.theme.slice(0, 24) + "…" : m.theme) + "」、" : "";
-    return t + m.patterns.length + " 個句型、" + m.words.length + " 個單字";
-}
-
-// 自訂教材 → 完整 lesson 物件（單堂約 16 分鐘，四階段）
-function buildLessonFromMaterial(m, student) {
-    const themeLine = m.theme || "today's textbook unit";
-    return {
-        student: student,
-        unit: m.theme || "自訂教材",
-        stages: [
-            { label: "開場暖身", minutes: 2,
-              goal: "Greet the student warmly BY NAME, make light small talk with ONE simple question (use their interests if any), then tell them in simple terms what today is about: " + themeLine + "." },
-            { label: "句型", minutes: 4,
-              goal: "Teach today's target sentence patterns ONE at a time: say it, explain what it means and when to use it, give the example, then have the student repeat. Wait after each.",
-              items: m.patterns },
-            { label: "單字與練習", minutes: 8,
-              goal: "Teach today's words ONE at a time: say it, call show_image for concrete nouns, give the Traditional Chinese meaning, have the student repeat, then call log_vocabulary. After a few words, drill the patterns by swapping these words in. " +
-                    "Before the stage ends, get the student to say something of their OWN with today's pattern — their real answer or opinion, not a repeat. Then judge it and let them hear the correct full sentence: " +
-                    "Chinese answer → give them the English and have them say it; mistakes → restate correctly and have them try again; correct → say so and why, then ask for one more.",
-              items: m.words,
-              activity: "Role-play a natural everyday scene that fits today's theme, using the patterns and words. The student speaks the target lines; if they freeze, feed the line in Chinese first, then let them say it in English. Swap roles once so the student also answers." },
-            { label: "總結", minutes: 2,
-              goal: "Wrap up in simple terms (Traditional Chinese is fine): remind them of today's main pattern, praise ONE specific thing they did well, and say goodbye warmly." }
-        ]
-    };
 }
 
 // ---------------- 課本單元庫（units.json → 自動展開成 5 天課表） ----------------
@@ -906,9 +840,6 @@ async function readSelectedUnit() {
         const u = findUnit(bookSel.value, num);
         if (!u) return;
         updateCurrentPerson({ unit: { book: bookSel.value, num } });   // 單元記在人員身上
-        localStorage.removeItem(MATERIAL_KEY);   // 與「貼上教材」互斥，避免兩個來源打架
-        const mStatus = document.getElementById('materialStatus');
-        if (mStatus) mStatus.textContent = "";
         status.style.color = "#4af626";
         status.textContent = `✅ ${currentPersonName()} 已套用：${bookSel.value} Unit ${num} ${u.title}。下次按「開始連線」生效。`;
         if (window.refreshPersonSummary) window.refreshPersonSummary();
@@ -932,69 +863,75 @@ function applyStudentOverride(lesson) {
     return lesson;
 }
 
-// 讀取已儲存的自訂教材，組成今日 lesson（沒有就回 null，讓程式退回 lesson.json）
-function readCustomMaterial() {
-    try {
-        const saved = JSON.parse(localStorage.getItem(MATERIAL_KEY));
-        if (saved && saved.material && (saved.material.patterns.length || saved.material.words.length)) {
-            const p = currentPerson();
-            const student = { name: currentPersonName(), level: p.level, interests: p.interests || [] };
-            return buildLessonFromMaterial(saved.material, student);
+// ---------------- 重置學習紀錄（全部重來） ----------------
+// 清除所有學員的單字紀錄、句子練習與各單元進度（回到第 1 天），
+// 名單、程度、聲音、選定單元保留；有設定同步時把雲端試算表一併清空。
+// 舊資料在別支手機上會於下次同步時回傳雲端，所以每支手機都要各按一次。
+(function initResetRecords() {
+    const button = document.getElementById('resetRecordsBtn');
+    const status = document.getElementById('resetRecordsStatus');
+    if (!button) return;
+    let armed = false;
+    let disarmTimer = null;
+
+    function localWipe() {
+        const doomed = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (/^(vocab_log_v1::|practice_log_v1::|week_progress::)/.test(key)) doomed.push(key);
         }
-    } catch (e) {}
-    return null;
-}
-
-// 自訂教材面板：套用 / 清除 / 載入時回填狀態
-(function initMaterialPanel() {
-    const input = document.getElementById('materialInput');
-    const interestsEl = document.getElementById('studentInterests');
-    const status = document.getElementById('materialStatus');
-    const applyBtn = document.getElementById('applyMaterialBtn');
-    const clearBtn = document.getElementById('clearMaterialBtn');
-    if (!input || !applyBtn) return;
-
-    try {
-        const saved = JSON.parse(localStorage.getItem(MATERIAL_KEY));
-        if (saved && saved.material) {
-            status.style.color = "#4af626";
-            status.textContent = "✅ 目前使用自訂教材：" + describeMaterial(saved.material);
-        }
-    } catch (e) {}
-
-    // 興趣：記在目前人員身上，打字即存
-    if (interestsEl) {
-        window.refreshInterestsForPerson = () => {
-            interestsEl.value = (currentPerson().interests || []).join(", ");
-        };
-        window.refreshInterestsForPerson();
-        interestsEl.addEventListener('input', () => {
-            updateCurrentPerson({
-                interests: interestsEl.value.split(/[,，]/).map(s => s.trim()).filter(Boolean)
-            });
-        });
+        doomed.push("custom_material_v1");   // 已移除的自訂教材殘留一併清掉
+        doomed.forEach(key => localStorage.removeItem(key));
+        return doomed.length;
     }
 
-    applyBtn.addEventListener('click', () => {
-        const m = parseMaterial(input.value);
-        if (!m) {
-            status.style.color = "#ff6b6b";
-            status.textContent = "⚠️ 沒讀到句型或單字。請確認是從 Excel 複製的四欄表格（type/english/chinese/example）。";
+    button.addEventListener('click', async () => {
+        if (!armed) {
+            armed = true;
+            button.textContent = "⚠️ 確定全部清除？再按一次執行";
+            status.textContent = "";
+            if (disarmTimer) clearTimeout(disarmTimer);
+            disarmTimer = setTimeout(() => {
+                armed = false;
+                button.textContent = "🧹 全部重來（需按兩次確認）";
+            }, 6000);
             return;
         }
-        localStorage.setItem(MATERIAL_KEY, JSON.stringify({ material: m }));
-        updateCurrentPerson({ unit: null });   // 與「課本單元」互斥
-        if (window.refreshUnitPickerForPerson) window.refreshUnitPickerForPerson();
-        status.style.color = "#4af626";
-        status.textContent = "✅ 已套用！" + describeMaterial(m) + "。下次按「開始連線」生效。";
+        armed = false;
+        if (disarmTimer) clearTimeout(disarmTimer);
+        button.disabled = true;
+        button.textContent = "清除中…";
+        const removed = localWipe();
+        let cloud = "未設定同步，只清了本機";
+        if (syncConfigured()) {
+            try {
+                await syncCall("wipeRecords");
+                cloud = "雲端試算表已清空";
+            } catch (error) {
+                cloud = "⚠️ 雲端清除失敗：" + error.message +
+                    "（本機已清；請稍後再按一次，或後端還沒部署新版 sync.gs）";
+            }
+        }
+        button.disabled = false;
+        button.textContent = "🧹 全部重來（需按兩次確認）";
+        status.textContent = `✅ 本機已清 ${removed} 筆，${cloud}。`;
+        logSystem(`🧹 學習紀錄已重置：本機 ${removed} 筆，${cloud}。`);
         if (window.refreshPersonSummary) window.refreshPersonSummary();
     });
+})();
 
-    clearBtn.addEventListener('click', () => {
-        localStorage.removeItem(MATERIAL_KEY);
-        input.value = "";
-        status.style.color = "#aaa";
-        status.textContent = "已清除自訂教材，將改用內建的 lesson.json。";
+// 興趣欄位：記在目前人員身上，AI 開場閒聊與造句會用到（自訂教材功能已於 v3.23 移除）
+(function initInterestsField() {
+    const interestsEl = document.getElementById('studentInterests');
+    if (!interestsEl) return;
+    window.refreshInterestsForPerson = () => {
+        interestsEl.value = (currentPerson().interests || []).join(", ");
+    };
+    window.refreshInterestsForPerson();
+    interestsEl.addEventListener('input', () => {
+        updateCurrentPerson({
+            interests: interestsEl.value.split(/[,，]/).map(s => s.trim()).filter(Boolean)
+        });
     });
 })();
 
@@ -1322,7 +1259,6 @@ const LEVEL_LABEL = { 1: "70% 中文", 2: "中英各半", 3: "70% 英文", 4: "�
         if (!summary) return;
         const name = currentPersonName(), p = currentPerson();
         let unitText = "尚未選定單元";
-        try { if (localStorage.getItem(MATERIAL_KEY)) unitText = "自訂教材"; } catch (e) {}
         if (p.unit && p.unit.book) {
             const u = UNITS_DATA ? findUnit(p.unit.book, p.unit.num) : null;
             unitText = `${p.unit.book} Unit ${p.unit.num}${u ? "：" + u.title : ""}`;

@@ -175,7 +175,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.22</div>
+            <div id="appVersion">AI Tutor Studio v3.23</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -272,19 +272,13 @@
              background:#1e1e1e; border:1px solid #3c3c3c; border-radius:6px; padding:10px;
              font-size:12px; line-height:1.6; color:#d4d4d4;"></pre>
     </details>
-    <details id="materialPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
-        <summary style="cursor:pointer; font-weight:bold; color:#4daafc;">📋 自訂教材（貼上課本以外的單元）</summary>
-        <div style="margin-top:10px; font-size:13px; color:#aaa;">
-            從 Excel 選取整張表格（type / english / chinese / example 四欄）複製，貼到下面框裡，按「套用教材」。認得 Theme／Sentence Pattern／Word 三種列，其他列會自動略過。
-        </div>
-        <textarea id="materialInput" placeholder="從 Excel 複製後直接貼上，例如：&#10;Theme&#9;Do you like science?&#9;談論喜歡的科目&#9;-&#10;Sentence Pattern&#9;Do you like ___?&#9;你喜歡…嗎？&#9;Do you like math?&#10;Word (Noun)&#9;science&#9;科學（名詞）&#9;I like science." style="width:100%; box-sizing:border-box; height:120px; margin-top:8px; background:#1e1e1e; color:#d4d4d4; border:1px solid #555; border-radius:4px; padding:8px; font-family:monospace; font-size:12px;"></textarea>
-        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-top:8px;">
+    <div style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
+        <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:center;">
+            <span style="font-weight:bold; color:#4daafc;">🎈 興趣</span>
             <input id="studentInterests" placeholder="目前人員的興趣，逗號分隔（例：恐龍, 腳踏車）" style="background:#3c3c3c;color:#fff;border:1px solid #555;padding:6px 10px;border-radius:4px; flex:1; min-width:200px;">
-            <button id="applyMaterialBtn">套用教材</button>
-            <button id="clearMaterialBtn" style="background:#666;">清除</button>
-            <span id="materialStatus" style="font-size:13px; color:#aaa;"></span>
         </div>
-    </details>
+        <div style="margin-top:6px; font-size:12px; color:#888;">AI 開場閒聊與造句會用到，記在目前選定的人員身上。</div>
+    </div>
     <details id="syncPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#9b59b6;">☁️ 跨手機同步（Google 試算表）</summary>
         <div style="margin-top:10px; font-size:13px; color:#aaa;">
@@ -296,6 +290,16 @@
             <button id="syncNowBtn">🔄 立即同步</button>
         </div>
         <div id="syncStatus" style="margin-top:8px; font-size:13px; color:#aaa;"></div>
+            <div style="margin-top:14px; border-top:1px solid #3c3c3c; padding-top:10px;">
+            <div style="font-weight:bold; color:#e67e22;">🧹 重置學習紀錄</div>
+            <div style="font-size:12px; color:#888; margin:6px 0;">
+                清除「所有學員」的單字紀錄、句子練習與上課進度（回到各單元第 1 天），
+                並清空雲端試算表。學員名單、程度、聲音與選定單元會保留。
+                每支有舊資料的手機都要各按一次，否則舊資料會在下次同步時傳回雲端。
+            </div>
+            <button id="resetRecordsBtn" style="background:#c0392b;">🧹 全部重來（需按兩次確認）</button>
+            <span id="resetRecordsStatus" style="font-size:13px; color:#aaa; margin-left:8px;"></span>
+        </div>
     </details>
     <details id="diagnosticsPanel" style="background:#252526; border:1px solid #3c3c3c; border-radius:8px; margin-bottom:15px; padding:10px 15px;">
         <summary style="cursor:pointer; font-weight:bold; color:#f39c12;">🩺 課堂診斷紀錄</summary>
@@ -353,16 +357,16 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="dom-utils.js?v=20260826a"></script>
-    <script src="student-view.js?v=20260826a"></script>
-    <script src="live-session.js?v=20260826a"></script>
-    <script src="learning-records.js?v=20260826a"></script>
-    <script src="course-progression.js?v=20260826a"></script>
-    <script src="lesson-plan.js?v=20260826a"></script>
-    <script src="stage-transition.js?v=20260826a"></script>
-    <script src="practice-observer.js?v=20260826a"></script>
-    <script src="session-diagnostics.js?v=20260826a"></script>
-    <script src="lesson-ending.js?v=20260826a"></script>
-    <script src="openai-realtime.js?v=20260826a"></script>
-    <script src="app.js?v=20260826a"></script>
+    <script src="dom-utils.js?v=20260826b"></script>
+    <script src="student-view.js?v=20260826b"></script>
+    <script src="live-session.js?v=20260826b"></script>
+    <script src="learning-records.js?v=20260826b"></script>
+    <script src="course-progression.js?v=20260826b"></script>
+    <script src="lesson-plan.js?v=20260826b"></script>
+    <script src="stage-transition.js?v=20260826b"></script>
+    <script src="practice-observer.js?v=20260826b"></script>
+    <script src="session-diagnostics.js?v=20260826b"></script>
+    <script src="lesson-ending.js?v=20260826b"></script>
+    <script src="openai-realtime.js?v=20260826b"></script>
+    <script src="app.js?v=20260826b"></script>
 </body></html>

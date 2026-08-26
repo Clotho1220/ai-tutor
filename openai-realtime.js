@@ -285,7 +285,12 @@
                 type: "conversation.item.create",
                 item: { type: "message", role: "user", content: [{ type: "input_text", text: String(text) }] }
             });
-            if (sent && requestResponse !== false) send({ type: "response.create" });
+            // 回應進行中不能再開一個（伺服器會回 active response in progress，
+            // 2026-08-25 診斷檔一場就出現 8 次）。掛起等 response.done 再補。
+            if (sent && requestResponse !== false) {
+                if (cancellationPending || responseInProgress) responseCreatePending = true;
+                else send({ type: "response.create" });
+            }
             return sent;
         }
 

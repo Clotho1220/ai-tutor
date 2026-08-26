@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
-最後更新：2026-08-24  
-目前版本：v3.21  
+最後更新：2026-08-26  
+目前版本：v3.22  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -77,11 +77,25 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.21`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.22`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - GPT 診斷現在也包含單元名稱、預定時間與課程階段。
 
 ## 3. 最近完成的重要修正
+
+### v3.22
+
+第三輪實測（三場：Gemini×2、GPT×1）的修正：
+
+- **AI 說話時鎖住說話按鈕**（使用者要求）：孩子常在 AI 沒講完就按，把題目攔腰切斷。
+  AI 回合開始即鎖、turn completed 解鎖，30 秒保險絲防卡死。鎖住時按鈕顯示「🔈 老師說話中…」。
+- **嚴格一來一回**：Gemini 每個字都自行加碼「You can say "I watch TV." Try it!」，
+  多出來的回合讓兜底誤推進（一場 7 次）、回報錯位（5 筆被忽略）。系統提示與
+  單字階梯指令都明令：一問一答一句回饋就停，不得追加例句、造句或 Try it。
+- **答對亮出完整卡片**：word_read 答對時從頭到尾看不到圖（第一階刻意只給字練認字），
+  被誤認為圖片壞了。現在項目完成時顯示圖＋英文＋中文當作確認與回饋。
+- **GPT「active response in progress」錯誤 ×8**：sendText 在回應進行中仍直接
+  response.create。改為掛起（responseCreatePending），等 response.done 再補。
 
 ### v3.21
 

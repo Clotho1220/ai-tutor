@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.21";
+const APP_VERSION = "3.22";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -200,6 +200,26 @@ function refreshStudentReturnButton() {
     if (!resumeStudentBtn) return;
     const shouldShow = sessionReady && !document.body.classList.contains('student-mode');
     resumeStudentBtn.classList.toggle('visible', shouldShow);
+}
+
+// AI 說話時鎖住說話按鈕（2026-08-25 實測：孩子常在 AI 還沒講完就按，
+// 把題目攔腰切斷）。解鎖時機：這一輪 turn completed；保險絲 30 秒防止卡死。
+let talkButtonLockTimer = null;
+
+function lockTalkButtonWhileAiSpeaks() {
+    if (isTalking || talkBtn.disabled) return;   // 學生說話中或本來就不可按時不動它
+    talkBtn.disabled = true;
+    talkBtn.textContent = '🔈 老師說話中…';
+    if (talkButtonLockTimer) clearTimeout(talkButtonLockTimer);
+    talkButtonLockTimer = setTimeout(unlockTalkButton, 30000);
+}
+
+function unlockTalkButton() {
+    if (talkButtonLockTimer) clearTimeout(talkButtonLockTimer);
+    talkButtonLockTimer = null;
+    if (!sessionReady || isTalking) return;
+    talkBtn.disabled = false;
+    talkBtn.textContent = '🎙️ 按一下開始說話';
 }
 
 function markSessionReady(provider, options) {
@@ -1020,6 +1040,9 @@ function buildSystemInstruction(lesson) {
           "judge their attempt, give brief feedback, call report_item_result, then STOP and wait for the next note. " +
           "Never invent extra practice, never jump ahead to another word or pattern, never decide on your own that the lesson is over. " +
           "If the learner asks something off-topic, answer briefly and warmly, then return to the current item. " +
+          "STRICT TURN-TAKING: one question from you, ONE answer from the learner, one short feedback sentence, report, stop. " +
+          "Never add bonus drills the note did not ask for — no extra example sentences, no 'You can say ...', no 'Try it!' invitations. " +
+          "Those extras stall the lesson: the next note cannot arrive until you stop talking. " +
           "The screen (picture, English word, Chinese meaning) is controlled by the lesson system, not by you: " +
           "do NOT call show_image during plan items, and never read out loud anything the note says is still hidden from the learner — " +
           "the hint ladder only works if each hint appears exactly when the note says so. "
@@ -1576,6 +1599,7 @@ async function startOpenAISession() {
                 if (detail.final) {
                     beginTrackedAiTurn();
                     aiTurnActive = true;
+                    lockTalkButtonWhileAiSpeaks();
                     if (!openaiAiTranscriptStarted) {
                         studentView.beginTranscriptTurn();
                         studentView.appendTranscript(detail.text);
@@ -1591,6 +1615,7 @@ async function startOpenAISession() {
                 if (!openaiAiTranscriptStarted) {
                     beginTrackedAiTurn();
                     aiTurnActive = true;
+                    lockTalkButtonWhileAiSpeaks();
                     studentView.beginTranscriptTurn();
                     openaiAiTranscriptStarted = true;
                 }
@@ -2384,6 +2409,7 @@ function completeTrackedAiTurn(provider) {
     isNewAiTurn = true;
     isNewUserTurn = true;
     aiTurnActive = false;
+    unlockTalkButton();
     dropStaleAudio = false;
     aiTurnTrackingStarted = false;
     activeAiResponseStudentGeneration = null;
@@ -2580,6 +2606,18 @@ function advancePlan(outcome, source) {
         advanced: !!result.advanced, attempts: result.attempts || null
     });
     if (result.advanced) {
+        // 單字項目完成：亮出完整卡片（圖＋英文＋中文）當作確認。
+        // word_read 答對時從頭到尾沒出現過圖（第一階刻意只給字），
+        // 實測家長會以為圖片壞了；答對後看到圖也是對孩子的回饋。
+        const done = result.item;
+        if (done && /^word_/.test(done.type)) {
+            studentView.showCard({
+                imageUrl: done.image ? "images/" + done.image : "",
+                word: done.display || done.target,
+                meaning: done.meaning,
+                icon: "✅"
+            });
+        }
         sendCurrentPlanItem();
         return;
     }
@@ -3058,6 +3096,7 @@ function handleServerMessage(response, socket, socketToken) {
     if (sc.modelTurn && sc.modelTurn.parts) {
         pendingDirectorNote = null; // AI 已開始回應，導演指令確定送達
         aiTurnActive = true;
+        lockTalkButtonWhileAiSpeaks();
         if (!dropStaleAudio && !suppressAudioAfterFarewell && !suppressAudioAfterPractice) {
             beginTrackedAiTurn();
             for (const part of sc.modelTurn.parts) {

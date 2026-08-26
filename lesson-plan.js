@@ -108,7 +108,7 @@
         return [
             { reveal: { image: true },
               instruction: "只給圖，用英文問「" + askQuestionFor(word) +
-                  "」，然後停下來等學員用英文回答。" },
+                  "」，然後停下來等學員用英文回答。答對就簡短稱讚並回報，不要追加例句或造句。" },
             { reveal: { image: true, chinese: true },
               instruction: "學員答不出來。把中文意思顯示出來並唸出中文，" +
                   "問他這個東西的英文怎麼說，然後等他回答。" },
@@ -129,7 +129,8 @@
         return [
             { reveal: { english: true },
               instruction: "只顯示這個英文單字，不給圖也不給中文。" +
-                  "請學員把這個字唸出來，並說出它的中文意思，然後等他回答。" },
+                  "請學員把這個字唸出來，並說出它的中文意思，然後等他回答。" +
+                  "答對就簡短稱讚並回報，不要追加例句或造句。" },
             { reveal: { english: true, image: true },
               instruction: "他認不出來。把圖顯示出來當提示，再問他一次這個字怎麼唸、是什麼意思。" },
             { reveal: { english: true, image: true, chinese: true },

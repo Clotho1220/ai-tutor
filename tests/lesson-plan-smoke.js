@@ -249,6 +249,16 @@
             /PLAN MODE \(highest priority\)/.test(appSource));
         check("the model is told the screen is system-controlled",
             /do NOT call show_image during plan items/.test(appSource));
+        // 2026-08-25 實測修正
+        check("the talk button locks while the AI is speaking",
+            /lockTalkButtonWhileAiSpeaks/.test(appSource) && /unlockTalkButton\(\)/.test(appSource));
+        check("the model is forbidden from adding bonus drills",
+            /Never add bonus drills/.test(appSource));
+        check("finishing a word item shows the full card as confirmation",
+            /\/\^word_\/\.test\(done\.type\)/.test(appSource));
+        const openaiSource = await fetch('../openai-realtime.js?lesson-plan-test=' + Date.now()).then(r => r.text());
+        check("directives never open a response while one is in progress (GPT)",
+            /if \(cancellationPending \|\| responseInProgress\) responseCreatePending = true;/.test(openaiSource));
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",

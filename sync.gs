@@ -11,7 +11,12 @@
  * 請把 SECRET 改成你自己的一串字，並在 App 的「⚙️ 設定」填一樣的值。
  */
 
-const SECRET = '請改成你自己的通關密語';   // ← 務必修改，並與 App 設定一致
+// 通關密語優先讀「指令碼屬性」的 SYNC_SECRET（專案設定 → 指令碼屬性）。
+// 放屬性裡的話，之後貼新版 sync.gs 都不會把密語蓋掉（2026-08-28 就發生過：
+// 貼新版把自訂密語還原成佔位字，全部手機瞬間連不上）。
+// 沒設定屬性時才用下面這行的值。
+const SECRET = PropertiesService.getScriptProperties().getProperty('SYNC_SECRET')
+  || '請改成你自己的通關密語';   // ← 與 App 設定頁「通關密語」一致
 
 // 三個工作表：vocab（單字）、practice（句子練習）、state（設定與進度）
 const VOCAB_SHEET = 'vocab';

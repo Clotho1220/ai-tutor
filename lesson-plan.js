@@ -287,8 +287,8 @@
             type: "opening",
             maxAttempts: 1,
             ladder: [{ reveal: {},
-                instruction: "先說明目前上到哪個單元、第幾天、之前學過什麼，" +
-                    "再用一句話說今天要做什麼，最後問學員準備好了嗎，然後停下來等回答。" +
+                instruction: "開場白：先說上一次學了哪些東西，再說今天會學什麼，" +
+                    "最後用英文問「Are you ready?」，然後結束回合等待回答。" +
                     "聽到回應後也不要自己開始教任何單字或句型——下一個指令會告訴你第一個項目是什麼。" }]
         }));
 
@@ -358,7 +358,8 @@
             type: "closing",
             maxAttempts: 1,
             ladder: [{ reveal: {},
-                instruction: "用簡單的話回顧今天練了什麼、稱讚一件具體做得好的事，然後道別。" }]
+                instruction: "結尾：用簡單的話說今天學到了哪些單字和句子，" +
+                    "稱讚一件具體做得好的事，然後說「我們下次再見囉, bye bye!」道別。" }]
         }));
 
         const counts = items.reduce((acc, item) => {

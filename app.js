@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.24";
+const APP_VERSION = "3.25";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -906,10 +906,18 @@ function applyStudentOverride(lesson) {
         if (syncConfigured()) {
             try {
                 await syncCall("wipeRecords");
-                cloud = "雲端試算表已清空";
+                // 清完立刻拉一次驗證。若後端是舊版 sync.gs，上面早就丟錯了；
+                // 這裡是確認雲端真的空了，避免下次同步把舊資料帶回來。
+                const remote = await syncCall("pull");
+                const leftover = ((remote && remote.vocab) || []).length +
+                    ((remote && remote.practice) || []).length;
+                cloud = leftover === 0
+                    ? "雲端試算表已清空並驗證"
+                    : `⚠️ 雲端仍殘留 ${leftover} 筆（可能有另一支手機同時在同步）`;
             } catch (error) {
                 cloud = "⚠️ 雲端清除失敗：" + error.message +
-                    "（本機已清；請稍後再按一次，或後端還沒部署新版 sync.gs）";
+                    "。本機已清，但下次同步會把雲端的舊資料帶回來——" +
+                    "請先重新部署新版 sync.gs（部署 → 管理部署作業 → 編輯 → 新版本），再按一次本按鈕";
             }
         }
         button.disabled = false;
@@ -957,7 +965,9 @@ function readLevelOverride(lessonLevel) {
 // 過去只掛在 GPT 前面，Gemini 拿不到「示範後立刻停」「同一句型不得連續操練」這些硬規則，
 // 兩邊行為因此對不齊。放進 buildSystemInstruction 之後，任何模型都一定拿得到同一份。
 const TURN_CONTRACT =
-    "TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, then WAIT. " +
+    "TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, " +
+    "then END YOUR TURN and wait in silence. Finishing cleanly and waiting quietly is part of good teaching — " +
+    "never fill the silence by repeating yourself. " +
     "If you translate, correct, model a sentence, or ask the learner to repeat, STOP immediately after that invitation. " +
     "Never ask the learner to practise one sentence family more than TWICE in a session; changing only the subject or name is still the SAME family. After one successful attempt, choose a different target, situation, or open response. " +
     "Never combine practice instructions with the next lesson topic. Obey DIRECTOR NOTE messages silently; never quote or discuss them. " +
@@ -977,16 +987,22 @@ function buildSystemInstruction(lesson) {
           "judge their attempt, give brief feedback, call report_item_result, then STOP and wait for the next note. " +
           "Never invent extra practice, never jump ahead to another word or pattern, never decide on your own that the lesson is over. " +
           "If the learner asks something off-topic, answer briefly and warmly, then return to the current item. " +
-          "STRICT TURN-TAKING: one question from you, ONE answer from the learner, one short feedback sentence, report, stop. " +
+          "STRICT TURN-TAKING: one question from you, ONE answer from the learner, ONE short feedback sentence, " +
+          "report, then END your turn and wait in silence for the next note. " +
           "Never add bonus drills the note did not ask for — no extra example sentences, no 'You can say ...', no 'Try it!' invitations. " +
-          "Those extras stall the lesson: the next note cannot arrive until you stop talking. " +
+          "Those extras stall the lesson: the next note cannot arrive until you finish your turn. " +
           "The screen (picture, English word, Chinese meaning) is controlled by the lesson system, not by you: " +
           "do NOT call show_image during plan items, and never read out loud anything the note says is still hidden from the learner — " +
           "the hint ladder only works if each hint appears exactly when the note says so. "
         : "";
     return planContract + TURN_CONTRACT + (adult
             ? "You are a skilled, personable English conversation tutor in a LIVE VOICE session with ONE adult learner. Treat them as an intelligent peer who simply wants to get better at English. "
-            : "You are a friendly English tutor in a LIVE VOICE conversation with ONE student. ") +
+            : "You are a patient, warm-hearted English tutor in a LIVE VOICE conversation with ONE young child. " +
+              "Give the child real emotional support: encourage generously, never scold or sound disappointed, " +
+              "and make every attempt — right or wrong — feel safe and worth celebrating. " +
+              "PURPOSE: every exchange exists to make the child SPEAK the course material out loud. " +
+              "You listen, judge pronunciation and sentence structure, correct gently, and have them try again — " +
+              "the SAME word or sentence is corrected at most TWICE, then you encourage and move on. ") +
         (adult
             ? `STUDENT PROFILE: ${st.name || "the learner"}, an adult Mandarin speaker practising conversational English, level ${level} of 5. `
             : `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${level} of 5. `) +
@@ -1014,17 +1030,17 @@ function buildSystemInstruction(lesson) {
               "Skip childish praise — no 'good job!' after every sentence. Respond to the CONTENT of what they said like a real conversation partner, and keep the register adult. " +
               "(d) PRODUCTION PRACTICE — this is the core of the session, not an optional extra: keep pushing them to express their OWN opinions and reasoning in English, at length, in their own words. " +
               "After each substantial turn, give a short concrete assessment before moving on: say what worked, give the natural phrasing for the one error most worth fixing, and where useful offer a more idiomatic alternative. Then ask a follow-up that makes them elaborate. "
-            : "(a) Say at most TWO short sentences per turn, then stop. Waiting silently is part of teaching. " +
-              "(b) Ask at most ONE short question, then STOP and wait for the student's real reply. " +
-              "(c) RECAST RULE — after the student replies, model good English based on what they actually said: " +
-              "if they replied in CHINESE, praise briefly, then show them how to say it in simple English and have them repeat (e.g. student says 「我很好！」 → say: Good! And you can say: \"I am fine!\" Try it!); " +
-              "if they replied in ENGLISH with mistakes, never say 'wrong': acknowledge their meaning, naturally restate the corrected sentence, and invite them to try once more; " +
-              "if their English was already CORRECT, praise them — and at most TWICE per lesson, also show ONE alternative way to say the same thing (e.g. Great! You can also say: \"I'm doing great!\"). After you have done this twice in a lesson, just praise and move on. " +
-              "REPEAT ATTEMPT RULE: when the student's message is their attempt to repeat the sentence you just modelled, evaluate ONLY that attempt. If it is understandable, acknowledge it briefly and do NOT offer another alternative or start another repetition chain. If there is a major error, correct it once, slowly, then wait. " +
-              "(d) PRODUCTION PRACTICE — the most important part of every lesson: do not let the student only repeat after you. Several times per lesson, get them to build their OWN sentence — ask what they think, what they like, which one they would choose, what they would do. " +
-              "Then judge what they actually produced and always let them hear the correct full sentence: if they answered in Chinese, say the English sentence for them slowly and have them say it themselves; " +
-              "if their English had a mistake, give the corrected sentence naturally (never say 'wrong') and have them try once more; if it was correct, tell them clearly that it was right, say in a few words what made it good, then invite one more sentence. " +
-              "A young learner should finish every lesson having spoken several sentences that they built themselves. ") +
+            : "(a) GUIDE: follow the lesson material and prompt the child to produce the target — " +
+              "at most TWO short sentences, ONE question, then END your turn and wait in silence for their answer. " +
+              "(b) JUDGE: when they answer, decide whether it is correct and clearly pronounced. " +
+              "An answer in Chinese still counts as a real attempt — show them the English and let them say it. " +
+              "When their message is a repeat of the sentence you just modelled, judge ONLY that attempt; " +
+              "if it is understandable, acknowledge it briefly and never start another repetition chain. " +
+              "(c) CORRECT: if it is off, never say 'wrong'. Gently point out what to fix, demonstrate the correct version ONCE, " +
+              "invite them to try again, then end your turn. The same word or sentence gets at most TWO corrections — " +
+              "after the second, encourage them warmly and move on whatever happens. " +
+              "(d) PRAISE & ADVANCE: if it is correct, give ONE sentence of warm, specific praise " +
+              "(name what they did well — a sound, a word, a whole sentence), then move to the next item. ") +
         "STRICT RULES: " +
         "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them SILENTLY. " +
@@ -2570,10 +2586,11 @@ function sendCurrentPlanItem() {
         index: progress.index, total: progress.total, attempt: progress.attempts + 1
     });
     logSystem(`🗒️ [${progress.index + 1}/${progress.total}] ${item.type}${item.target ? "：" + item.target : ""}`);
+    // 指令只帶這一項的內容。通用規則（只做這一件事、做完回報、結束回合等待）
+    // 已寫在系統提示的 PLAN MODE 合約裡，不在每個項目重複——
+    // 一字不差的尾巴每堂出現 9 次以上，重複的上下文會誘發模型跳針（2026-08-27 實測）。
     queuePlanDirective({
-        body: window.LessonPlan.itemDirective(item, progress) +
-            " 只做這一件事，做完就停下來等待，不要自己接著做下一項。" +
-            "（判斷完學員的嘗試後，記得立刻悄悄呼叫 report_item_result 回報結果。）",
+        body: window.LessonPlan.itemDirective(item, progress),
         item, attempts: progress.attempts
     });
 }
@@ -2607,8 +2624,7 @@ function advancePlan(outcome, source) {
     // 揭露層級（圖、中文、英文）跟著嘗試次數升級，指示也換成那一階的做法。
     logSystem(`🔁 同一項升到第 ${result.attempts + 1} 階（共 ${before.maxAttempts} 階）。`);
     queuePlanDirective({
-        body: window.LessonPlan.itemDirective(before, planRunner.progress()) +
-            " 只做這一件事，做完就停下來等待。",
+        body: window.LessonPlan.itemDirective(before, planRunner.progress()),
         item: before, attempts: result.attempts
     });
 }

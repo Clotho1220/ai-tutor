@@ -244,7 +244,7 @@
         check("finishing the plan ends the lesson",
             /plan_completed/.test(appSource) && /scheduleLessonCompletion\(\)/.test(appSource));
         check("the closing item tells the ending guard this farewell is real",
-            /closingStageActive = item\.type === "closing"/.test(appSource));
+            /closingStageActive = !!\(payload\.item && payload\.item\.type === "closing"\)/.test(appSource));
         check("the model is told it may only perform one given item",
             /PLAN MODE \(highest priority\)/.test(appSource));
         check("the model is told the screen is system-controlled",
@@ -259,6 +259,15 @@
         const openaiSource = await fetch('../openai-realtime.js?lesson-plan-test=' + Date.now()).then(r => r.text());
         check("directives never open a response while one is in progress (GPT)",
             /if \(cancellationPending \|\| responseInProgress\) responseCreatePending = true;/.test(openaiSource));
+        // 2026-08-27 實測修正
+        check("the closing flag is raised only when the closing directive is delivered",
+            /closingStageActive = !!\(payload\.item && payload\.item\.type === "closing"\)/.test(appSource) &&
+            !/^\s*closingStageActive = item\.type === "closing";/m.test(appSource));
+        check("repetition loops are detected and cut",
+            /detectRepetitionLoop/.test(appSource) &&
+            /checkAiRepetitionLoop\(\)/.test(appSource) && /ai_repetition_loop/.test(appSource));
+        check("loop recovery re-sends the current item at most a few times",
+            /repetitionCutCount <= 3/.test(appSource));
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",

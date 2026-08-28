@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.23";
+const APP_VERSION = "3.24";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1557,6 +1557,7 @@ async function startOpenAISession() {
                 }
                 studentView.appendTranscript(detail.text);
                 currentAiTurnTranscript += detail.text;
+                checkAiRepetitionLoop();
                 lessonEndingGuard.observe(detail.text);
                 practiceTurnBoundary.observe(detail.text);
             },
@@ -1636,6 +1637,7 @@ async function startSession() {
     planRunner = null;                  // 計畫執行器由 preparePlanRunner 重建
     planItemReported = false;
     pendingPlanDirective = null; planItemSentGeneration = -1;
+    repetitionCutThisTurn = false; repetitionCutCount = 0;
     farewellRecoveryCount = 0;          // 早退復原次數逐堂重算
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
@@ -2345,6 +2347,7 @@ function completeTrackedAiTurn(provider) {
     isNewAiTurn = true;
     isNewUserTurn = true;
     aiTurnActive = false;
+    repetitionCutThisTurn = false;
     unlockTalkButton();
     dropStaleAudio = false;
     aiTurnTrackingStarted = false;
@@ -2476,6 +2479,47 @@ function applyPlanReveal(item, attempts) {
     });
 }
 
+// ---- 跳針偵測 ----
+// 原生音訊模型偶爾會鬼打牆：同一句連續重複幾十遍（2026-08-27 兩場實測，
+// 一次 28 秒 1000 多字）。模型端擋不了，但逐字稿看得出來：
+// 同一段文字（8 字以上）連續出現 4 次就切掉這一輪的語音，
+// 並立刻重送目前項目的指令——新的輸入會讓 Gemini 中止正在跳針的生成。
+// 門檻取 4 是為了不誤殺正常的重複（例如拼字示範會連唸三次 s-w-i-m）；
+// 實測的跳針都是十幾二十遍起跳。
+let repetitionCutThisTurn = false;
+let repetitionCutCount = 0;
+
+function detectRepetitionLoop(transcript) {
+    const tail = String(transcript || "").slice(-400);
+    if (tail.length < 60) return false;
+    return /(.{8,80}?){3}/s.test(tail);
+}
+
+function checkAiRepetitionLoop() {
+    if (repetitionCutThisTurn || !aiTurnActive) return;
+    if (!detectRepetitionLoop(currentAiTurnTranscript)) return;
+    repetitionCutThisTurn = true;
+    repetitionCutCount += 1;
+    sessionDiagnostics.record("ai_repetition_loop", {
+        transcriptLength: currentAiTurnTranscript.length, cutsThisSession: repetitionCutCount
+    });
+    logSystem("🔂 偵測到 AI 跳針（同一句連續重複），已切斷這一輪。");
+    stopAllPlayback();
+    dropStaleAudio = true;
+    // 連續切太多次代表模型狀態不對，別再火上加油
+    if (planDriving() && planRunner && !planRunner.isFinished() && repetitionCutCount <= 3
+        && !openaiSessionActive) {
+        const item = planRunner.current();
+        const progress = planRunner.progress();
+        pendingPlanDirective = null;
+        deliverPlanDirective({
+            body: "你剛才的回應卡住重複了，停下來深呼吸。回到目前的項目，重新進行一次：" +
+                window.LessonPlan.itemDirective(item, progress),
+            item, attempts: progress.attempts
+        });
+    }
+}
+
 // ---- 導演指令的排隊 ----
 // 指令一旦送出，Gemini 會把它當成新的一輪輸入而中斷手上的語音。
 // 實測（2026-08-24 診斷檔）立刻送會發生兩種災難：
@@ -2488,6 +2532,10 @@ let planItemSentGeneration = -1;    // 指令「實際送出」時的學生回�
 function deliverPlanDirective(payload) {
     applyPlanReveal(payload.item, payload.attempts);
     planItemSentGeneration = studentTurnGeneration;
+    // 正式下課旗標要等結尾指令「實際送出」才立。v3.20 加指令排隊後，
+    // 排隊當下就立旗標會讓下課守衛把前一輪的回饋語音當成告別，
+    // AI 還沒說再見就被斷線（2026-08-27 兩場實測都是這樣結束的）。
+    closingStageActive = !!(payload.item && payload.item.type === "closing");
     sendPlanDirective(payload.body);
 }
 
@@ -2516,8 +2564,6 @@ function sendCurrentPlanItem() {
     const item = planRunner.current();
     const progress = planRunner.progress();
     planItemReported = false;
-    // 結尾項目要讓下課守衛知道，這時候的道別是正式的
-    closingStageActive = item.type === "closing";
     stageIndicator.textContent = `🗒️ 項目 ${progress.index + 1}/${progress.total}：${item.type}`;
     sessionDiagnostics.record("plan_item_sent", {
         id: item.id, type: item.type, target: item.target || "",
@@ -2981,6 +3027,7 @@ function handleServerMessage(response, socket, socketToken) {
             responseToTurn: activeAiResponseStudentGeneration
         });
         currentAiTurnTranscript += sc.outputTranscription.text;
+        checkAiRepetitionLoop();
         appendText(aiSpeechBox, sc.outputTranscription.text);   // 除錯面板保留全文，方便你追問題
         aiSpeechBox.scrollTop = aiSpeechBox.scrollHeight;
 

@@ -268,6 +268,16 @@
             /checkAiRepetitionLoop\(\)/.test(appSource) && /ai_repetition_loop/.test(appSource));
         check("loop recovery re-sends the current item at most a few times",
             /repetitionCutCount <= 3/.test(appSource));
+        // 2026-08-28 實測修正
+        check("substitute items show the swapped word on screen",
+            subs[0].display && subs[0].meaning &&
+            subs[0].ladder[0].reveal.english && subs[0].ladder[0].reveal.chinese);
+        check("plan mode never suppresses audio at practice boundaries",
+            /practiceJustDetected\.detected && !planDriving\(\)/.test(appSource));
+        check("the fallback waits when the AI just asked for a retry",
+            /else if \(!practiceRequested\) planFallbackAfterTurn/.test(appSource));
+        check("the GPT talk button unlocks only after audio really stops",
+            /provider === 'openai' && openaiRealtime && openaiRealtime\.isSpeaking\(\)/.test(appSource));
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",

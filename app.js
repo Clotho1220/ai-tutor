@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.25";
+const APP_VERSION = "3.26";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1040,7 +1040,9 @@ function buildSystemInstruction(lesson) {
               "invite them to try again, then end your turn. The same word or sentence gets at most TWO corrections — " +
               "after the second, encourage them warmly and move on whatever happens. " +
               "(d) PRAISE & ADVANCE: if it is correct, give ONE sentence of warm, specific praise " +
-              "(name what they did well — a sound, a word, a whole sentence), then move to the next item. ") +
+              "(name what they did well — a sound, a word, a whole sentence), then move to the next item. " +
+              "VARY your praise: never use the same praise phrase twice in a row — " +
+              "rotate naturally between things like 太棒了 / Very good / 你唸得好清楚 / Great job / 好厲害. ") +
         "STRICT RULES: " +
         "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
         "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them SILENTLY. " +
@@ -1530,6 +1532,10 @@ async function startOpenAISession() {
             },
             onOutputAudioStopped() {
                 handleClosingAudioStopped();   // 結語播完才真正下課
+                // GPT 的 turn completed 只代表生成完畢、語音還在播；
+                // 按鈕等播放真的結束才解鎖，否則孩子會在 AI 講到一半時按下說話把它切斷
+                //（2026-08-28 實測的 truncate 錯誤與「句子沒說完就卡住」都是這樣來的）。
+                unlockTalkButton();
             },
             onAudioRoute(detail) {
                 sessionDiagnostics.record("openai_audio_route", detail);
@@ -2364,7 +2370,8 @@ function completeTrackedAiTurn(provider) {
     isNewUserTurn = true;
     aiTurnActive = false;
     repetitionCutThisTurn = false;
-    unlockTalkButton();
+    // GPT 的語音在 turn completed 之後通常還在播，等 onOutputAudioStopped 再解鎖
+    if (!(provider === 'openai' && openaiRealtime && openaiRealtime.isSpeaking())) unlockTalkButton();
     dropStaleAudio = false;
     aiTurnTrackingStarted = false;
     activeAiResponseStudentGeneration = null;
@@ -2388,7 +2395,10 @@ function completeTrackedAiTurn(provider) {
     // 計畫模式由計畫本身推進，不走時間排程的階段切換
     if (planDriving()) {
         if (endingAction === "finish") scheduleLessonCompletion();
-        else planFallbackAfterTurn(completesCurrentStudentTurn, completedStudentGeneration);
+        // AI 這一輪若剛邀請學員再練一次（糾正後的重試），先不要兜底推進，
+        // 等孩子真的練了那一次再算——否則會發生「叫他再唸一次，下一秒卻跳下一個字」
+        //（2026-08-28 GPT 實測）。
+        else if (!practiceRequested) planFallbackAfterTurn(completesCurrentStudentTurn, completedStudentGeneration);
         // AI 這一輪講完了，排隊中的指令現在送才不會切斷語音
         flushPendingPlanDirective();
         return observedFeedback;
@@ -3053,7 +3063,10 @@ function handleServerMessage(response, socket, socketToken) {
         const transcriptCandidate = transcriptBefore + sc.outputTranscription.text;
         farewellJustDetected = lessonEndingGuard.observe(sc.outputTranscription.text);
         practiceJustDetected = practiceTurnBoundary.observe(sc.outputTranscription.text);
-        if (practiceJustDetected.detected) {
+        // 計畫模式不做音訊截斷：這個機制是為舊流程設計的（模型邀請複誦後又自己接下一題），
+        // 計畫模式的指令本來就會在「試試看」之後繼續說明，截斷會讓孩子只聽到前半句就沒聲音
+        //（2026-08-28 實測「句子練習講到一半卡住」的元凶）。偵測仍保留給遵從率統計用。
+        if (practiceJustDetected.detected && !planDriving()) {
             sessionDiagnostics.record("practice_turn_boundary_detected", {
                 phrase: practiceJustDetected.phrase,
                 responseToTurn: activeAiResponseStudentGeneration
@@ -3119,7 +3132,7 @@ function handleServerMessage(response, socket, socketToken) {
     // 同一個伺服器事件裡的音訊通常包含剛辨識到的結語，允許它播完；
     // 從下一個事件起才丟棄模型接著生成的問題。
     if (farewellJustDetected && farewellJustDetected.detected) suppressAudioAfterFarewell = true;
-    if (practiceJustDetected && practiceJustDetected.detected) suppressAudioAfterPractice = true;
+    if (practiceJustDetected && practiceJustDetected.detected && !planDriving()) suppressAudioAfterPractice = true;
 
     if (sc.turnComplete) {
         completeTrackedAiTurn("gemini");

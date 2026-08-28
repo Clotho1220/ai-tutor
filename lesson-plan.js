@@ -158,8 +158,10 @@
 
     // 句型代換與對答：原本 + 糾正兩次（使用者要求最多糾正 2 次）
     function sentenceLadder(kind) {
-        // 對答題有情境圖就全程顯示——答案是看圖決定的
-        const reveal = kind === "respond" ? { image: true } : {};
+        // 對答題有情境圖就全程顯示——答案是看圖決定的。
+        // 代換題顯示要代換的單字（英文＋中文）：句子結構才是這題要考的，
+        // 單字給出來是合理的鷹架；全空白的畫面實測會讓孩子不知道現在在幹嘛。
+        const reveal = kind === "respond" ? { image: true } : { english: true, chinese: true };
         const first = kind === "respond"
             ? "扮演提問的人，用英文把這個問題問出來，請學員用英文回答，然後等他回答。"
             : "用中文把整句說出來，請學員試著用英文說出來，然後等他說。";
@@ -242,6 +244,9 @@
             patternNote: text(pattern.chinese),
             slotWord: text(word.english),
             slotMeaning: text(word.chinese),
+            // 畫面顯示用：代換的字與中文（revealFor 讀 display / meaning）
+            display: bareWord(word.english),
+            meaning: text(word.chinese),
             // 句型有 [空格] 時程式填得出來，第 2 冊的「...」型就留給模型
             target: fillSlot(parts.ask, word) || fillSlot(parts.statements[0], word),
             ladder: sentenceLadder("substitute")

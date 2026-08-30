@@ -232,7 +232,7 @@
             /queuePlanDirective\(\{\s*body: window\.LessonPlan\.itemDirective\(before/.test(appSource));
         // 2026-08-24 實測修正：指令不能在 AI 講話或學生說話時硬送
         check("directives queue while the AI or the student is speaking",
-            /if \(aiTurnActive \|\| isTalking\) \{ pendingPlanDirective = payload; return; \}/.test(appSource) &&
+            /if \(deferPlanDirective \|\| aiTurnActive \|\| isTalking\) \{ pendingPlanDirective = payload; return; \}/.test(appSource) &&
             /flushPendingPlanDirective\(\)/.test(appSource));
         check("exchanges that began before the item was sent never count against it",
             /completedGeneration <= planItemSentGeneration/.test(appSource) &&
@@ -286,6 +286,17 @@
             /armOpenaiSilenceWatchdog/.test(appSource) && /openai_silence_detected/.test(appSource));
         check("tool results never open a response while one is in progress (GPT)",
             (openaiSource.match(/if \(cancellationPending \|\| responseInProgress\) responseCreatePending = true;/g) || []).length >= 2);
+        // 2026-08-30 實測修正
+        check("the Chinese meaning stays out of the directive until revealed",
+            LP.itemDirective(readItem, { index: 1, total: 9, attempts: 0 }).indexOf(readItem.meaning) < 0 &&
+            LP.itemDirective(readItem, { index: 1, total: 9, attempts: 2 }).indexOf(readItem.meaning) >= 0);
+        check("early word steps forbid speaking the hidden parts",
+            LP.itemDirective(wordItem, { index: 1, total: 9, attempts: 0 }).indexOf("絕對不要說出") >= 0);
+        check("tool results are sent before the next directive (GPT)",
+            /deferPlanDirective = true;/.test(appSource) &&
+            /openaiRealtime\.sendToolResult\(detail\.callId, result, !pendingPlanDirective\)/.test(appSource));
+        check("a director-note leak on GPT is muted and hidden",
+            /director_note_leak_detected/.test(appSource) && /openaiLeakMuted = true;/.test(appSource));
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",

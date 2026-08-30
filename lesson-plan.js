@@ -540,15 +540,25 @@
             : "";
 
         const bits = [position, text(step.instruction)];
+        const revealNow = (step && step.reveal) || {};
         if (item.type === "word_spell") {
             bits.push(` 目標單字：「${item.display || item.target}」`,
                 item.meaning ? `，中文是「${item.meaning}」` : "",
                 `。正確拼法是「${item.letters}」，判斷與示範都以此為準。`);
             bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
         } else if (item.type === "word_image" || item.type === "word_read") {
-            bits.push(` 目標單字：「${item.display || item.target}」`,
-                item.meaning ? `，中文是「${item.meaning}」` : "", "。");
-            if (item.example) bits.push(` 例句：${item.example}。`);
+            bits.push(` 目標單字：「${item.display || item.target}」`);
+            // 該藏的資訊不放進指令：中文意思只在「已揭露中文」的階段才給模型。
+            // 之前一邊叫模型別說中文、一邊把「中文是你好」塞在指令裡，
+            // 2026-08-30 實測模型一開口就先把中文講掉，認字練習整個作廢。
+            if (revealNow.chinese && item.meaning) bits.push(`，中文是「${item.meaning}」`);
+            bits.push("。");
+            if (revealNow.english && item.example) bits.push(` 例句：${item.example}。`);
+            const hidden = [];
+            if (!revealNow.english) hidden.push("英文唸法");
+            if (!revealNow.chinese) hidden.push("中文意思");
+            if (hidden.length) bits.push(` 在孩子先開口嘗試之前，絕對不要說出這個字的${hidden.join("和")}——` +
+                "他說了之後你再判斷對不對。");
             bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
         } else if (item.type === "pattern_substitute") {
             bits.push(` 句型：「${item.pattern}」。這一次要代換進去的字是「${item.slotWord}」` +

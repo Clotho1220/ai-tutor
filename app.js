@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.27";
+const APP_VERSION = "3.28";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -226,6 +226,7 @@ function unlockTalkButton() {
 // 前端毫無提示，家長只能乾等再手動關掉）。孩子說完話後 15 秒內若完全沒有
 // 伺服器事件（逐字稿、回合完成、工具呼叫都算），就明確告訴使用者連線掛了。
 let openaiLastServerEventAt = 0;
+let openaiLeakMuted = false;   // 本輪因唸出導演指令而被靜音
 let openaiSilenceTimer = null;
 
 function armOpenaiSilenceWatchdog() {
@@ -1602,6 +1603,16 @@ async function startOpenAISession() {
                 studentView.appendTranscript(detail.text);
                 currentAiTurnTranscript += detail.text;
                 checkAiRepetitionLoop();
+                // 導演指令外洩防護（Gemini 路徑本來就有，GPT 這裡漏了——
+                // 2026-08-30 實測模型把提示詞整段唸出來，孩子全聽到了）
+                if (!openaiLeakMuted && DIRECTOR_LEAK_RE.test(currentAiTurnTranscript)) {
+                    openaiLeakMuted = true;
+                    sessionDiagnostics.record("director_note_leak_detected", { provider: "openai" });
+                    logSystem("🛑 模型唸出了導演指令；已靜音本輪剩餘語音。");
+                    openaiRealtime.muteOutput(true);
+                    const cut = studentView.transcriptText().search(DIRECTOR_LEAK_RE);
+                    if (cut >= 0) studentView.truncateTranscript(cut);
+                }
                 lessonEndingGuard.observe(detail.text);
                 practiceTurnBoundary.observe(detail.text);
             },
@@ -1613,6 +1624,7 @@ async function startOpenAISession() {
             },
             onTurnComplete() {
                 openaiAiTranscriptStarted = false;
+                if (openaiLeakMuted) { openaiRealtime.muteOutput(false); openaiLeakMuted = false; }
                 const feedback = completeTrackedAiTurn("openai");
                 if (feedback && feedback.suggestion) {
                     const family = window.PracticeObserver.sentenceFamily(feedback.suggestion);
@@ -2289,6 +2301,20 @@ async function handleOpenAIToolCall(detail) {
     try { args = JSON.parse(detail.arguments || "{}"); }
     catch (error) { throw new Error(`工具參數格式錯誤：${detail.name}`); }
     sessionDiagnostics.record("openai_tool_call", { name: detail.name });
+    // 回報工具在計畫模式會推進計畫並送出下一項指令（自帶 response.create）。
+    // 若照一般流程「先執行、再回覆工具結果並開回應」，兩個 create 會對撞：
+    // 後到的被伺服器拒絕（active response in progress，2026-08-30 一場 5 次），
+    // 對話裡留下沒被回應的工具輸出，模型下一輪就開始亂唸——連導演指令都照稿唸出來。
+    // 改為：指令先「暫存不送」，工具結果先送；有指令就讓指令的 create 當這一輪的回應。
+    if (detail.name === "report_item_result" && planDriving()) {
+        deferPlanDirective = true;
+        let result;
+        try { result = await executeTutorTool(detail.name, args); }
+        finally { deferPlanDirective = false; }
+        openaiRealtime.sendToolResult(detail.callId, result, !pendingPlanDirective);
+        flushPendingPlanDirective();
+        return;
+    }
     const result = await executeTutorTool(detail.name, args);
     openaiRealtime.sendToolResult(detail.callId, result, true);
 }
@@ -2575,6 +2601,7 @@ function checkAiRepetitionLoop() {
 //   2. 孩子說到一半時升階 → AI 疊在孩子的聲音上講話
 // 所以 AI 還在講或學生正在說時先排隊，等這一輪自然結束再送。
 let pendingPlanDirective = null;    // { body, item, attempts }
+let deferPlanDirective = false;     // 工具結果送出前，指令一律先暫存（見 handleOpenAIToolCall）
 let planItemSentGeneration = -1;    // 指令「實際送出」時的學生回合數（兜底計數的分界線）
 
 function deliverPlanDirective(payload) {
@@ -2588,7 +2615,7 @@ function deliverPlanDirective(payload) {
 }
 
 function queuePlanDirective(payload) {
-    if (aiTurnActive || isTalking) { pendingPlanDirective = payload; return; }
+    if (deferPlanDirective || aiTurnActive || isTalking) { pendingPlanDirective = payload; return; }
     pendingPlanDirective = null;
     deliverPlanDirective(payload);
 }

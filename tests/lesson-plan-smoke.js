@@ -278,6 +278,14 @@
             /else if \(!practiceRequested\) planFallbackAfterTurn/.test(appSource));
         check("the GPT talk button unlocks only after audio really stops",
             /provider === 'openai' && openaiRealtime && openaiRealtime\.isSpeaking\(\)/.test(appSource));
+        // 2026-08-29 實測修正
+        check("a farewell while the closing item is current counts as official",
+            /planRunner\.current\(\)\.type === "closing"/.test(appSource) &&
+            /farewellJustDetected = Object\.assign/.test(appSource));
+        check("a silent GPT channel is reported within 15 seconds",
+            /armOpenaiSilenceWatchdog/.test(appSource) && /openai_silence_detected/.test(appSource));
+        check("tool results never open a response while one is in progress (GPT)",
+            (openaiSource.match(/if \(cancellationPending \|\| responseInProgress\) responseCreatePending = true;/g) || []).length >= 2);
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",

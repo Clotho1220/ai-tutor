@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.26";
+const APP_VERSION = "3.27";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -222,6 +222,24 @@ function unlockTalkButton() {
     talkBtn.textContent = '🎙️ 按一下開始說話';
 }
 
+// GPT 資料通道偶爾無聲死亡（2026-08-29 實測：孩子連說五次話都沒有任何回應，
+// 前端毫無提示，家長只能乾等再手動關掉）。孩子說完話後 15 秒內若完全沒有
+// 伺服器事件（逐字稿、回合完成、工具呼叫都算），就明確告訴使用者連線掛了。
+let openaiLastServerEventAt = 0;
+let openaiSilenceTimer = null;
+
+function armOpenaiSilenceWatchdog() {
+    if (openaiSilenceTimer) clearTimeout(openaiSilenceTimer);
+    const talkEndedAt = Date.now();
+    openaiSilenceTimer = setTimeout(() => {
+        if (!openaiSessionActive) return;
+        if (openaiLastServerEventAt > talkEndedAt) return;   // 有回應，一切正常
+        sessionDiagnostics.record("openai_silence_detected", { sinceMs: Date.now() - talkEndedAt });
+        logSystem('<span style="color:#ff4444;">⚠️ GPT 已 15 秒沒有任何回應，連線可能已中斷。請按「結束連線」後重新開始。</span>');
+        unlockTalkButton();
+    }, 15000);
+}
+
 function markSessionReady(provider, options) {
     const wasReady = sessionReady;
     sessionReady = true;
@@ -301,6 +319,7 @@ talkBtn.addEventListener('click', () => {
             talkBtn.textContent = '🔴 說完了，按一下送出';
         } else {
             openaiRealtime.stopTalking();
+            armOpenaiSilenceWatchdog();
             isTalking = false;
             studentTurnGeneration += 1;
             pendingStudentResponseGeneration = studentTurnGeneration;
@@ -1529,6 +1548,9 @@ async function startOpenAISession() {
             tools: tutorToolDeclarations(),
             onState(detail) {
                 sessionDiagnostics.record("openai_state", { state: detail.state });
+            },
+            onEvent() {
+                openaiLastServerEventAt = Date.now();
             },
             onOutputAudioStopped() {
                 handleClosingAudioStopped();   // 結語播完才真正下課
@@ -3074,6 +3096,15 @@ function handleServerMessage(response, socket, socketToken) {
             logSystem("🛑 偵測到複誦邀請；已把說話權交給學生，後續問題不再播放。");
         }
         if (farewellJustDetected.detected) {
+            // 模型常把最後一題的稱讚和結尾併成同一輪講掉——此時結尾指令還在排隊、
+            // 正式下課旗標還沒立，道別會被誤判成「提早」而把 bye bye 的音訊剪掉
+            //（2026-08-29 實測）。只要計畫已經走到結尾項目，這個道別就是正式的。
+            if (!farewellJustDetected.finalStage && planDriving() && planRunner &&
+                planRunner.current() && planRunner.current().type === "closing") {
+                closingStageActive = true;
+                pendingPlanDirective = null;   // 結尾已經被講完了，不用再送指令
+                farewellJustDetected = Object.assign({}, farewellJustDetected, { finalStage: true });
+            }
             sessionDiagnostics.record("farewell_detected", {
                 phrase: farewellJustDetected.phrase,
                 finalStage: farewellJustDetected.finalStage,

@@ -289,7 +289,7 @@
             // 2026-08-25 診斷檔一場就出現 8 次）。掛起等 response.done 再補。
             if (sent && requestResponse !== false) {
                 if (cancellationPending || responseInProgress) responseCreatePending = true;
-                else send({ type: "response.create" });
+                else { responseCreatePending = false; send({ type: "response.create" }); }
             }
             return sent;
         }
@@ -301,7 +301,13 @@
                 type: "conversation.item.create",
                 item: { type: "function_call_output", call_id: callId, output: serialized }
             });
-            if (sent && requestResponse !== false) send({ type: "response.create" });
+            // 與 sendText 相同的守門：回應進行中不能再開新回應（v3.22 只修了 sendText，
+            // 這裡漏掉，2026-08-29 一場出現 6 次 active response in progress）。
+            // 真的送出時把 pending 清掉，避免稍後又補一發造成重複。
+            if (sent && requestResponse !== false) {
+                if (cancellationPending || responseInProgress) responseCreatePending = true;
+                else { responseCreatePending = false; send({ type: "response.create" }); }
+            }
             return sent;
         }
 

@@ -44,6 +44,10 @@
         /🗓️ 新的一週/.test(appSource));
     check("last week's day progress never carries over",
         /saved\.week && saved\.week !== currentWeek\) saved = null/.test(appSource));
+    // 2026-09-01：推進改依「上完的堂數」，不看日曆天
+    check("a finished lesson advances the day; an aborted one repeats it",
+        /saved\.done/.test(appSource) && /markLessonDayDone\(\)/.test(appSource) &&
+        /done: false/.test(appSource));
     check("the week anchor syncs across phones",
         /unitWeek: person\.unitWeek \|\| ""/.test(appSource) &&
         /if \(r\.unitWeek\) p\.people\[name\]\.unitWeek = r\.unitWeek;/.test(appSource));

@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.32";
+const APP_VERSION = "3.33";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -489,9 +489,24 @@ async function loadLesson() {
 // ---------------- 週教案：決定今天上第幾天 ----------------
 // 教案含 week 陣列時：
 //   - 下拉選單選了特定天 → 用那一天（測試/補課用）
-//   - 選「自動」→ 依日期推進：換了新的一天就前進一天；
-//     同一天內重複開課，上的是同一天的課（練習同樣內容不跳課）。
-//   進度記在 localStorage，以單元名稱為 key，換單元自動從第 1 天開始。
+//   - 選「自動」→ 依「上完的堂數」推進（2026-09-01 使用者定案）：
+//     上一堂正常上完（done）才前進一天，同一個日曆天上兩堂就是兩天的內容；
+//     中斷、連線失敗、手動提早結束的場次不算，下次重上同一天。
+//   進度記在 localStorage，以單元名稱為 key，每週日換單元後自動從第 1 天開始。
+
+// 這一堂「真的上完」才把當天標記完成——推進依據是上完的堂數，
+// 開了課但中斷/失敗的場次不能燒掉一天（實測有 21 秒就失敗的場次）。
+let currentWeekProgressKey = null;
+
+function markLessonDayDone() {
+    if (!currentWeekProgressKey) return;
+    try {
+        const saved = JSON.parse(localStorage.getItem(currentWeekProgressKey)) || {};
+        saved.done = true;
+        localStorage.setItem(currentWeekProgressKey, JSON.stringify(saved));
+        if (typeof scheduleSync === 'function') scheduleSync();
+    } catch (e) {}
+}
 
 function resolveLessonForToday(json) {
     if (!json.week || !json.week.length) return json; // 單日教案，直接用
@@ -515,21 +530,23 @@ function resolveLessonForToday(json) {
         const currentWeek = window.CourseProgression.weekAnchor(today);
         if (saved && saved.week && saved.week !== currentWeek) saved = null;
         let dayNum;
-        if (saved && saved.date === today) {
-            dayNum = saved.day;               // 今天已上過：重複同一天
-        } else if (saved && saved.day) {
-            dayNum = Math.min(saved.day + 1, days.length); // 新的一天：前進
+        if (!saved || !saved.day) {
+            dayNum = 1;                        // 這個單元本週第一堂
+        } else if (saved.done) {
+            dayNum = Math.min(saved.day + 1, days.length);  // 上一堂上完了：前進
         } else {
-            dayNum = 1;                        // 這個單元第一次上課
+            dayNum = saved.day;                // 上一堂沒上完（中斷/失敗）：重上同一天
         }
         chosen = days.find(d => d.day === dayNum) || days[0];
         logSystem(`📅 自動排課：第 ${chosen.day} 天 / 共 ${days.length} 天（${chosen.focus || ""}）` +
                   (chosen.day === days.length ? " — 本單元最後一天！" : ""));
     }
 
+    currentWeekProgressKey = progressKey;   // 下課時 markLessonDayDone 用
     localStorage.setItem(progressKey, JSON.stringify({
         date: today, day: chosen.day,
-        week: window.CourseProgression.weekAnchor(today)
+        week: window.CourseProgression.weekAnchor(today),
+        done: false
     }));
     if (typeof scheduleSync === 'function') scheduleSync();   // 上課進度也要跨手機接得上
     return {
@@ -2995,6 +3012,7 @@ function finishLessonAfterClosing(reason) {
 }
 
 function scheduleLessonCompletion() {
+    markLessonDayDone();   // 走到這裡代表課程正常收尾，這一堂才算數
     if (lessonFinishTimer || awaitingClosingAudio || userStopped) return;
     lessonCompletionPending = true;
     talkBtn.disabled = true;

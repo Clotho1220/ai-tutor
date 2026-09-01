@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.31";
+const APP_VERSION = "3.32";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -2248,7 +2248,7 @@ function tutorToolDeclarations() {
                 attempt: { type: "integer", description: "1 for the first try, 2 for the retry after your correction." },
                 kind: {
                     type: "string",
-                    enum: ["word_image", "word_read", "word_spell", "pattern_substitute", "pattern_respond", "free"],
+                    enum: ["word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond", "free"],
                     description: "Which kind of practice item this was."
                 },
                 issue: { type: "string", description: "Optional short note on what was off, e.g. missing verb, wrong word order, sounded unsure." }
@@ -2684,7 +2684,8 @@ function advancePlan(outcome, source) {
         if (done && /^word_/.test(done.type)) {
             studentView.showCard({
                 imageUrl: done.image ? "images/" + done.image : "",
-                word: done.display || done.target,
+                // 三選一顯示正確答案而不是三個選項；填字母顯示完整字而不是挖空版
+                word: done.answerDisplay || done.display || done.target,
                 meaning: done.meaning,
                 icon: "✅"
             });

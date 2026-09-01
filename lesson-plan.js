@@ -140,6 +140,53 @@
         ];
     }
 
+    // 中翻英（第 1 天）：圖＋中文 → 說英文；說不出來才亮英文字讓他讀
+    function zh2enLadder() {
+        return [
+            { reveal: { image: true, chinese: true },
+              instruction: "畫面顯示圖片和中文。用中文問學員這個的英文怎麼說，" +
+                  "然後結束回合等他說。答對就簡短稱讚並回報，不要追加例句。" },
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "說不出來。把英文字顯示出來，請他自己把這個字唸出來，然後等他唸。" },
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "讀不出來。清楚慢慢地唸一次給他聽，請他跟著唸一次，然後等他唸。" },
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "唸得不夠標準。指出是哪個音不對，再示範一次，請他最後再唸一次。" +
+                  "這是最後一次糾正，唸完就往下走。" }
+        ];
+    }
+
+    // 三選一（第 3 天）：畫面顯示三個英文字，AI 說中文，孩子唸出正確的那個。
+    // 練的是相似字形的辨識，跟紙本練習卷的第三天同題型。
+    function choiceLadder() {
+        return [
+            { reveal: { english: true },
+              instruction: "畫面顯示三個英文單字。你用中文說出目標的意思，" +
+                  "請學員從三個字裡唸出正確的那一個，然後等他唸。" +
+                  "不要把三個選項唸出來——讀選項是他的工作。" },
+            { reveal: { english: true, image: true },
+              instruction: "選錯或唸不出來。把圖顯示出來當提示，再請他從三個字裡唸一次正確的。" },
+            { reveal: { english: true, image: true, chinese: true },
+              instruction: "還是不行。告訴他正確答案是哪一個並唸給他聽，請他跟著唸一次。" +
+                  "這是最後一階，唸完就往下走。" }
+        ];
+    }
+
+    // 填缺漏字母（第 4 天）：畫面顯示 d_s_ 這種遮罩字，孩子說出缺的字母、再唸整個字
+    function gapLadder() {
+        return [
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "畫面顯示這個字的挖空版本（部分字母用底線代替）和圖。" +
+                  "請學員說出缺少的字母，再把整個字唸出來，然後等他說。" },
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "說不出缺的字母。給他一點提示（例如唸出整個字讓他對照），" +
+                  "再請他說一次缺少的字母，然後等他說。" },
+            { reveal: { image: true, chinese: true, english: true },
+              instruction: "還是不行。你把缺少的字母一個一個唸出來，請他跟著唸，" +
+                  "最後請他唸整個字。這是最後一階，唸完就往下走。" }
+        ];
+    }
+
     // 拼字：憑記憶拼 → 看著字拼 → AI 示範跟拼
     // 語音轉文字會把逐字母拼讀轉爛（HANDOFF 已知陷阱），所以對錯只能靠
     // 原生音訊模型自己聽，前端不做驗證——與發音判斷同一個信任模式。
@@ -230,6 +277,89 @@
         }));
     }
 
+    function zh2enWordItems(words, idPrefix, sourceLabel) {
+        return (words || []).map((word, index) => makeItem({
+            id: `${idPrefix}-${index + 1}`,
+            type: "word_zh2en",
+            target: bareWord(word.english),
+            display: text(word.english),
+            meaning: text(word.chinese),
+            example: text(word.example),
+            image: text(word.image),
+            source: sourceLabel || "",
+            ladder: zh2enLadder()
+        }));
+    }
+
+    // 遮罩字：保留第一個字母，其後每隔一個字母挖空。desk → d_s_、chair → c_a_r
+    function maskWord(value) {
+        const word = bareWord(value);
+        let out = "";
+        let alphaIndex = 0;
+        for (const ch of word) {
+            if (!/[a-z0-9]/.test(ch)) { out += ch; continue; }
+            out += (alphaIndex > 0 && alphaIndex % 2 === 1) ? "_" : ch;
+            alphaIndex += 1;
+        }
+        return out;
+    }
+
+    function missingLetters(value) {
+        const word = bareWord(value);
+        const missing = [];
+        let alphaIndex = 0;
+        for (const ch of word) {
+            if (!/[a-z0-9]/.test(ch)) continue;
+            if (alphaIndex > 0 && alphaIndex % 2 === 1) missing.push(ch);
+            alphaIndex += 1;
+        }
+        return missing.join("-");
+    }
+
+    function gapWordItems(words, idPrefix, sourceLabel) {
+        return (words || []).map((word, index) => makeItem({
+            id: `${idPrefix}-${index + 1}`,
+            type: "word_gap",
+            target: bareWord(word.english),
+            display: maskWord(word.english),          // 畫面顯示挖空版
+            answerDisplay: text(word.english),        // 完成卡片顯示完整字
+            meaning: text(word.chinese),
+            letters: bareWord(word.english).replace(/[^a-z0-9]/g, "").split("").join("-"),
+            missing: missingLetters(word.english),
+            image: text(word.image),
+            source: sourceLabel || "",
+            ladder: gapLadder()
+        }));
+    }
+
+    // 三選一的誘答選項：從同一批字裡輪流取兩個（相同 slot 的字外形與主題最接近）
+    function choiceWordItems(words, pool, idPrefix, sourceLabel) {
+        const candidates = (pool || []).map(word => bareWord(word.english)).filter(Boolean);
+        return (words || []).map((word, index) => {
+            const answer = bareWord(word.english);
+            const others = candidates.filter(candidate => candidate !== answer);
+            const distractors = others.length
+                ? [others[index % others.length],
+                   others[(index + 1) % others.length]].filter((v, i, a) => a.indexOf(v) === i)
+                : [];
+            const options = [answer].concat(distractors);
+            // 依 index 決定正確答案的位置，避免永遠排第一個
+            const rotated = options.map((_, i) => options[(i + index) % options.length]);
+            return makeItem({
+                id: `${idPrefix}-${index + 1}`,
+                type: "word_choice",
+                target: answer,
+                display: rotated.join("　"),          // 畫面同時顯示三個字
+                answerDisplay: text(word.english),
+                options: rotated,
+                meaning: text(word.chinese),
+                image: text(word.image),
+                source: sourceLabel || "",
+                ladder: choiceLadder()
+            });
+        });
+    }
+
     // 句型代換：拿學過的字去換句型裡的空格。
     // 使用者的例子：當週句型 Can you sing?，之前學過 jump → 練 Can you jump?
     //
@@ -297,6 +427,23 @@
                     "聽到回應後也不要自己開始教任何單字或句型——下一個指令會告訴你第一個項目是什麼。" }]
         }));
 
+        // ---- 當天的單字模式（2026-09-01 使用者定案，對齊紙本練習卷的五天題型） ----
+        // 單字「不拆天」：每天練整個單元的字，換的是模式：
+        //   第 1 天 中翻英 → 第 2 天 英翻中（認字）→ 第 3 天 三選一 →
+        //   第 4 天 填缺漏字母 → 第 5 天 拼出單字
+        // 跨單元複習的字也跟著當天模式走，整堂課同一種規則。
+        const distractorPool = unitWords.concat(
+            (config.reviewUnits || []).flatMap(reviewUnit => (reviewUnit && reviewUnit.words) || []));
+        const wordItemsForDay = (words, idPrefix, sourceLabel) => {
+            switch (day) {
+                case 1: return zh2enWordItems(words, idPrefix, sourceLabel);
+                case 2: return readWordItems(words, idPrefix, sourceLabel);
+                case 3: return choiceWordItems(words, distractorPool, idPrefix, sourceLabel);
+                case 4: return gapWordItems(words, idPrefix, sourceLabel);
+                default: return spellWordItems(words, idPrefix, sourceLabel);
+            }
+        };
+
         // ---- 跨單元複習：前兩個單元的字，用「看英文字」的方式複習 ----
         // 那些字上個月已經看圖學過了，現在要練的是認字。
         // Review 單元本身就是前三個單元的彙整，不再疊這一層。
@@ -318,34 +465,28 @@
                                   example: record.example, image: "" }));
             const pool = (reviewUnit.words || []).concat(extras);
             const todays = spreadAcrossDays(pool, WEEK_DAYS)[day - 1];
-            items.push(...readWordItems(todays, `rv${unitIndex + 1}`, label));
+            items.push(...wordItemsForDay(todays, `rv${unitIndex + 1}`, label));
         });
 
-        // ---- 本單元的字 ----
-        // 整週的遞進：第 1~3 天看圖會說 → 第 4 天看字會唸 → 第 5 天會拼
-        // （拼字是使用者 2026-08-24 實測後要求加入的）。
-        // Review 單元每天都是複習，字數是正課的三倍，五天平均攤開、只認字。
-        if (isReviewUnit) {
-            const words = spreadAcrossDays(unitWords, WEEK_DAYS)[day - 1] || [];
-            items.push(...readWordItems(words, "uw", unitLabel));
-        } else if (day === 4) {
-            items.push(...readWordItems(unitWords, "uw", unitLabel));
-        } else if (isFinalDay) {
-            items.push(...spellWordItems(unitWords, "uw", unitLabel));
-        } else {
-            const todays = spreadAcrossDays(unitWords, WEEK_DAYS)[day - 1] || [];
-            items.push(...imageWordItems(todays, "uw", unitLabel));
-        }
+        // ---- 本單元的字：不拆天，每天整個單元照當天模式練 ----
+        // 唯一例外是課本的 Review 單元：字數是正課的三倍（20 幾個），
+        // 全上會爆掉 15 分鐘上限，仍五天平均攤開、但模式一樣跟著天走。
+        const unitWordsToday = isReviewUnit
+            ? (spreadAcrossDays(unitWords, WEEK_DAYS)[day - 1] || [])
+            : unitWords;
+        items.push(...wordItemsForDay(unitWordsToday, "uw", unitLabel));
 
-        // ---- 句型代換：每個句型至少三種 ----
-        // 代換字取自「已經學過的、槽位相符的字」，這是使用者要的重組練習。
+        // ---- 句型代換：句型也不拆天，每個句型每天都練 ----
+        // 每句型每天 2 種代換；整個單元只有 1 個句型時維持 3 種。
+        // Review 單元彙整的句型太多（可達 8 個），仍每天輪 2 個。
         const substitutable = unitPatterns.filter(pattern => text(pattern.slot));
-        const todaysPatterns = isFinalDay
-            ? substitutable
-            : rotatePick(substitutable, day, 1);
+        const todaysPatterns = isReviewUnit
+            ? rotatePick(substitutable, day, 2)
+            : substitutable;
+        const subsPerPattern = substitutable.length === 1 ? SUBSTITUTIONS_PER_PATTERN : 2;
 
         todaysPatterns.forEach((pattern, patternIndex) => {
-            const picked = pickSlotWords(pattern, config, isFinalDay ? 2 : SUBSTITUTIONS_PER_PATTERN);
+            const picked = pickSlotWords(pattern, config, subsPerPattern);
             items.push(...substituteItems(pattern, picked, `sb${patternIndex + 1}`));
         });
 
@@ -420,12 +561,13 @@
         const label = {
             opening: "開場", closing: "結尾",
             word_image: "看圖說英文", word_read: "看字說意思", word_spell: "拼單字",
+            word_zh2en: "中翻英", word_choice: "三選一", word_gap: "填字母",
             pattern_substitute: "句型代換", pattern_respond: "聽問題答句"
         };
         return plan.items.map((item, index) => {
             const name = label[item.type] || item.type;
             let detail = "";
-            if (item.type === "word_image" || item.type === "word_read" || item.type === "word_spell") {
+            if (/^word_/.test(item.type)) {
                 detail = `${item.display}（${item.meaning}）` +
                     (item.image ? "" : "　⚠️ 沒有圖");
             } else if (item.type === "pattern_substitute") {
@@ -546,7 +688,18 @@
                 item.meaning ? `，中文是「${item.meaning}」` : "",
                 `。正確拼法是「${item.letters}」，判斷與示範都以此為準。`);
             bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
-        } else if (item.type === "word_image" || item.type === "word_read") {
+        } else if (item.type === "word_choice") {
+            bits.push(` 正確答案是「${item.target}」，畫面上的三個選項是：${(item.options || []).join("、")}。`);
+            bits.push(item.meaning ? ` 你要用中文說的意思：「${item.meaning}」。` : "");
+            bits.push(" 絕對不要把任何選項唸出來——讀出選項並選對是他的工作；" +
+                "他唸出其中一個後，你判斷是不是正確答案。");
+            bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
+        } else if (item.type === "word_gap") {
+            bits.push(` 目標單字：「${item.answerDisplay || item.target}」，完整拼法「${item.letters}」，` +
+                `畫面顯示的挖空版是「${item.display}」，缺少的字母是「${item.missing}」。`);
+            bits.push(item.meaning ? ` 中文是「${item.meaning}」。` : "");
+            bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
+        } else if (item.type === "word_image" || item.type === "word_read" || item.type === "word_zh2en") {
             bits.push(` 目標單字：「${item.display || item.target}」`);
             // 該藏的資訊不放進指令：中文意思只在「已揭露中文」的階段才給模型。
             // 之前一邊叫模型別說中文、一邊把「中文是你好」塞在指令裡，

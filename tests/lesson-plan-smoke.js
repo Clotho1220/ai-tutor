@@ -64,13 +64,29 @@
         // ---- 新模板的結構 ----
         check("every plan opens and closes explicitly",
             day2.items[0].type === "opening" && day2.items[day2.items.length - 1].type === "closing");
-        check("this unit's words are picture-recognition items on days 1-4",
-            day2.items.some(item => item.type === "word_image" && item.image));
-        check("review words from earlier units are read-the-word items",
+        // ---- 每天全部單字、模式跟著天走（2026-09-01 使用者定案，對齊紙本練習卷） ----
+        const dayPlans = [1, 2, 3, 4, 5].map(day =>
+            LP.build({ person: "Rex", day, unit, reviewUnits: [reviewUnit], learnedWords: [] }));
+        const modeOfDay = ["word_zh2en", "word_read", "word_choice", "word_gap", "word_spell"];
+        check("each day drills ALL unit words in that day's mode (never split)",
+            dayPlans.every((plan, i) =>
+                plan.items.filter(item => item.type === modeOfDay[i] &&
+                    item.source.indexOf("Unit 3") >= 0).length === unit.words.length));
+        check("cross-unit review words follow the same day mode",
+            dayPlans[2].items.some(item => item.type === "word_choice" && item.source === "Book 1 Unit 2") ||
+            dayPlans[0].items.some(item => item.type === "word_zh2en" && item.source === "Book 1 Unit 2"));
+        check("review words from earlier units are read-the-word items on day 2",
             day2.items.some(item => item.type === "word_read" && item.source === "Book 1 Unit 2"));
-        check("day 4 switches this unit's words to read-the-word",
-            LP.build({ person: "Rex", day: 4, unit, reviewUnits: [reviewUnit], learnedWords: [] })
-                .items.some(item => item.type === "word_read" && item.source.indexOf("Unit 3") >= 0));
+        const choiceItem = dayPlans[2].items.find(item => item.type === "word_choice");
+        check("choice items show three options on screen",
+            choiceItem.options.length === 3 && choiceItem.display.indexOf(choiceItem.target) >= 0 &&
+            choiceItem.options.indexOf(choiceItem.target) >= 0);
+        const gapItem = dayPlans[3].items.find(item => item.type === "word_gap");
+        check("gap items mask letters on screen but keep the full answer for the model",
+            gapItem.display.indexOf("_") >= 0 && gapItem.missing.length > 0 &&
+            gapItem.letters.split("-").join("") === gapItem.target.replace(/[^a-z0-9]/g, ""));
+        check("choice directives forbid reading the options aloud",
+            LP.itemDirective(choiceItem, { index: 1, total: 9, attempts: 0 }).indexOf("不要把任何選項唸出來") >= 0);
         const day5 = LP.build({ person: "Rex", day: 5, unit, reviewUnits: [reviewUnit], learnedWords: [] });
         const spellItem = day5.items.find(item => item.type === "word_spell");
         check("day 5 asks the student to spell this unit's words",
@@ -85,7 +101,7 @@
         check("extension words learned earlier come back for review during the week",
             [1, 2, 3, 4, 5].some(day =>
                 LP.build({ person: "Rex", day, unit, reviewUnits: [reviewUnit], learnedWords: learned })
-                    .items.some(item => item.type === "word_read" && item.target === "jump")));
+                    .items.some(item => /^word_/.test(item.type) && item.target === "jump")));
 
         // ---- 句型代換 ----
         const subs = day2.items.filter(item => item.type === "pattern_substitute");
@@ -116,12 +132,11 @@
             responds[0].image === "b1_u03_scene1.webp");
 
         // ---- 提示階梯 ----
-        const wordItem = day2.items.find(item => item.type === "word_image");
-        check("picture items climb picture → Chinese → English → echo → one correction",
-            wordItem.ladder.length === 5 &&
-            wordItem.ladder[0].reveal.image && !wordItem.ladder[0].reveal.english &&
-            wordItem.ladder[1].reveal.chinese && !wordItem.ladder[1].reveal.english &&
-            wordItem.ladder[2].reveal.english);
+        const wordItem = dayPlans[0].items.find(item => item.type === "word_zh2en");
+        check("zh2en items start with picture+Chinese and only then reveal English",
+            wordItem.ladder.length === 4 &&
+            wordItem.ladder[0].reveal.image && wordItem.ladder[0].reveal.chinese &&
+            !wordItem.ladder[0].reveal.english && wordItem.ladder[1].reveal.english);
         const readItem = day2.items.find(item => item.type === "word_read");
         check("read items start with the bare English word",
             readItem.ladder[0].reveal.english && !readItem.ladder[0].reveal.image &&
@@ -135,7 +150,7 @@
 
         // revealFor 依嘗試次數揭露，超出階梯就停在最後一階
         check("revealFor follows the ladder step by step",
-            !LP.revealFor(wordItem, 0).english && LP.revealFor(wordItem, 2).english &&
+            !LP.revealFor(wordItem, 0).english && LP.revealFor(wordItem, 1).english &&
             LP.revealFor(wordItem, 99).english);
         check("revealFor hides the picture when the item has none",
             !LP.revealFor(Object.assign({}, wordItem, { image: "" }), 0).image);
@@ -162,8 +177,8 @@
             reviewUnits: [reviewUnit], learnedWords: [] });
         check("review units never stack cross-unit review on top",
             reviewPlan.reviewUnitLabels.length === 0);
-        check("review units drill words as read-the-word",
-            reviewPlan.items.some(item => item.type === "word_read") &&
+        check("review units follow the day's word mode too",
+            reviewPlan.items.some(item => item.type === "word_zh2en") &&
             !reviewPlan.items.some(item => item.type === "word_image"));
 
         // ---- 執行器 ----
@@ -304,7 +319,7 @@
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",
-            appSource.indexOf('"word_image", "word_read", "word_spell", "pattern_substitute", "pattern_respond"') >= 0);
+            appSource.indexOf('"word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond"') >= 0);
         check("news mode keeps the original flow",
             /時事討論不使用計畫驅動/.test(appSource));
 

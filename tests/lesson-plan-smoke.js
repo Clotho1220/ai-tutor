@@ -297,6 +297,10 @@
             /openaiRealtime\.sendToolResult\(detail\.callId, result, !pendingPlanDirective\)/.test(appSource));
         check("a director-note leak on GPT is muted and hidden",
             /director_note_leak_detected/.test(appSource) && /openaiLeakMuted = true;/.test(appSource));
+        // 2026-08-31 實測修正：佔位符目標（It's a/an [object].）收到填好的句子時要認得
+        check("placeholder targets accept filled-in reports",
+            appSource.indexOf("reportTargetsOverlap(reported, planItemRawCandidates(lastCompletedPlanItem))") >= 0 &&
+            /lastCompletedPlanItem = result\.item \|\| before;/.test(appSource));
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",

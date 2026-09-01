@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.28";
+const APP_VERSION = "3.29";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1694,6 +1694,7 @@ async function startSession() {
     planItemReported = false;
     pendingPlanDirective = null; planItemSentGeneration = -1;
     repetitionCutThisTurn = false; repetitionCutCount = 0;
+    lastCompletedPlanItem = null;
     farewellRecoveryCount = 0;          // 早退復原次數逐堂重算
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
@@ -2664,6 +2665,7 @@ function advancePlan(outcome, source) {
         advanced: !!result.advanced, attempts: result.attempts || null
     });
     if (result.advanced) {
+        lastCompletedPlanItem = result.item || before;
         // 單字項目完成：亮出完整卡片（圖＋英文＋中文）當作確認。
         // word_read 答對時從頭到尾沒出現過圖（第一階刻意只給字），
         // 實測家長會以為圖片壞了；答對後看到圖也是對孩子的回饋。
@@ -2805,15 +2807,38 @@ function normalizeReportTarget(value) {
         .replace(/\s+/g, " ").trim();
 }
 
+function reportTargetsOverlap(reported, rawCandidates) {
+    const report = normalizeReportTarget(reported);
+    if (!report) return false;
+    return rawCandidates.map(normalizeReportTarget).filter(Boolean).some(candidate =>
+        report === candidate || report.indexOf(candidate) >= 0 || candidate.indexOf(report) >= 0);
+}
+
+function planItemRawCandidates(item) {
+    return [item.target, item.display, item.ask, item.slotWord]
+        .concat(item.alternatives || [])
+        .map(value => String(value == null ? "" : value).trim()).filter(Boolean);
+}
+
+// 上一個完成的項目：佔位符目標無法核對時，用它擋掉「上一項的重複回報」
+let lastCompletedPlanItem = null;
+
 function reportMatchesPlanItem(reported, item) {
     const report = normalizeReportTarget(reported);
     if (!report) return true;
-    const candidates = [item.target, item.display, item.ask, item.slotWord]
-        .concat(item.alternatives || [])
-        .map(normalizeReportTarget).filter(Boolean);
-    if (!candidates.length) return true;   // 開場、結尾這類沒有目標的項目
-    return candidates.some(candidate =>
-        report === candidate || report.indexOf(candidate) >= 0 || candidate.indexOf(report) >= 0);
+    const raw = planItemRawCandidates(item);
+    if (!raw.length) return true;   // 開場、結尾這類沒有目標的項目
+    const verifiable = raw.filter(candidate => !/\[[^\]]+\]/.test(candidate));
+    if (reportTargetsOverlap(reported, verifiable)) return true;
+    // 佔位符目標（It's a/an [object].、I'm [Name].）沒辦法逐字核對——
+    // 孩子回報的是填好的句子（It's a goodbye sign.），模板永遠對不上，
+    // 2026-08-31 兩場各有 2 筆正確回報因此被丟掉、答錯也爬不了階梯。
+    // 對這類項目改成：只要不是「上一個項目」的重複回報就接受。
+    if (raw.some(candidate => /\[[^\]]+\]/.test(candidate))) {
+        return !(lastCompletedPlanItem &&
+            reportTargetsOverlap(reported, planItemRawCandidates(lastCompletedPlanItem)));
+    }
+    return false;
 }
 
 // 課程結束時比對「模型回報了幾次」與「前端偵測到幾次練習邀請」，

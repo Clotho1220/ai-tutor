@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.29";
+const APP_VERSION = "3.30";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -76,7 +76,9 @@ if (!window.SessionDiagnostics) throw new Error("session-diagnostics.js 未載�
 if (!window.LessonEndingGuard) throw new Error("lesson-ending.js 未載入");
 const sessionDiagnostics = window.SessionDiagnostics.create({
     storage: localStorage,
-    maxSessions: 3,
+    // 一週才匯出一次診斷，3 筆不夠看（一天可能就上 2~3 堂）。
+    // 每場實測約 60~150KB，20 筆約 2~3MB；存不下時 saveHistory 會自動減量。
+    maxSessions: 20,
     maxEvents: 600,
     maxTextLength: 2000
 });

@@ -52,12 +52,18 @@
         }
 
         function saveHistory(history) {
-            try {
-                storage.setItem(storageKey, JSON.stringify(history.slice(0, maxSessions)));
-                return true;
-            } catch (error) {
-                return false;
+            // localStorage 配額約 5~10MB，還要跟學習紀錄共用。
+            // 存不下就自動少存幾筆（丟最舊的），確保最新的診斷一定進得去。
+            let keep = Math.min(maxSessions, history.length);
+            while (keep >= 1) {
+                try {
+                    storage.setItem(storageKey, JSON.stringify(history.slice(0, keep)));
+                    return true;
+                } catch (error) {
+                    keep = Math.floor(keep / 2);
+                }
             }
+            return false;
         }
 
         function copy(value) {

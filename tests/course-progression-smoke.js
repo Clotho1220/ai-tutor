@@ -32,7 +32,21 @@
     check("progression module loads before app",
         indexSource.indexOf('src="course-progression.js') < indexSource.indexOf('src="app.js'));
     check("selected unit is updated for cross-device sync",
-        /updateCurrentPerson\(\{ unit: \{ book: next\.book, num: next\.num \} \}\)/.test(appSource));
+        /updateCurrentPerson\(\{ unit: \{ book: next\.book, num: next\.num \}, unitWeek: currentWeek \}\)/.test(appSource));
+
+    // --- 週曆制（2026-09-01 使用者定案）：每週日換單元 ---
+    check("weekAnchor returns the Sunday of the week",
+        CourseProgression.weekAnchor("2026-09-01") === "2026-08-30" &&
+        CourseProgression.weekAnchor("2026-08-30") === "2026-08-30" &&
+        CourseProgression.weekAnchor("2026-09-06") === "2026-09-06");
+    check("a new week switches to the next unit in auto mode",
+        /p\.unitWeek < currentWeek/.test(appSource) &&
+        /🗓️ 新的一週/.test(appSource));
+    check("last week's day progress never carries over",
+        /saved\.week && saved\.week !== currentWeek\) saved = null/.test(appSource));
+    check("the week anchor syncs across phones",
+        /unitWeek: person\.unitWeek \|\| ""/.test(appSource) &&
+        /if \(r\.unitWeek\) p\.people\[name\]\.unitWeek = r\.unitWeek;/.test(appSource));
 
     // --- 迴歸：課程長度依內容多寡決定，且不超過孩子的專注力上限 ---
     // 起因：Book 1 第 1 天只有 2 個項目卻固定排 11 分鐘主課，

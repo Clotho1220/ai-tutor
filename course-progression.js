@@ -38,6 +38,18 @@
             .slice(-wanted).reverse();
     }
 
+    // 週曆錨點：回傳該日期所在週的「週日」日期（週日為一週的開始）。
+    // 換單元節奏（2026-09-01 使用者定案）：每週日強制換下一個單元，
+    // 不再等五天上完；一週內照五天課程遞進。
+    function weekAnchor(dateStr) {
+        const parts = String(dateStr || "").split("-").map(Number);
+        if (parts.length !== 3 || parts.some(isNaN)) return "";
+        const date = new Date(parts[0], parts[1] - 1, parts[2]);
+        date.setDate(date.getDate() - date.getDay());
+        const pad = n => String(n).padStart(2, "0");
+        return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    }
+
     function shouldAdvance(options) {
         const config = options || {};
         const progress = config.progress;
@@ -46,5 +58,5 @@
         return Number(progress.day) >= dayCount && String(progress.date) < String(config.today || "");
     }
 
-    global.CourseProgression = Object.freeze({ nextUnit, previousUnits, shouldAdvance });
+    global.CourseProgression = Object.freeze({ nextUnit, previousUnits, shouldAdvance, weekAnchor });
 })(window);

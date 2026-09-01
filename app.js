@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.30";
+const APP_VERSION = "3.31";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -511,6 +511,9 @@ function resolveLessonForToday(json) {
     } else {
         let saved = null;
         try { saved = JSON.parse(localStorage.getItem(progressKey)); } catch (e) {}
+        // 上週的進度不延續：週日換了單元後，就算手動選回同一個單元也從第 1 天重來
+        const currentWeek = window.CourseProgression.weekAnchor(today);
+        if (saved && saved.week && saved.week !== currentWeek) saved = null;
         let dayNum;
         if (saved && saved.date === today) {
             dayNum = saved.day;               // 今天已上過：重複同一天
@@ -524,7 +527,10 @@ function resolveLessonForToday(json) {
                   (chosen.day === days.length ? " — 本單元最後一天！" : ""));
     }
 
-    localStorage.setItem(progressKey, JSON.stringify({ date: today, day: chosen.day }));
+    localStorage.setItem(progressKey, JSON.stringify({
+        date: today, day: chosen.day,
+        week: window.CourseProgression.weekAnchor(today)
+    }));
     if (typeof scheduleSync === 'function') scheduleSync();   // 上課進度也要跨手機接得上
     return {
         student: json.student,
@@ -777,23 +783,24 @@ async function readSelectedUnit() {
     let weeklyLesson = buildWeeklyLessonFromUnit(unit, student);
     const daySelect = document.getElementById('daySelect');
     const manual = daySelect ? daySelect.value : "auto";
-    let progress = null;
-    try { progress = JSON.parse(localStorage.getItem(weekProgressKey(weeklyLesson.unit))); } catch (e) {}
-
-    if (window.CourseProgression.shouldAdvance({
-        progress,
-        today: learningRecords.today(),
-        manual,
-        dayCount: weeklyLesson.week.length
-    })) {
-        const next = window.CourseProgression.nextUnit(UNITS_DATA.books, sel);
-        if (next) {
-            updateCurrentPerson({ unit: { book: next.book, num: next.num } });
-            weeklyLesson = buildWeeklyLessonFromUnit(next, student);
-            logSystem(`🎓 ${sel.book} Unit ${sel.num} 已完成，自動進入 ${next.book} Unit ${next.num} 的第 1 天。`);
-            if (window.refreshUnitPickerForPerson) window.refreshUnitPickerForPerson();
-        } else {
-            logSystem(`🏆 ${sel.book} Unit ${sel.num} 已是目前教材的最後一個單元。`);
+    // 換單元節奏（2026-09-01 使用者定案）：每週日強制換下一個單元，不再等五天上完。
+    // 一週內照五天課程遞進；同週上超過五次就重複第五天（拼字日多練）。
+    // 整週沒上課則順延一個單元，不跳過孩子沒看過的內容。
+    if (manual === "auto") {
+        const currentWeek = window.CourseProgression.weekAnchor(learningRecords.today());
+        if (!p.unitWeek) {
+            updateCurrentPerson({ unitWeek: currentWeek });   // 首次採用週曆制：本週用目前單元
+        } else if (p.unitWeek < currentWeek) {
+            const next = window.CourseProgression.nextUnit(UNITS_DATA.books, sel);
+            if (next) {
+                updateCurrentPerson({ unit: { book: next.book, num: next.num }, unitWeek: currentWeek });
+                weeklyLesson = buildWeeklyLessonFromUnit(next, student);
+                logSystem(`🗓️ 新的一週（${currentWeek} 起）：換到 ${next.book} Unit ${next.num}，從第 1 天開始。`);
+                if (window.refreshUnitPickerForPerson) window.refreshUnitPickerForPerson();
+            } else {
+                updateCurrentPerson({ unitWeek: currentWeek });
+                logSystem(`🏆 ${sel.book} Unit ${sel.num} 已是目前教材的最後一個單元，維持不變。`);
+            }
         }
     }
     return weeklyLesson;
@@ -1155,6 +1162,7 @@ function collectLocalState() {
         const person = p.people[name];
         profiles[name] = {
             level: person.level, voice: person.voice, unit: person.unit,
+            unitWeek: person.unitWeek || "",
             interests: person.interests || [],
             progress: readAllProgressFor(name),
             updatedAt: person.updatedAt || 0
@@ -1213,6 +1221,7 @@ function applyRemoteState(remote) {
             p.people[name].level = r.level != null ? r.level : p.people[name].level;
             p.people[name].voice = r.voice || p.people[name].voice;
             p.people[name].unit = r.unit !== undefined ? r.unit : p.people[name].unit;
+            if (r.unitWeek) p.people[name].unitWeek = r.unitWeek;
             p.people[name].interests = r.interests || p.people[name].interests;
             p.people[name].updatedAt = r.updatedAt || 0;
         }

@@ -98,6 +98,7 @@ AI 用英文問（Can you fly?），學員要會答（No, I can't.）。
 | 課本 Review 單元 | ✅ v3.18 | 彙整前三單元 |
 | 一次一項、依結果推進 | ✅ 預設開啟（v3.19） | `createRunner()` + `sendCurrentPlanItem()` |
 | 做完所有項目才下課 | ✅ | 計畫跑完 → `scheduleLessonCompletion()` |
+| 補問機制（漏回報先要求回報） | ✅ v3.34 | `planFallbackAfterTurn` 的 nudge |
 | **開場三種回應處理** | ❌ 未實作 | 目前只有一段 opening 指令 |
 | **學員弱點累積與運用** | ❌ 未實作 | 需要先累積 `report_item_result` 資料 |
 | **結束時完整匯出到試算表** | ⚠️ 部分 | 項目層級結果尚未寫入 |

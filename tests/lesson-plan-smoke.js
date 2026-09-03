@@ -243,6 +243,10 @@
             /advancePlan\(/.test(appSource) && /report_item_result/.test(appSource));
         check("an unreported exchange still advances the plan",
             /planFallbackAfterTurn/.test(appSource));
+        // 2026-09-02 實測修正：漏回報先補問一次，補問無效才兜底跳過
+        check("a missing report is nudged once before the fallback skips",
+            /plan_report_nudged/.test(appSource) && /planNudgedItemId !== item\.id/.test(appSource) &&
+            /planNudgedItemId = null;/.test(appSource));
         check("retries climb the hint ladder with a fresh directive",
             /queuePlanDirective\(\{\s*body: window\.LessonPlan\.itemDirective\(before/.test(appSource));
         // 2026-08-24 實測修正：指令不能在 AI 講話或學生說話時硬送

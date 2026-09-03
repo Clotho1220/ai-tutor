@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.33";
+const APP_VERSION = "3.34";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1722,7 +1722,7 @@ async function startSession() {
     planItemReported = false;
     pendingPlanDirective = null; planItemSentGeneration = -1;
     repetitionCutThisTurn = false; repetitionCutCount = 0;
-    lastCompletedPlanItem = null;
+    lastCompletedPlanItem = null; planNudgedItemId = null;
     farewellRecoveryCount = 0;          // 早退復原次數逐堂重算
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
@@ -2668,6 +2668,7 @@ function sendCurrentPlanItem() {
     const item = planRunner.current();
     const progress = planRunner.progress();
     planItemReported = false;
+    planNudgedItemId = null;
     stageIndicator.textContent = `🗒️ 項目 ${progress.index + 1}/${progress.total}：${item.type}`;
     sessionDiagnostics.record("plan_item_sent", {
         id: item.id, type: item.type, target: item.target || "",
@@ -2720,6 +2721,8 @@ function advancePlan(outcome, source) {
 }
 
 // 兜底：模型沒回報，但確實完成了一次「學生說話 → AI 回應」的問答
+let planNudgedItemId = null;   // 每個項目最多補問一次
+
 function planFallbackAfterTurn(completedStudentTurn, completedGeneration) {
     if (!planRunner || planItemReported || !completedStudentTurn) return;
     // 新項目的指令還在排隊（學生根本沒聽到題目）就不能計數
@@ -2730,6 +2733,24 @@ function planFallbackAfterTurn(completedStudentTurn, completedGeneration) {
     if (completedGeneration != null && completedGeneration <= planItemSentGeneration) return;
     const item = planRunner.current();
     if (!item) return;
+    // 補問機制（HANDOFF 階段 4，遵從率 0.6~0.9 的處方）：
+    // 漏回報時先要求模型回報，而不是直接無聲跳過——2026-09-02 實測
+    // 「上到一半跳掉」就是兜底把沒回報的項目靜靜推進造成的。
+    // 補問順便重申目前的項目，模型岔題亂跑時也能被拉回來。
+    // 開場與結尾本來就常無回報（沒有練習目標），不補問直接推進。
+    if (item.type !== "opening" && item.type !== "closing" && planNudgedItemId !== item.id) {
+        planNudgedItemId = item.id;
+        sessionDiagnostics.record("plan_report_nudged", { id: item.id, type: item.type, target: item.target || "" });
+        logSystem("📮 模型沒回報這一輪的結果，補問一次（暫不推進）。");
+        queuePlanDirective({
+            body: "剛才那一輪你沒有回報結果。目前的項目仍然是" +
+                (item.target ? `「${item.target}」` : `這一項（${item.type}）`) +
+                "，不要跳到別的內容。立刻為學員剛才的嘗試呼叫 report_item_result——" +
+                "這是安靜的系統動作，不要對學員說任何話。",
+            item, attempts: planRunner.progress().attempts
+        });
+        return;
+    }
     sessionDiagnostics.record("plan_fallback_advance", { id: item.id, type: item.type });
     advancePlan("unknown", "turn-fallback");
 }

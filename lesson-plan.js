@@ -296,14 +296,17 @@
         }));
     }
 
-    // 遮罩字：保留第一個字母，其後每隔一個字母挖空。desk → d_s_、chair → c_a_r
+    // 遮罩字：挖第 2、4 個字母，最多兩格。desk → d_s_、chair → c_a_r、grandfather → g_a_dfather
+    // 原本每隔一個字母就挖（grandfather 挖五格），2026-09-04 實測孩子跟模型都被
+    // 搞得很累，模型還因為「字母順序不對」連判三次錯。
+    const GAP_POSITIONS = [1, 3];
     function maskWord(value) {
         const word = bareWord(value);
         let out = "";
         let alphaIndex = 0;
         for (const ch of word) {
             if (!/[a-z0-9]/.test(ch)) { out += ch; continue; }
-            out += (alphaIndex > 0 && alphaIndex % 2 === 1) ? "_" : ch;
+            out += GAP_POSITIONS.indexOf(alphaIndex) >= 0 ? "_" : ch;
             alphaIndex += 1;
         }
         return out;
@@ -315,7 +318,7 @@
         let alphaIndex = 0;
         for (const ch of word) {
             if (!/[a-z0-9]/.test(ch)) continue;
-            if (alphaIndex > 0 && alphaIndex % 2 === 1) missing.push(ch);
+            if (GAP_POSITIONS.indexOf(alphaIndex) >= 0) missing.push(ch);
             alphaIndex += 1;
         }
         return missing.join("-");
@@ -747,6 +750,11 @@
         } else if (item.type === "word_gap") {
             bits.push(` 畫面顯示的挖空版是「${item.display}」` +
                 (item.meaning ? `，中文是「${item.meaning}」` : "") + "。");
+            // 2026-09-04 GPT 實測：孩子說對 grandfather、說對 u t suit 都被判錯，
+            // 理由是「沒先講字母」「順序」「多唸了一次字」，一題耗掉三階。
+            bits.push(" 判斷標準只有一個：缺的字母說對、或整個字唸對，任一成立就回報 correct。" +
+                "字母順序、先講字還是先講字母、多唸了一次字，都不算錯。" +
+                "回饋一到兩句就好，不要解釋規則。");
             // 第一階不給答案：實測「填空一開始 AI 就把答案說出來」就是指令把
             // 完整拼法與缺的字母都給了它。模型自己認得這個字，先聽孩子說再判斷。
             if (attempts >= 1) {

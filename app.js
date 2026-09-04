@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.36";
+const APP_VERSION = "3.37";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1597,7 +1597,15 @@ async function startOpenAISession() {
                 if (detail.role === 'student') {
                     currentUserTurnTranscript = detail.final ? detail.text : currentUserTurnTranscript + detail.text;
                     if (userSpeechBox) setText(userSpeechBox, detail.final ? detail.text : currentUserTurnTranscript);
+                    if (detail.final && detail.text) {
+                        sessionDiagnostics.transcript("student", detail.text, { turn: studentTurnGeneration });
+                    }
                     return;
+                }
+                if (detail.text) {
+                    sessionDiagnostics.transcript("ai", detail.text, {
+                        responseToTurn: activeAiResponseStudentGeneration
+                    });
                 }
                 // 有些 Realtime 回合只送 final、沒有 delta。只有真的拿到新文字才清掉上一輪，
                 // final-only 時要把完整文字補上，避免字幕框突然變空白。
@@ -2165,7 +2173,10 @@ function connectWebSocket(isReconnect) {
         logSystem(`<span style="color:#ff8800;">WebSocket 關閉 (code=${e.code}${e.reason ? ', reason=' + e.reason : ''})</span>`);
         if (userStopped) { stopSession("user"); return; }
         // 額度／計費類：重連一萬次也沒用，直接停下並說清楚該去哪處理
-        if (/spending cap|quota|billing|exceeded|RESOURCE_EXHAUSTED/i.test(e.reason || "")) {
+        // 2026-09-04 實測：AI Studio 預付額度用完時 reason 是
+        // "Your prepayment credits are depleted"，之後重連只會得到
+        // "Token has been used too many times"，八次都一樣。
+        if (/spending cap|quota|billing|exceeded|RESOURCE_EXHAUSTED|credits are depleted|prepayment/i.test(e.reason || "")) {
             logSystem("<span style='color:#ff4444;'>❌ Google AI 專案已達本月支出上限（或額度用盡），Gemini 拒絕連線。" +
                       "請到 AI Studio（https://ai.studio/spend）調整上限，或等下個月額度重置。這不是程式問題，重連無法解決。</span>");
             alert("連線被 Google 拒絕：你的 AI Studio 專案已達本月支出上限（或額度用盡）。\n\n" +
@@ -2851,7 +2862,15 @@ function recordItemResult(args) {
     // 慢一拍的那筆流到下一個項目頭上，會讓新項目沒練到就被跳過。
     if (planDriving()) {
         const currentItem = planRunner ? planRunner.current() : null;
-        if (currentItem && !reportMatchesPlanItem(target, currentItem)) {
+        // 結尾項目沒有目標，任何回報都「對得上」——2026-09-04 實測最後一題的
+        // 重複回報流到結尾頭上，計畫立刻算完成、AI 一個字都沒說就下課。
+        // 結尾只靠「AI 真的講了結語」收尾（completeTrackedAiTurn 的 closingSpoken）。
+        if (currentItem && currentItem.type === "closing") {
+            sessionDiagnostics.record("plan_report_ignored", {
+                reported: target, expected: "closing", outcome
+            });
+            logSystem(`↩️ 結尾階段收到回報「${target}」，視為上一項的重複回報，等結語講完再下課。`);
+        } else if (currentItem && !reportMatchesPlanItem(target, currentItem)) {
             sessionDiagnostics.record("plan_report_ignored", {
                 reported: target, expected: currentItem.target || currentItem.id, outcome
             });
@@ -2873,8 +2892,13 @@ function recordItemResult(args) {
 let planOffScript = { id: null, count: 0 };
 
 function handleOffScriptReport(target, currentItem) {
-    const duplicateOfLast = lastCompletedPlanItem &&
-        reportTargetsOverlap(target, planItemRawCandidates(lastCompletedPlanItem));
+    // 目前項目送出後孩子還沒說過話（或指令根本還在排隊）→ 這筆回報不可能是
+    // 在講目前項目，一定是上一項的慢半拍回報。2026-09-04 實測開場的重複回報
+    // （target「Are you ready?」「ready」）被當成偏離計畫，把 table 整題跳掉。
+    const staleByTiming = !!pendingPlanDirective || planItemSentGeneration === studentTurnGeneration;
+    const lastCandidates = lastCompletedPlanItem ? planItemRawCandidates(lastCompletedPlanItem) : [];
+    const duplicateOfLast = staleByTiming || !lastCandidates.length ||
+        reportTargetsOverlap(target, lastCandidates);
     if (duplicateOfLast) {
         logSystem(`↩️ 回報目標「${target}」與目前項目「${currentItem.target || currentItem.type}」不符，視為上一項的重複回報，不推進。`);
         return;

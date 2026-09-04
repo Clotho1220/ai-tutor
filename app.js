@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.35";
+const APP_VERSION = "3.36";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -2441,9 +2441,16 @@ function completeTrackedAiTurn(provider) {
     const practiceBoundaryDetected = practiceTurnBoundary.completeTurn();
     const practiceRequested = practiceBoundaryDetected || window.PracticeObserver.asksForPractice(completedAiTranscript);
     if (practiceRequested) practiceTurnsObserved += 1;   // 階段 1：用來比對模型的回報遵從率
+    // 結語要「真的講了話」才算講完。結尾指令送出時會切斷模型手上那一輪
+    // （Gemini 回 interrupted），那一輪的 turnComplete 內容是空的——
+    // 2026-09-04 實測就是這樣在 AI 一個字都還沒說時排程下課、直接斷線。
+    const closingSpoken = closingStageActive && completedAiTranscript.trim().length > 0;
+    if (closingStageActive && !closingSpoken) {
+        sessionDiagnostics.record("closing_turn_empty", { provider });
+    }
     const endingAction = lessonEndingGuard.completeTurn({
         finalStage: closingStageActive,
-        finishFinalTurn: closingStageActive
+        finishFinalTurn: closingSpoken
     });
     sessionDiagnostics.record("ai_turn_completed", {
         provider,
@@ -2848,13 +2855,44 @@ function recordItemResult(args) {
             sessionDiagnostics.record("plan_report_ignored", {
                 reported: target, expected: currentItem.target || currentItem.id, outcome
             });
-            logSystem(`↩️ 回報目標「${target}」與目前項目「${currentItem.target || currentItem.type}」不符，視為上一項的重複回報，不推進。`);
+            handleOffScriptReport(target, currentItem);
         } else {
             planItemReported = true;
             advancePlan(outcome, "report");
         }
     }
     return { status: "result recorded" };
+}
+
+// 回報對不上目前項目時有兩種情況：
+//   1. 上一項的重複回報（Gemini 每次都回報兩筆）→ 忽略即可
+//   2. 模型自己跑去教別的東西（2026-09-04 GPT 實測：pencil 答錯一次後，
+//      模型改教 Is it finished?、Can you sing?，每筆回報都對不上，計畫永遠停在
+//      pencil，孩子看著同一張圖抱怨「圖還是 pencil 的圖」）
+// 第 2 種第一次先把目前項目的指令重送一次拉回來；再發生就跳過這一項往下走。
+let planOffScript = { id: null, count: 0 };
+
+function handleOffScriptReport(target, currentItem) {
+    const duplicateOfLast = lastCompletedPlanItem &&
+        reportTargetsOverlap(target, planItemRawCandidates(lastCompletedPlanItem));
+    if (duplicateOfLast) {
+        logSystem(`↩️ 回報目標「${target}」與目前項目「${currentItem.target || currentItem.type}」不符，視為上一項的重複回報，不推進。`);
+        return;
+    }
+    if (planOffScript.id !== currentItem.id) planOffScript = { id: currentItem.id, count: 0 };
+    planOffScript.count += 1;
+    if (planOffScript.count === 1) {
+        sessionDiagnostics.record("plan_off_script_resent", { id: currentItem.id, reported: target });
+        logSystem(`🧭 模型偏離計畫（回報「${target}」），重送目前項目「${currentItem.target || currentItem.type}」。`);
+        sendCurrentPlanItem();
+        return;
+    }
+    sessionDiagnostics.record("plan_off_script_skipped", { id: currentItem.id, reported: target });
+    logSystem(`⏭️ 模型仍偏離計畫，跳過「${currentItem.target || currentItem.type}」往下走。`);
+    if (planRunner) {
+        planRunner.skipCurrent("off_script");
+        sendCurrentPlanItem();
+    }
 }
 
 // 回報的 target 與目前項目是否指同一件事。字串不會逐字相同
@@ -2874,7 +2912,10 @@ function reportTargetsOverlap(reported, rawCandidates) {
 }
 
 function planItemRawCandidates(item) {
-    return [item.target, item.display, item.ask, item.slotWord]
+    // 填字母題模型常回報「e c l」（缺的字母）或完整字，拼字題回報「s-i-n-g」，
+    // 這些都是同一項的回報（2026-09-04 GPT 實測因此卡在 pencil 不推進）。
+    return [item.target, item.display, item.ask, item.slotWord,
+            item.answerDisplay, item.missing, item.letters]
         .concat(item.alternatives || [])
         .map(value => String(value == null ? "" : value).trim()).filter(Boolean);
 }
@@ -2937,6 +2978,9 @@ let practiceFamilyCounts = {};
 // 本專案中模型對導演指令的遵從度明顯高於指令附加；同時兩個模型都適用。
 function enforcePracticeCap(feedback) {
     if (!feedback || !feedback.suggestion) return;
+    // 計畫模式的重試次數由階梯控制；舊機制在 2026-09-04 GPT 實測中反而把模型
+    // 推去「換題」，脫離目前項目。
+    if (planDriving()) return;
     const family = window.PracticeObserver.sentenceFamily(feedback.suggestion);
     if (!family) return;
     const count = (practiceFamilyCounts[family] || 0) + 1;

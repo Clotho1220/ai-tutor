@@ -99,6 +99,8 @@ AI 用英文問（Can you fly?），學員要會答（No, I can't.）。
 | 一次一項、依結果推進 | ✅ 預設開啟（v3.19） | `createRunner()` + `sendCurrentPlanItem()` |
 | 做完所有項目才下課 | ✅ | 計畫跑完 → `scheduleLessonCompletion()` |
 | 補問機制（漏回報先要求回報） | ✅ v3.34 | `planFallbackAfterTurn` 的 nudge |
+| 偏離計畫的回報（重送→跳過） | ✅ v3.36 | `handleOffScriptReport` |
+| 結語要真的講了才下課 | ✅ v3.36 | `completeTrackedAiTurn` 的 `closingSpoken` |
 | **句子練習的對話漫畫圖（239 張）** | ⏳ 交給 Gogo English 專案生圖 | 清單 `build-dialogue-list.py` → `../Gogo English/圖片提示詞/dialogues.json`；需求見該資料夾 `對話漫畫_需求.md`。圖到手後：builder 掛圖到代換／對答題、`build-images.py` 轉檔、句子畫面顯示漫畫；順便修 B2U7/B3U7 單複數、B3U3/B3U11 代換清單（2026-09-04） |
 | 每日單字互動式點選介面 | ⏳ 等對話圖完成後再做 | 規劃：day2 唸完點中文、day3 點選再唸、day4 點字母、day5 排字母、對答點答案 |
 | **開場三種回應處理** | ❌ 未實作 | 目前只有一段 opening 指令 |

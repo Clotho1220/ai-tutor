@@ -95,6 +95,21 @@
         }
 
         async function requestClientSecret(settings) {
+            // Apps Script 偶爾短暫故障（Failed to fetch、回 HTML 錯誤頁），
+            // 2026-09-03 實測一分鐘內連續三次啟動失敗。重試兩次、間隔 2 秒，
+            // 讓短暫故障自己復原，不用家長一直重按。
+            let lastError = null;
+            for (let attempt = 0; attempt < 3; attempt++) {
+                try { return await requestClientSecretOnce(settings); }
+                catch (error) {
+                    lastError = error;
+                    if (attempt < 2) await new Promise(resolve => global.setTimeout(resolve, 2000));
+                }
+            }
+            throw lastError;
+        }
+
+        async function requestClientSecretOnce(settings) {
             const response = await fetchFn(settings.tokenEndpoint, {
                 method: "POST",
                 body: JSON.stringify({

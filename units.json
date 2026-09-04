@@ -18,13 +18,17 @@
               "english": "What's your name? / I'm [Name].",
               "chinese": "詢問對方姓名並自我介紹。",
               "example": "1. What's your name? 2. I'm Tony.",
-              "slot": null
+              "slot": null,
+              "zh": "你叫什麼名字？我叫【】。",
+              "answerZh": "我叫（你的名字）。"
             },
             {
               "english": "Nice to meet you.",
               "chinese": "初次見面時的禮貌問候。",
               "example": "1. Nice to meet you, Tony. 2. Nice to meet you, Jenny.",
-              "slot": null
+              "slot": null,
+              "zh": "很高興認識你。",
+              "answerZh": "很高興認識你。"
             }
           ],
           "words": [
@@ -122,6 +126,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "apple",
+              "chinese": "蘋果",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_apple.webp",
+              "askType": "what_is_this",
+              "phonics": "Aa"
+            },
+            {
+              "english": "ant",
+              "chinese": "螞蟻",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_ant.webp",
+              "askType": "what_is_this",
+              "phonics": "Aa"
+            },
+            {
+              "english": "banana",
+              "chinese": "香蕉",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_banana.webp",
+              "askType": "what_is_this",
+              "phonics": "Bb"
+            },
+            {
+              "english": "bear",
+              "chinese": "熊",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_bear.webp",
+              "askType": "what_is_this",
+              "phonics": "Bb"
+            },
+            {
+              "english": "cat",
+              "chinese": "貓",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_cat.webp",
+              "askType": "what_is_this",
+              "phonics": "Cc"
+            },
+            {
+              "english": "carrot",
+              "chinese": "紅蘿蔔",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_carrot.webp",
+              "askType": "what_is_this",
+              "phonics": "Cc"
+            }
+          ],
           "expressions": [
             {
               "english": "Nice to meet you, Tony.",
@@ -148,7 +208,9 @@
               "english": "What's this? / It's a/an [object].",
               "chinese": "詢問近處不認識的單數物品。",
               "example": "1. What's this? It's a desk. 2. What's this? It's an eraser.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "這是什麼？這是【】。",
+              "answerZh": "這是（東西）。"
             }
           ],
           "words": [
@@ -262,6 +324,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "dog",
+              "chinese": "狗",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_dog.webp",
+              "askType": "what_is_this",
+              "phonics": "Dd"
+            },
+            {
+              "english": "duck",
+              "chinese": "鴨子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_duck.webp",
+              "askType": "what_is_this",
+              "phonics": "Dd"
+            },
+            {
+              "english": "elephant",
+              "chinese": "大象",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_elephant.webp",
+              "askType": "what_is_this",
+              "phonics": "Ee"
+            },
+            {
+              "english": "egg",
+              "chinese": "蛋",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_egg.webp",
+              "askType": "what_is_this",
+              "phonics": "Ee"
+            },
+            {
+              "english": "fish",
+              "chinese": "魚",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_fish.webp",
+              "askType": "what_is_this",
+              "phonics": "Ff"
+            },
+            {
+              "english": "fox",
+              "chinese": "狐狸",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_fox.webp",
+              "askType": "what_is_this",
+              "phonics": "Ff"
+            }
+          ],
           "expressions": [
             {
               "english": "It's a book.",
@@ -288,7 +406,9 @@
               "english": "Can you [action]? / Yes, I can. / No, I can't.",
               "chinese": "詢問對方是否具備某種動作或能力。",
               "example": "1. Can you read? Yes, I can. 2. Can you fly? No, I can't.",
-              "slot": "action"
+              "slot": "action",
+              "zh": "你會【】嗎？",
+              "answerZh": "會，我會。／不會，我不會。"
             }
           ],
           "words": [
@@ -400,6 +520,62 @@
                   "chinese": "冰屋"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "goat",
+              "chinese": "山羊",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_goat.webp",
+              "askType": "what_is_this",
+              "phonics": "Gg"
+            },
+            {
+              "english": "girl",
+              "chinese": "女孩",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_girl.webp",
+              "askType": "who_is_this",
+              "phonics": "Gg"
+            },
+            {
+              "english": "hippo",
+              "chinese": "河馬",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_hippo.webp",
+              "askType": "what_is_this",
+              "phonics": "Hh"
+            },
+            {
+              "english": "hat",
+              "chinese": "帽子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_hat.webp",
+              "askType": "what_is_this",
+              "phonics": "Hh"
+            },
+            {
+              "english": "iguana",
+              "chinese": "鬣蜥",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_iguana.webp",
+              "askType": "what_is_this",
+              "phonics": "Ii"
+            },
+            {
+              "english": "igloo",
+              "chinese": "冰屋",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_igloo.webp",
+              "askType": "what_is_this",
+              "phonics": "Ii"
             }
           ],
           "expressions": [
@@ -429,25 +605,33 @@
               "english": "What's your name? / I'm [Name].",
               "chinese": "詢問對方姓名並自我介紹。",
               "example": "1. What's your name? 2. I'm Tony.",
-              "slot": null
+              "slot": null,
+              "zh": "你叫什麼名字？我叫【】。",
+              "answerZh": "我叫（你的名字）。"
             },
             {
               "english": "Nice to meet you.",
               "chinese": "初次見面時的禮貌問候。",
               "example": "1. Nice to meet you, Tony. 2. Nice to meet you, Jenny.",
-              "slot": null
+              "slot": null,
+              "zh": "很高興認識你。",
+              "answerZh": "很高興認識你。"
             },
             {
               "english": "What's this? / It's a/an [object].",
               "chinese": "詢問近處不認識的單數物品。",
               "example": "1. What's this? It's a desk. 2. What's this? It's an eraser.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "這是什麼？這是【】。",
+              "answerZh": "這是（東西）。"
             },
             {
               "english": "Can you [action]? / Yes, I can. / No, I can't.",
               "chinese": "詢問對方是否具備某種動作或能力。",
               "example": "1. Can you read? Yes, I can. 2. Can you fly? No, I can't.",
-              "slot": "action"
+              "slot": "action",
+              "zh": "你會【】嗎？",
+              "answerZh": "會，我會。／不會，我不會。"
             }
           ],
           "words": [
@@ -749,6 +933,170 @@
                   "chinese": "冰屋"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "apple",
+              "chinese": "蘋果",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_apple.webp",
+              "askType": "what_is_this",
+              "phonics": "Aa"
+            },
+            {
+              "english": "ant",
+              "chinese": "螞蟻",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_ant.webp",
+              "askType": "what_is_this",
+              "phonics": "Aa"
+            },
+            {
+              "english": "banana",
+              "chinese": "香蕉",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_banana.webp",
+              "askType": "what_is_this",
+              "phonics": "Bb"
+            },
+            {
+              "english": "bear",
+              "chinese": "熊",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_bear.webp",
+              "askType": "what_is_this",
+              "phonics": "Bb"
+            },
+            {
+              "english": "cat",
+              "chinese": "貓",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_cat.webp",
+              "askType": "what_is_this",
+              "phonics": "Cc"
+            },
+            {
+              "english": "carrot",
+              "chinese": "紅蘿蔔",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u01_carrot.webp",
+              "askType": "what_is_this",
+              "phonics": "Cc"
+            },
+            {
+              "english": "dog",
+              "chinese": "狗",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_dog.webp",
+              "askType": "what_is_this",
+              "phonics": "Dd"
+            },
+            {
+              "english": "duck",
+              "chinese": "鴨子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_duck.webp",
+              "askType": "what_is_this",
+              "phonics": "Dd"
+            },
+            {
+              "english": "elephant",
+              "chinese": "大象",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_elephant.webp",
+              "askType": "what_is_this",
+              "phonics": "Ee"
+            },
+            {
+              "english": "egg",
+              "chinese": "蛋",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_egg.webp",
+              "askType": "what_is_this",
+              "phonics": "Ee"
+            },
+            {
+              "english": "fish",
+              "chinese": "魚",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_fish.webp",
+              "askType": "what_is_this",
+              "phonics": "Ff"
+            },
+            {
+              "english": "fox",
+              "chinese": "狐狸",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u02_fox.webp",
+              "askType": "what_is_this",
+              "phonics": "Ff"
+            },
+            {
+              "english": "goat",
+              "chinese": "山羊",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_goat.webp",
+              "askType": "what_is_this",
+              "phonics": "Gg"
+            },
+            {
+              "english": "girl",
+              "chinese": "女孩",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_girl.webp",
+              "askType": "who_is_this",
+              "phonics": "Gg"
+            },
+            {
+              "english": "hippo",
+              "chinese": "河馬",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_hippo.webp",
+              "askType": "what_is_this",
+              "phonics": "Hh"
+            },
+            {
+              "english": "hat",
+              "chinese": "帽子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_hat.webp",
+              "askType": "what_is_this",
+              "phonics": "Hh"
+            },
+            {
+              "english": "iguana",
+              "chinese": "鬣蜥",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_iguana.webp",
+              "askType": "what_is_this",
+              "phonics": "Ii"
+            },
+            {
+              "english": "igloo",
+              "chinese": "冰屋",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u03_igloo.webp",
+              "askType": "what_is_this",
+              "phonics": "Ii"
             }
           ],
           "expressions": [
@@ -789,7 +1137,9 @@
               "english": "Who's she/he? / She's/He's my [family member].",
               "chinese": "詢問某位女性或男性是誰。",
               "example": "1. Who's she? She's my mother. 2. Who's he? He's my father.",
-              "slot": "person"
+              "slot": "person",
+              "zh": "她／他是誰？她／他是我的【】。",
+              "answerZh": "她／他是我的（家人）。"
             }
           ],
           "words": [
@@ -903,6 +1253,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "juice",
+              "chinese": "果汁",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_juice.webp",
+              "askType": "what_is_this",
+              "phonics": "Jj"
+            },
+            {
+              "english": "jellyfish",
+              "chinese": "水母",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_jellyfish.webp",
+              "askType": "what_is_this",
+              "phonics": "Jj"
+            },
+            {
+              "english": "kangaroo",
+              "chinese": "袋鼠",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_kangaroo.webp",
+              "askType": "what_is_this",
+              "phonics": "Kk"
+            },
+            {
+              "english": "kite",
+              "chinese": "風箏",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_kite.webp",
+              "askType": "what_is_this",
+              "phonics": "Kk"
+            },
+            {
+              "english": "lion",
+              "chinese": "獅子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_lion.webp",
+              "askType": "what_is_this",
+              "phonics": "Ll"
+            },
+            {
+              "english": "lemon",
+              "chinese": "檸檬",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_lemon.webp",
+              "askType": "what_is_this",
+              "phonics": "Ll"
+            }
+          ],
           "expressions": [
             {
               "english": "How are you?",
@@ -933,7 +1339,9 @@
               "english": "What's his/her name? / His/Her name's [Name].",
               "chinese": "詢問第三人（男生／女生）的名字。",
               "example": "1. What's his name? His name's Ben. 2. What's her name? Her name's Ms. Black.",
-              "slot": null
+              "slot": null,
+              "zh": "他／她叫什麼名字？他／她叫【】。",
+              "answerZh": "他／她叫（名字）。"
             }
           ],
           "words": [
@@ -1045,6 +1453,62 @@
                   "chinese": "公牛"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "monkey",
+              "chinese": "猴子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_monkey.webp",
+              "askType": "what_is_this",
+              "phonics": "Mm"
+            },
+            {
+              "english": "melon",
+              "chinese": "甜瓜",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_melon.webp",
+              "askType": "what_is_this",
+              "phonics": "Mm"
+            },
+            {
+              "english": "noodles",
+              "chinese": "麵",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_noodles.webp",
+              "askType": "what_is_this",
+              "phonics": "Nn"
+            },
+            {
+              "english": "nose",
+              "chinese": "鼻子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_nose.webp",
+              "askType": "what_is_this",
+              "phonics": "Nn"
+            },
+            {
+              "english": "octopus",
+              "chinese": "章魚",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_octopus.webp",
+              "askType": "what_is_this",
+              "phonics": "Oo"
+            },
+            {
+              "english": "ox",
+              "chinese": "公牛",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_ox.webp",
+              "askType": "what_is_this",
+              "phonics": "Oo"
             }
           ],
           "expressions": [
@@ -1081,7 +1545,9 @@
               "english": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
               "chinese": "詢問這是否為某種特定的動物或物品。",
               "example": "1. Is this a giraffe? Yes, it is. 2. Is this a whale? No, it isn't.",
-              "slot": "animal"
+              "slot": "animal",
+              "zh": "這是【】嗎？",
+              "answerZh": "是，它是。／不，它不是。"
             }
           ],
           "words": [
@@ -1195,6 +1661,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "panda",
+              "chinese": "熊貓",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_panda.webp",
+              "askType": "what_is_this",
+              "phonics": "Pp"
+            },
+            {
+              "english": "piano",
+              "chinese": "鋼琴",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_piano.webp",
+              "askType": "what_is_this",
+              "phonics": "Pp"
+            },
+            {
+              "english": "queen",
+              "chinese": "皇后",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_queen.webp",
+              "askType": "who_is_this",
+              "phonics": "Qq"
+            },
+            {
+              "english": "question",
+              "chinese": "問題",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_question.webp",
+              "askType": "dialogue",
+              "phonics": "Qq"
+            },
+            {
+              "english": "rabbit",
+              "chinese": "兔子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_rabbit.webp",
+              "askType": "what_is_this",
+              "phonics": "Rr"
+            },
+            {
+              "english": "rice",
+              "chinese": "米飯",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_rice.webp",
+              "askType": "what_is_this",
+              "phonics": "Rr"
+            }
+          ],
           "expressions": [
             {
               "english": "It's a bird.",
@@ -1226,19 +1748,25 @@
               "english": "Who's she/he? / She's/He's my [family member].",
               "chinese": "詢問某位女性或男性是誰。",
               "example": "1. Who's she? She's my mother. 2. Who's he? He's my father.",
-              "slot": "person"
+              "slot": "person",
+              "zh": "她／他是誰？她／他是我的【】。",
+              "answerZh": "她／他是我的（家人）。"
             },
             {
               "english": "What's his/her name? / His/Her name's [Name].",
               "chinese": "詢問第三人（男生／女生）的名字。",
               "example": "1. What's his name? His name's Ben. 2. What's her name? Her name's Ms. Black.",
-              "slot": null
+              "slot": null,
+              "zh": "他／她叫什麼名字？他／她叫【】。",
+              "answerZh": "他／她叫（名字）。"
             },
             {
               "english": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
               "chinese": "詢問這是否為某種特定的動物或物品。",
               "example": "1. Is this a giraffe? Yes, it is. 2. Is this a whale? No, it isn't.",
-              "slot": "animal"
+              "slot": "animal",
+              "zh": "這是【】嗎？",
+              "answerZh": "是，它是。／不，它不是。"
             }
           ],
           "words": [
@@ -1556,6 +2084,170 @@
                   "chinese": "米飯"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "juice",
+              "chinese": "果汁",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_juice.webp",
+              "askType": "what_is_this",
+              "phonics": "Jj"
+            },
+            {
+              "english": "jellyfish",
+              "chinese": "水母",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_jellyfish.webp",
+              "askType": "what_is_this",
+              "phonics": "Jj"
+            },
+            {
+              "english": "kangaroo",
+              "chinese": "袋鼠",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_kangaroo.webp",
+              "askType": "what_is_this",
+              "phonics": "Kk"
+            },
+            {
+              "english": "kite",
+              "chinese": "風箏",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_kite.webp",
+              "askType": "what_is_this",
+              "phonics": "Kk"
+            },
+            {
+              "english": "lion",
+              "chinese": "獅子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_lion.webp",
+              "askType": "what_is_this",
+              "phonics": "Ll"
+            },
+            {
+              "english": "lemon",
+              "chinese": "檸檬",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u05_lemon.webp",
+              "askType": "what_is_this",
+              "phonics": "Ll"
+            },
+            {
+              "english": "monkey",
+              "chinese": "猴子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_monkey.webp",
+              "askType": "what_is_this",
+              "phonics": "Mm"
+            },
+            {
+              "english": "melon",
+              "chinese": "甜瓜",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_melon.webp",
+              "askType": "what_is_this",
+              "phonics": "Mm"
+            },
+            {
+              "english": "noodles",
+              "chinese": "麵",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_noodles.webp",
+              "askType": "what_is_this",
+              "phonics": "Nn"
+            },
+            {
+              "english": "nose",
+              "chinese": "鼻子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_nose.webp",
+              "askType": "what_is_this",
+              "phonics": "Nn"
+            },
+            {
+              "english": "octopus",
+              "chinese": "章魚",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_octopus.webp",
+              "askType": "what_is_this",
+              "phonics": "Oo"
+            },
+            {
+              "english": "ox",
+              "chinese": "公牛",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u06_ox.webp",
+              "askType": "what_is_this",
+              "phonics": "Oo"
+            },
+            {
+              "english": "panda",
+              "chinese": "熊貓",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_panda.webp",
+              "askType": "what_is_this",
+              "phonics": "Pp"
+            },
+            {
+              "english": "piano",
+              "chinese": "鋼琴",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_piano.webp",
+              "askType": "what_is_this",
+              "phonics": "Pp"
+            },
+            {
+              "english": "queen",
+              "chinese": "皇后",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_queen.webp",
+              "askType": "who_is_this",
+              "phonics": "Qq"
+            },
+            {
+              "english": "question",
+              "chinese": "問題",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_question.webp",
+              "askType": "dialogue",
+              "phonics": "Qq"
+            },
+            {
+              "english": "rabbit",
+              "chinese": "兔子",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_rabbit.webp",
+              "askType": "what_is_this",
+              "phonics": "Rr"
+            },
+            {
+              "english": "rice",
+              "chinese": "米飯",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u07_rice.webp",
+              "askType": "what_is_this",
+              "phonics": "Rr"
             }
           ],
           "expressions": [
@@ -1612,7 +2304,9 @@
               "english": "What color is this? / It's [color].",
               "chinese": "詢問某物品的顏色。",
               "example": "1. What color is this? It's orange. 2. What color is this? It's red.",
-              "slot": "color"
+              "slot": "color",
+              "zh": "這是什麼顏色？是【】。",
+              "answerZh": "是（顏色）。"
             }
           ],
           "words": [
@@ -1722,6 +2416,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "sun",
+              "chinese": "太陽",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_sun.webp",
+              "askType": "what_is_this",
+              "phonics": "Ss"
+            },
+            {
+              "english": "soccer",
+              "chinese": "足球",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_soccer.webp",
+              "askType": "what_is_this",
+              "phonics": "Ss"
+            },
+            {
+              "english": "tiger",
+              "chinese": "老虎",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_tiger.webp",
+              "askType": "what_is_this",
+              "phonics": "Tt"
+            },
+            {
+              "english": "TV",
+              "chinese": "電視",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_tv.webp",
+              "askType": "what_is_this",
+              "phonics": "Tt"
+            },
+            {
+              "english": "umbrella",
+              "chinese": "雨傘",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_umbrella.webp",
+              "askType": "what_is_this",
+              "phonics": "Uu"
+            },
+            {
+              "english": "unhappy",
+              "chinese": "不開心的",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_unhappy.webp",
+              "askType": "how_is_he",
+              "phonics": "Uu"
+            }
+          ],
           "expressions": [
             {
               "english": "It's paint. I can paint.",
@@ -1744,7 +2494,9 @@
               "english": "How old are you/is [someone]? / I'm [age]. / He's/She's [age].",
               "chinese": "詢問對方或第三人的年齡。",
               "example": "1. How old are you? I'm eight. 2. How old is your brother? He's seven.",
-              "slot": null
+              "slot": null,
+              "zh": "你幾歲？我【】歲。",
+              "answerZh": "我（幾）歲。"
             }
           ],
           "words": [
@@ -1858,6 +2610,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "violin",
+              "chinese": "小提琴",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_violin.webp",
+              "askType": "what_is_this",
+              "phonics": "Vv"
+            },
+            {
+              "english": "volleyball",
+              "chinese": "排球",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_volleyball.webp",
+              "askType": "what_is_this",
+              "phonics": "Vv"
+            },
+            {
+              "english": "watch",
+              "chinese": "手錶",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_watch.webp",
+              "askType": "what_is_this",
+              "phonics": "Ww"
+            },
+            {
+              "english": "witch",
+              "chinese": "女巫",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_witch.webp",
+              "askType": "who_is_this",
+              "phonics": "Ww"
+            },
+            {
+              "english": "x-ray",
+              "chinese": "X光",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_x_ray.webp",
+              "askType": "what_is_this",
+              "phonics": "Xx"
+            },
+            {
+              "english": "exercise",
+              "chinese": "運動",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_exercise.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "Xx"
+            }
+          ],
           "expressions": [
             {
               "english": "Happy Birthday, Tony!",
@@ -1888,7 +2696,9 @@
               "english": "What do you like? / I like [food].",
               "chinese": "詢問對方喜愛什麼食物或事物。",
               "example": "1. What do you like, Tony? I like cheese. 2. What do you like, Jenny? I like cake.",
-              "slot": "food"
+              "slot": "food",
+              "zh": "你喜歡什麼？我喜歡【】。",
+              "answerZh": "我喜歡（食物）。"
             }
           ],
           "words": [
@@ -1987,6 +2797,44 @@
                   "chinese": "動物園"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "yo-yo",
+              "chinese": "溜溜球",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_yo_yo.webp",
+              "askType": "what_is_this",
+              "phonics": "Yy"
+            },
+            {
+              "english": "yogurt",
+              "chinese": "優格",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_yogurt.webp",
+              "askType": "what_is_this",
+              "phonics": "Yy"
+            },
+            {
+              "english": "zebra",
+              "chinese": "斑馬",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_zebra.webp",
+              "askType": "what_is_this",
+              "phonics": "Zz"
+            },
+            {
+              "english": "zoo",
+              "chinese": "動物園",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_zoo.webp",
+              "askType": "where_is_this",
+              "phonics": "Zz"
             }
           ],
           "expressions": [
@@ -2024,19 +2872,25 @@
               "english": "What color is this? / It's [color].",
               "chinese": "詢問某物品的顏色。",
               "example": "1. What color is this? It's orange. 2. What color is this? It's red.",
-              "slot": "color"
+              "slot": "color",
+              "zh": "這是什麼顏色？是【】。",
+              "answerZh": "是（顏色）。"
             },
             {
               "english": "How old are you/is [someone]? / I'm [age]. / He's/She's [age].",
               "chinese": "詢問對方或第三人的年齡。",
               "example": "1. How old are you? I'm eight. 2. How old is your brother? He's seven.",
-              "slot": null
+              "slot": null,
+              "zh": "你幾歲？我【】歲。",
+              "answerZh": "我（幾）歲。"
             },
             {
               "english": "What do you like? / I like [food].",
               "chinese": "詢問對方喜愛什麼食物或事物。",
               "example": "1. What do you like, Tony? I like cheese. 2. What do you like, Jenny? I like cake.",
-              "slot": "food"
+              "slot": "food",
+              "zh": "你喜歡什麼？我喜歡【】。",
+              "answerZh": "我喜歡（食物）。"
             }
           ],
           "words": [
@@ -2337,6 +3191,152 @@
                   "chinese": "動物園"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "sun",
+              "chinese": "太陽",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_sun.webp",
+              "askType": "what_is_this",
+              "phonics": "Ss"
+            },
+            {
+              "english": "soccer",
+              "chinese": "足球",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_soccer.webp",
+              "askType": "what_is_this",
+              "phonics": "Ss"
+            },
+            {
+              "english": "tiger",
+              "chinese": "老虎",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_tiger.webp",
+              "askType": "what_is_this",
+              "phonics": "Tt"
+            },
+            {
+              "english": "TV",
+              "chinese": "電視",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_tv.webp",
+              "askType": "what_is_this",
+              "phonics": "Tt"
+            },
+            {
+              "english": "umbrella",
+              "chinese": "雨傘",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_umbrella.webp",
+              "askType": "what_is_this",
+              "phonics": "Uu"
+            },
+            {
+              "english": "unhappy",
+              "chinese": "不開心的",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u09_unhappy.webp",
+              "askType": "how_is_he",
+              "phonics": "Uu"
+            },
+            {
+              "english": "violin",
+              "chinese": "小提琴",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_violin.webp",
+              "askType": "what_is_this",
+              "phonics": "Vv"
+            },
+            {
+              "english": "volleyball",
+              "chinese": "排球",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_volleyball.webp",
+              "askType": "what_is_this",
+              "phonics": "Vv"
+            },
+            {
+              "english": "watch",
+              "chinese": "手錶",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_watch.webp",
+              "askType": "what_is_this",
+              "phonics": "Ww"
+            },
+            {
+              "english": "witch",
+              "chinese": "女巫",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_witch.webp",
+              "askType": "who_is_this",
+              "phonics": "Ww"
+            },
+            {
+              "english": "x-ray",
+              "chinese": "X光",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_x_ray.webp",
+              "askType": "what_is_this",
+              "phonics": "Xx"
+            },
+            {
+              "english": "exercise",
+              "chinese": "運動",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u10_exercise.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "Xx"
+            },
+            {
+              "english": "yo-yo",
+              "chinese": "溜溜球",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_yo_yo.webp",
+              "askType": "what_is_this",
+              "phonics": "Yy"
+            },
+            {
+              "english": "yogurt",
+              "chinese": "優格",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_yogurt.webp",
+              "askType": "what_is_this",
+              "phonics": "Yy"
+            },
+            {
+              "english": "zebra",
+              "chinese": "斑馬",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_zebra.webp",
+              "askType": "what_is_this",
+              "phonics": "Zz"
+            },
+            {
+              "english": "zoo",
+              "chinese": "動物園",
+              "example": "",
+              "slot": "other",
+              "image": "b1_u11_zoo.webp",
+              "askType": "where_is_this",
+              "phonics": "Zz"
             }
           ],
           "expressions": [
@@ -2390,13 +3390,17 @@
               "english": "What's this? / It's a...",
               "chinese": "用於詢問與回答近處的單數物品是什麼。",
               "example": "1. What's this? It's a pencil.2. What's this? It's a notebook.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "這是什麼？這是【】。",
+              "answerZh": "這是（東西）。"
             },
             {
               "english": "What do you like? / I like...",
               "chinese": "用於詢問並表達喜愛的食物或事物。",
               "example": "1. What do you like? I like steak.2. What do you like? I like chicken.",
-              "slot": "food"
+              "slot": "food",
+              "zh": "你喜歡什麼？我喜歡【】。",
+              "answerZh": "我喜歡（東西）。"
             }
           ],
           "words": [
@@ -2514,6 +3518,62 @@
                   "chinese": "爸爸"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "this",
+              "chinese": "這個",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_this.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "these",
+              "chinese": "這些",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_these.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "that",
+              "chinese": "那個",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_that.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "those",
+              "chinese": "那些",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_those.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "mother",
+              "chinese": "媽媽",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_mother.webp",
+              "askType": "who_is_this",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "father",
+              "chinese": "爸爸",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_father.webp",
+              "askType": "who_is_this",
+              "phonics": "/ð/（th 的有聲音）"
             }
           ],
           "expressions": [
@@ -2550,7 +3610,9 @@
               "english": "Subject + be + adjective.",
               "chinese": "用於描述人物、動物或事物的狀態與特徵。",
               "example": "1. We're happy.2. They're cold.",
-              "slot": "adjective"
+              "slot": "adjective",
+              "zh": "他們很【】。",
+              "answerZh": "（某人）很（形容詞）。"
             }
           ],
           "words": [
@@ -2670,6 +3732,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "thin",
+              "chinese": "瘦的；薄的",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thin.webp",
+              "askType": "how_is_he",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "thick",
+              "chinese": "厚的",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thick.webp",
+              "askType": "how_is_he",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "bathroom",
+              "chinese": "浴室",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_bathroom.webp",
+              "askType": "where_is_this",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "math",
+              "chinese": "數學",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_math.webp",
+              "askType": "read_it",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "thumb",
+              "chinese": "拇指",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thumb.webp",
+              "askType": "what_is_this",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "thanks",
+              "chinese": "謝謝",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thanks.webp",
+              "askType": "dialogue",
+              "phonics": "/θ/（th 的無聲音）"
+            }
+          ],
           "expressions": [
             {
               "english": "Look! I'm big. — Yes. You're big.",
@@ -2700,7 +3818,9 @@
               "english": "Do you like...? / Yes, I do. (No, I don't.)",
               "chinese": "用於詢問他人是否喜愛某項運動並做回答。",
               "example": "1. Do you like tennis? No, I don't. I like badminton.2. Do you like soccer? Yes, I do.",
-              "slot": "sport"
+              "slot": "sport",
+              "zh": "你喜歡【】嗎？",
+              "answerZh": "喜歡，我喜歡。／不，我不喜歡。"
             }
           ],
           "words": [
@@ -2820,6 +3940,53 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "rain",
+              "chinese": "雨",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_rain.webp",
+              "askType": "dialogue",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "play",
+              "chinese": "玩",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_play.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "cake",
+              "chinese": "蛋糕",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_cake.webp",
+              "askType": "what_is_this",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "game",
+              "chinese": "遊戲",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_game.webp",
+              "askType": "dialogue",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "airplane",
+              "chinese": "飛機",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_airplane.webp",
+              "askType": "what_is_this",
+              "phonics": "/e/（長音 a）"
+            }
+          ],
           "expressions": [
             {
               "english": "We like baseball. Let's play!",
@@ -2847,25 +4014,33 @@
               "english": "What's this? / It's a...",
               "chinese": "用於詢問與回答近處的單數物品是什麼。",
               "example": "1. What's this? It's a pencil.2. What's this? It's a notebook.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "這是什麼？這是【】。",
+              "answerZh": "這是（東西）。"
             },
             {
               "english": "What do you like? / I like...",
               "chinese": "用於詢問並表達喜愛的食物或事物。",
               "example": "1. What do you like? I like steak.2. What do you like? I like chicken.",
-              "slot": "food"
+              "slot": "food",
+              "zh": "你喜歡什麼？我喜歡【】。",
+              "answerZh": "我喜歡（東西）。"
             },
             {
               "english": "Subject + be + adjective.",
               "chinese": "用於描述人物、動物或事物的狀態與特徵。",
               "example": "1. We're happy.2. They're cold.",
-              "slot": "adjective"
+              "slot": "adjective",
+              "zh": "他們很【】。",
+              "answerZh": "（某人）很（形容詞）。"
             },
             {
               "english": "Do you like...? / Yes, I do. (No, I don't.)",
               "chinese": "用於詢問他人是否喜愛某項運動並做回答。",
               "example": "1. Do you like tennis? No, I don't. I like badminton.2. Do you like soccer? Yes, I do.",
-              "slot": "sport"
+              "slot": "sport",
+              "zh": "你喜歡【】嗎？",
+              "answerZh": "喜歡，我喜歡。／不，我不喜歡。"
             }
           ],
           "words": [
@@ -3201,6 +4376,161 @@
                   "chinese": "飛機"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "this",
+              "chinese": "這個",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_this.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "these",
+              "chinese": "這些",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_these.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "that",
+              "chinese": "那個",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_that.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "those",
+              "chinese": "那些",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_those.webp",
+              "askType": "dialogue",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "mother",
+              "chinese": "媽媽",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_mother.webp",
+              "askType": "who_is_this",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "father",
+              "chinese": "爸爸",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u01_father.webp",
+              "askType": "who_is_this",
+              "phonics": "/ð/（th 的有聲音）"
+            },
+            {
+              "english": "thin",
+              "chinese": "瘦的；薄的",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thin.webp",
+              "askType": "how_is_he",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "thick",
+              "chinese": "厚的",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thick.webp",
+              "askType": "how_is_he",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "bathroom",
+              "chinese": "浴室",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_bathroom.webp",
+              "askType": "where_is_this",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "math",
+              "chinese": "數學",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_math.webp",
+              "askType": "read_it",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "thumb",
+              "chinese": "拇指",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thumb.webp",
+              "askType": "what_is_this",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "thanks",
+              "chinese": "謝謝",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u02_thanks.webp",
+              "askType": "dialogue",
+              "phonics": "/θ/（th 的無聲音）"
+            },
+            {
+              "english": "rain",
+              "chinese": "雨",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_rain.webp",
+              "askType": "dialogue",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "play",
+              "chinese": "玩",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_play.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "cake",
+              "chinese": "蛋糕",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_cake.webp",
+              "askType": "what_is_this",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "game",
+              "chinese": "遊戲",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_game.webp",
+              "askType": "dialogue",
+              "phonics": "/e/（長音 a）"
+            },
+            {
+              "english": "airplane",
+              "chinese": "飛機",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u03_airplane.webp",
+              "askType": "what_is_this",
+              "phonics": "/e/（長音 a）"
             }
           ],
           "expressions": [
@@ -3253,13 +4583,17 @@
               "english": "What's that? / It's a...",
               "chinese": "用於詢問遠處的單數物品是什麼並回答。",
               "example": "1. What's that? It's a pink lamp.2. What's that? It's a blue desk.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "那是什麼？那是【】。",
+              "answerZh": "那是（東西）。"
             },
             {
               "english": "Is that a...? / Yes, it is. (No, it isn't.)",
               "chinese": "用於確認遠處的單數物品是否為某物並回答。",
               "example": "1. Is that a brown door? Yes, it is.2. Is that a black pillow? No, it isn't.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "那是【】嗎？",
+              "answerZh": "是，它是。／不，它不是。"
             }
           ],
           "words": [
@@ -3379,6 +4713,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "shirt",
+              "chinese": "襯衫",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shirt.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "shark",
+              "chinese": "鯊魚",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shark.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "shoes",
+              "chinese": "鞋子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shoes.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "sheep",
+              "chinese": "綿羊",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_sheep.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "shorts",
+              "chinese": "短褲",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shorts.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "fish",
+              "chinese": "魚",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_fish.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            }
+          ],
           "expressions": [
             {
               "english": "More colors: black / white / brown",
@@ -3406,6 +4796,8 @@
               "chinese": "用於詢問近處的多個複數物品或水果是什麼並回答。",
               "example": "1. What are these? They're pears.2. What are these? They're grapes.",
               "slot": "food",
+              "zh": "這些是什麼？它們是【】。",
+              "answerZh": "它們是（水果）。",
               "plural": true
             },
             {
@@ -3413,6 +4805,8 @@
               "chinese": "用於確認近處的多個複數物品/水果是否為某物並回答。",
               "example": "1. Are these peaches? No, they aren't. They're oranges.2. Are these grapes? Yes, they are.",
               "slot": "food",
+              "zh": "這些是【】嗎？",
+              "answerZh": "是，它們是。／不，它們不是。",
               "plural": true
             }
           ],
@@ -3541,6 +4935,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "cups",
+              "chinese": "杯子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_cups.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "books",
+              "chinese": "書",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_books.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "watermelons",
+              "chinese": "西瓜",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_watermelons.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "plums",
+              "chinese": "李子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_plums.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "boxes",
+              "chinese": "盒子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_boxes.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "buses",
+              "chinese": "公車",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_buses.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            }
+          ],
           "expressions": [
             {
               "english": "They're apples. / They're melons.",
@@ -3567,13 +5017,17 @@
               "english": "Where's my [singular]? / It's [prep.] the...",
               "chinese": "用於尋找與回答單數物品的位置。",
               "example": "1. Where's my skirt? It's on the bed.2. Where's my eraser? It's under the desk.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它在（位置）。"
             },
             {
               "english": "Where are my [plural]? / They're [prep.] the...",
               "chinese": "用於尋找與回答複數物品的位置。",
               "example": "1. Where are my socks? They're under the pillow.2. Where are my pants? They're on the bed.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它們在（位置）。"
             }
           ],
           "words": [
@@ -3695,6 +5149,62 @@
                   "chinese": "拉"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "cook",
+              "chinese": "煮",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_cook.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "look",
+              "chinese": "看",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_look.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "foot",
+              "chinese": "腳",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_foot.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "wood",
+              "chinese": "木頭",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_wood.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "push",
+              "chinese": "推",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_push.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "pull",
+              "chinese": "拉",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_pull.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
             }
           ],
           "expressions": [
@@ -3732,19 +5242,25 @@
               "english": "What's that? / It's a...",
               "chinese": "用於詢問遠處的單數物品是什麼並回答。",
               "example": "1. What's that? It's a pink lamp.2. What's that? It's a blue desk.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "那是什麼？那是【】。",
+              "answerZh": "那是（東西）。"
             },
             {
               "english": "Is that a...? / Yes, it is. (No, it isn't.)",
               "chinese": "用於確認遠處的單數物品是否為某物並回答。",
               "example": "1. Is that a brown door? Yes, it is.2. Is that a black pillow? No, it isn't.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "那是【】嗎？",
+              "answerZh": "是，它是。／不，它不是。"
             },
             {
               "english": "What are these? / They're...",
               "chinese": "用於詢問近處的多個複數物品或水果是什麼並回答。",
               "example": "1. What are these? They're pears.2. What are these? They're grapes.",
               "slot": "food",
+              "zh": "這些是什麼？它們是【】。",
+              "answerZh": "它們是（水果）。",
               "plural": true
             },
             {
@@ -3752,19 +5268,25 @@
               "chinese": "用於確認近處的多個複數物品/水果是否為某物並回答。",
               "example": "1. Are these peaches? No, they aren't. They're oranges.2. Are these grapes? Yes, they are.",
               "slot": "food",
+              "zh": "這些是【】嗎？",
+              "answerZh": "是，它們是。／不，它們不是。",
               "plural": true
             },
             {
               "english": "Where's my [singular]? / It's [prep.] the...",
               "chinese": "用於尋找與回答單數物品的位置。",
               "example": "1. Where's my skirt? It's on the bed.2. Where's my eraser? It's under the desk.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它在（位置）。"
             },
             {
               "english": "Where are my [plural]? / They're [prep.] the...",
               "chinese": "用於尋找與回答複數物品的位置。",
               "example": "1. Where are my socks? They're under the pillow.2. Where are my pants? They're on the bed.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它們在（位置）。"
             }
           ],
           "words": [
@@ -4112,6 +5634,170 @@
                   "chinese": "拉"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "shirt",
+              "chinese": "襯衫",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shirt.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "shark",
+              "chinese": "鯊魚",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shark.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "shoes",
+              "chinese": "鞋子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shoes.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "sheep",
+              "chinese": "綿羊",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_sheep.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "shorts",
+              "chinese": "短褲",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_shorts.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "fish",
+              "chinese": "魚",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u05_fish.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʃ/（sh）"
+            },
+            {
+              "english": "cups",
+              "chinese": "杯子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_cups.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "books",
+              "chinese": "書",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_books.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "watermelons",
+              "chinese": "西瓜",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_watermelons.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "plums",
+              "chinese": "李子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_plums.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "boxes",
+              "chinese": "盒子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_boxes.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "buses",
+              "chinese": "公車",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u06_buses.webp",
+              "askType": "what_is_this",
+              "phonics": "複數字尾 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "cook",
+              "chinese": "煮",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_cook.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "look",
+              "chinese": "看",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_look.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "foot",
+              "chinese": "腳",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_foot.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "wood",
+              "chinese": "木頭",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_wood.webp",
+              "askType": "what_is_this",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "push",
+              "chinese": "推",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_push.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
+            },
+            {
+              "english": "pull",
+              "chinese": "拉",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u07_pull.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/ʊ/"
             }
           ],
           "expressions": [
@@ -4160,13 +5846,17 @@
               "english": "What time is it? / It's... o'clock.",
               "chinese": "用於詢問時間並以整點回答。",
               "example": "1. What time is it? It's eleven o'clock.2. What time is it? It's five o'clock.",
-              "slot": "time"
+              "slot": "time",
+              "zh": "現在幾點？現在【】。",
+              "answerZh": "現在（幾）點。"
             },
             {
               "english": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
               "chinese": "用於確認是否為某個整點時間並做回答。",
               "example": "1. Is it twelve o'clock? Yes, it is.2. Is it one o'clock? No, it isn't. It's two o'clock.",
-              "slot": "time"
+              "slot": "time",
+              "zh": "現在是【】嗎？",
+              "answerZh": "是。／不是。"
             }
           ],
           "words": [
@@ -4318,6 +6008,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "ride",
+              "chinese": "騎",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_ride.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "kite",
+              "chinese": "風箏",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_kite.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "bike",
+              "chinese": "腳踏車",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_bike.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "rice",
+              "chinese": "米飯",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_rice.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "white",
+              "chinese": "白色",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_white.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "light",
+              "chinese": "燈；光",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_light.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            }
+          ],
           "expressions": [
             {
               "english": "That's right. It's ten o'clock.",
@@ -4344,7 +6090,9 @@
               "english": "How many... are there? / There are...",
               "chinese": "用於詢問複數物品的數量並進行回答。",
               "example": "1. How many cherries are there? There are twenty.2. How many strawberries are there? There are thirteen strawberries.",
-              "slot": "number"
+              "slot": "number",
+              "zh": "有幾個？有【】個。",
+              "answerZh": "有（數字）個。"
             }
           ],
           "words": [
@@ -4468,6 +6216,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "five",
+              "chinese": "五",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_five.webp",
+              "askType": "read_it",
+              "phonics": "/v/"
+            },
+            {
+              "english": "twelve",
+              "chinese": "十二",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_twelve.webp",
+              "askType": "read_it",
+              "phonics": "/v/"
+            },
+            {
+              "english": "glove",
+              "chinese": "手套",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_glove.webp",
+              "askType": "what_is_this",
+              "phonics": "/v/"
+            },
+            {
+              "english": "dove",
+              "chinese": "鴿子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_dove.webp",
+              "askType": "what_is_this",
+              "phonics": "/v/"
+            },
+            {
+              "english": "above",
+              "chinese": "在上方",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_above.webp",
+              "askType": "where_is_it",
+              "phonics": "/v/"
+            },
+            {
+              "english": "wave",
+              "chinese": "揮手；波浪",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_wave.webp",
+              "askType": "what_is_this",
+              "phonics": "/v/"
+            }
+          ],
           "expressions": [
             {
               "english": "Let's count.",
@@ -4499,6 +6303,8 @@
               "chinese": "用於詢問第二人稱或複數主詞是否擁有某物。",
               "example": "1. Do you have forks? Yes, we do.2. Do you have spoons? No, we don't.",
               "slot": "object",
+              "zh": "你們有【】嗎？",
+              "answerZh": "有，我們有。／沒有，我們沒有。",
               "plural": true
             },
             {
@@ -4506,6 +6312,8 @@
               "chinese": "用於詢問第三人稱單數主詞是否擁有某物。",
               "example": "1. Does she have napkins? No, she doesn't. She has bowls.2. Does he have knives? Yes, he does.",
               "slot": "object",
+              "zh": "她／他有【】嗎？",
+              "answerZh": "有，她／他有。／沒有，她／他沒有。",
               "plural": true
             }
           ],
@@ -4636,6 +6444,62 @@
                   "chinese": "肥皂"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "cap",
+              "chinese": "鴨舌帽",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_cap.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "ship",
+              "chinese": "船",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_ship.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "map",
+              "chinese": "地圖",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_map.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "sleep",
+              "chinese": "睡覺",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_sleep.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/p/"
+            },
+            {
+              "english": "rope",
+              "chinese": "繩子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_rope.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "soap",
+              "chinese": "肥皂",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_soap.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
             }
           ],
           "expressions": [
@@ -4677,25 +6541,33 @@
               "english": "What time is it? / It's... o'clock.",
               "chinese": "用於詢問時間並以整點回答。",
               "example": "1. What time is it? It's eleven o'clock.2. What time is it? It's five o'clock.",
-              "slot": "time"
+              "slot": "time",
+              "zh": "現在幾點？現在【】。",
+              "answerZh": "現在（幾）點。"
             },
             {
               "english": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
               "chinese": "用於確認是否為某個整點時間並做回答。",
               "example": "1. Is it twelve o'clock? Yes, it is.2. Is it one o'clock? No, it isn't. It's two o'clock.",
-              "slot": "time"
+              "slot": "time",
+              "zh": "現在是【】嗎？",
+              "answerZh": "是。／不是。"
             },
             {
               "english": "How many... are there? / There are...",
               "chinese": "用於詢問複數物品的數量並進行回答。",
               "example": "1. How many cherries are there? There are twenty.2. How many strawberries are there? There are thirteen strawberries.",
-              "slot": "number"
+              "slot": "number",
+              "zh": "有幾個？有【】個。",
+              "answerZh": "有（數字）個。"
             },
             {
               "english": "Do you have...? / Yes, we do. (No, we don't.)",
               "chinese": "用於詢問第二人稱或複數主詞是否擁有某物。",
               "example": "1. Do you have forks? Yes, we do.2. Do you have spoons? No, we don't.",
               "slot": "object",
+              "zh": "你們有【】嗎？",
+              "answerZh": "有，我們有。／沒有，我們沒有。",
               "plural": true
             },
             {
@@ -4703,6 +6575,8 @@
               "chinese": "用於詢問第三人稱單數主詞是否擁有某物。",
               "example": "1. Does she have napkins? No, she doesn't. She has bowls.2. Does he have knives? Yes, he does.",
               "slot": "object",
+              "zh": "她／他有【】嗎？",
+              "answerZh": "有，她／他有。／沒有，她／他沒有。",
               "plural": true
             }
           ],
@@ -5087,6 +6961,170 @@
                   "chinese": "肥皂"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "ride",
+              "chinese": "騎",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_ride.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "kite",
+              "chinese": "風箏",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_kite.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "bike",
+              "chinese": "腳踏車",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_bike.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "rice",
+              "chinese": "米飯",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_rice.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "white",
+              "chinese": "白色",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_white.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "light",
+              "chinese": "燈；光",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u09_light.webp",
+              "askType": "what_is_this",
+              "phonics": "/aɪ/"
+            },
+            {
+              "english": "five",
+              "chinese": "五",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_five.webp",
+              "askType": "read_it",
+              "phonics": "/v/"
+            },
+            {
+              "english": "twelve",
+              "chinese": "十二",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_twelve.webp",
+              "askType": "read_it",
+              "phonics": "/v/"
+            },
+            {
+              "english": "glove",
+              "chinese": "手套",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_glove.webp",
+              "askType": "what_is_this",
+              "phonics": "/v/"
+            },
+            {
+              "english": "dove",
+              "chinese": "鴿子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_dove.webp",
+              "askType": "what_is_this",
+              "phonics": "/v/"
+            },
+            {
+              "english": "above",
+              "chinese": "在上方",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_above.webp",
+              "askType": "where_is_it",
+              "phonics": "/v/"
+            },
+            {
+              "english": "wave",
+              "chinese": "揮手；波浪",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u10_wave.webp",
+              "askType": "what_is_this",
+              "phonics": "/v/"
+            },
+            {
+              "english": "cap",
+              "chinese": "鴨舌帽",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_cap.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "ship",
+              "chinese": "船",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_ship.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "map",
+              "chinese": "地圖",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_map.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "sleep",
+              "chinese": "睡覺",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_sleep.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/p/"
+            },
+            {
+              "english": "rope",
+              "chinese": "繩子",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_rope.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
+            },
+            {
+              "english": "soap",
+              "chinese": "肥皂",
+              "example": "",
+              "slot": "other",
+              "image": "b2_u11_soap.webp",
+              "askType": "what_is_this",
+              "phonics": "/p/"
             }
           ],
           "expressions": [
@@ -5148,19 +7186,25 @@
               "english": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
               "chinese": "你感到...嗎？／是的，我是。（不，我不是。）用於詢問並回答對方的生理感受或狀態。",
               "example": "1. Are you hungry? - Yes, I am.2. Are you thirsty? - No, I'm not.",
-              "slot": "adjective"
+              "slot": "adjective",
+              "zh": "你【】嗎？",
+              "answerZh": "是，我是。／不，我不是。"
             },
             {
               "english": "Who's she? / She's my [relationship].",
               "chinese": "她是誰？／她是我的...。用於詢問並回答第三者（女性成員）的身份與關係。",
               "example": "1. Who's she? - She's my grandmother.2. Who's he? - He's my grandfather.",
-              "slot": "person"
+              "slot": "person",
+              "zh": "她是誰？她是我的【】。",
+              "answerZh": "她是我的（家人）。"
             },
             {
               "english": "What's that? / It's a [noun].",
               "chinese": "那是什麼？／它是一部/個...。用於詢問並回答單數的事物。",
               "example": "1. What's that? - It's a stapler.2. Is it a jet? - No, it isn't. It's a bird.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "那是什麼？那是【】。",
+              "answerZh": "那是（東西）。"
             }
           ],
           "words": [
@@ -5284,6 +7328,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "cooks",
+              "chinese": "煮（第三人稱）",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_cooks.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "plays",
+              "chinese": "玩",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_plays.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "washes",
+              "chinese": "洗",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_washes.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "eats",
+              "chinese": "吃",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_eats.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "reads",
+              "chinese": "讀",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_reads.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "touches",
+              "chinese": "觸摸",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_touches.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            }
+          ],
           "expressions": [
             {
               "english": "Is it a jet? — No, it isn't. It's a bird.",
@@ -5314,13 +7414,17 @@
               "english": "What day is it today? / It's [Day].",
               "chinese": "今天星期幾？／今天是星期...。用於詢問並回答當天的星期。",
               "example": "1. What day is it today? - It's Monday.2. What day is it today? - It's Sunday.",
-              "slot": "day"
+              "slot": "day",
+              "zh": "今天星期幾？今天【】。",
+              "answerZh": "今天（星期幾）。"
             },
             {
               "english": "What do you do on [Day]? / I [action] on [Day].",
               "chinese": "你在星期...做什麼？／我在星期...做...。用於詢問與描述在特定星期的例行活動或才藝。",
               "example": "1. What do you do on Monday? - I play the violin on Monday.2. What do you do on Tuesday? - I play badminton on Tuesday.",
-              "slot": "action"
+              "slot": "action",
+              "zh": "你那天做什麼？我【】。",
+              "answerZh": "我（做某事）。"
             }
           ],
           "words": [
@@ -5440,6 +7544,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "music",
+              "chinese": "音樂",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_music.webp",
+              "askType": "dialogue",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "humans",
+              "chinese": "人類",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_humans.webp",
+              "askType": "who_is_this",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "unicorn",
+              "chinese": "獨角獸",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_unicorn.webp",
+              "askType": "what_is_this",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "huge",
+              "chinese": "巨大的",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_huge.webp",
+              "askType": "how_is_he",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "cucumber",
+              "chinese": "小黃瓜",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_cucumber.webp",
+              "askType": "what_is_this",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "ice cube",
+              "chinese": "冰塊",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_ice_cube.webp",
+              "askType": "what_is_this",
+              "phonics": "/ju/"
+            }
+          ],
           "expressions": [
             {
               "english": "I play ping-pong on Sunday.",
@@ -5474,13 +7634,17 @@
               "english": "Can I have a/an [noun], please? / Sure. Here you are.",
               "chinese": "我可以拿/要一個...嗎？／當然可以，拿去吧。用於有禮貌地向他人請求給予某物，並同意給予。",
               "example": "1. Can I have a peach? - Sure. Here you are.2. Can I have a yellow balloon, please?",
-              "slot": "object"
+              "slot": "object",
+              "zh": "請問我可以拿【】嗎？",
+              "answerZh": "當然，給你。"
             },
             {
               "english": "Can I borrow your [noun]? / No. Sorry.",
               "chinese": "我可以借用你的...嗎？／不行，抱歉。用於有禮貌地向他人借用物品，並在無法出借時給予委婉回應。",
               "example": "1. Can I borrow your ruler? - No. Sorry.2. Can I borrow your pen? - Sure. Here you are.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我可以借你的【】嗎？",
+              "answerZh": "不行，抱歉。／當然，給你。"
             }
           ],
           "words": [
@@ -5602,6 +7766,62 @@
                   "chinese": "膠水"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "balloon",
+              "chinese": "氣球",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_balloon.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "spoon",
+              "chinese": "湯匙",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_spoon.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "suit",
+              "chinese": "西裝",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_suit.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "boots",
+              "chinese": "靴子",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_boots.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "soup",
+              "chinese": "湯",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_soup.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "glue",
+              "chinese": "膠水",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_glue.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
             }
           ],
           "expressions": [
@@ -5639,43 +7859,57 @@
               "english": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
               "chinese": "你感到...嗎？／是的，我是。（不，我不是。）用於詢問並回答對方的生理感受或狀態。",
               "example": "1. Are you hungry? - Yes, I am.2. Are you thirsty? - No, I'm not.",
-              "slot": "adjective"
+              "slot": "adjective",
+              "zh": "你【】嗎？",
+              "answerZh": "是，我是。／不，我不是。"
             },
             {
               "english": "Who's she? / She's my [relationship].",
               "chinese": "她是誰？／她是我的...。用於詢問並回答第三者（女性成員）的身份與關係。",
               "example": "1. Who's she? - She's my grandmother.2. Who's he? - He's my grandfather.",
-              "slot": "person"
+              "slot": "person",
+              "zh": "她是誰？她是我的【】。",
+              "answerZh": "她是我的（家人）。"
             },
             {
               "english": "What's that? / It's a [noun].",
               "chinese": "那是什麼？／它是一部/個...。用於詢問並回答單數的事物。",
               "example": "1. What's that? - It's a stapler.2. Is it a jet? - No, it isn't. It's a bird.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "那是什麼？那是【】。",
+              "answerZh": "那是（東西）。"
             },
             {
               "english": "What day is it today? / It's [Day].",
               "chinese": "今天星期幾？／今天是星期...。用於詢問並回答當天的星期。",
               "example": "1. What day is it today? - It's Monday.2. What day is it today? - It's Sunday.",
-              "slot": "day"
+              "slot": "day",
+              "zh": "今天星期幾？今天【】。",
+              "answerZh": "今天（星期幾）。"
             },
             {
               "english": "What do you do on [Day]? / I [action] on [Day].",
               "chinese": "你在星期...做什麼？／我在星期...做...。用於詢問與描述在特定星期的例行活動或才藝。",
               "example": "1. What do you do on Monday? - I play the violin on Monday.2. What do you do on Tuesday? - I play badminton on Tuesday.",
-              "slot": "action"
+              "slot": "action",
+              "zh": "你那天做什麼？我【】。",
+              "answerZh": "我（做某事）。"
             },
             {
               "english": "Can I have a/an [noun], please? / Sure. Here you are.",
               "chinese": "我可以拿/要一個...嗎？／當然可以，拿去吧。用於有禮貌地向他人請求給予某物，並同意給予。",
               "example": "1. Can I have a peach? - Sure. Here you are.2. Can I have a yellow balloon, please?",
-              "slot": "object"
+              "slot": "object",
+              "zh": "請問我可以拿【】嗎？",
+              "answerZh": "當然，給你。"
             },
             {
               "english": "Can I borrow your [noun]? / No. Sorry.",
               "chinese": "我可以借用你的...嗎？／不行，抱歉。用於有禮貌地向他人借用物品，並在無法出借時給予委婉回應。",
               "example": "1. Can I borrow your ruler? - No. Sorry.2. Can I borrow your pen? - Sure. Here you are.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我可以借你的【】嗎？",
+              "answerZh": "不行，抱歉。／當然，給你。"
             }
           ],
           "words": [
@@ -6019,6 +8253,170 @@
                   "chinese": "膠水"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "cooks",
+              "chinese": "煮（第三人稱）",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_cooks.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "plays",
+              "chinese": "玩",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_plays.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "washes",
+              "chinese": "洗",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_washes.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "eats",
+              "chinese": "吃",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_eats.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "reads",
+              "chinese": "讀",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_reads.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "touches",
+              "chinese": "觸摸",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u01_touches.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 -s 的三種發音 /s/ /z/ /ɪz/"
+            },
+            {
+              "english": "music",
+              "chinese": "音樂",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_music.webp",
+              "askType": "dialogue",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "humans",
+              "chinese": "人類",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_humans.webp",
+              "askType": "who_is_this",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "unicorn",
+              "chinese": "獨角獸",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_unicorn.webp",
+              "askType": "what_is_this",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "huge",
+              "chinese": "巨大的",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_huge.webp",
+              "askType": "how_is_he",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "cucumber",
+              "chinese": "小黃瓜",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_cucumber.webp",
+              "askType": "what_is_this",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "ice cube",
+              "chinese": "冰塊",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u02_ice_cube.webp",
+              "askType": "what_is_this",
+              "phonics": "/ju/"
+            },
+            {
+              "english": "balloon",
+              "chinese": "氣球",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_balloon.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "spoon",
+              "chinese": "湯匙",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_spoon.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "suit",
+              "chinese": "西裝",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_suit.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "boots",
+              "chinese": "靴子",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_boots.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "soup",
+              "chinese": "湯",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_soup.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
+            },
+            {
+              "english": "glue",
+              "chinese": "膠水",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u03_glue.webp",
+              "askType": "what_is_this",
+              "phonics": "/u/"
             }
           ],
           "expressions": [
@@ -6079,13 +8477,17 @@
               "english": "Do you like [subject]? / Yes, I do. (No, I don't.)",
               "chinese": "你喜歡...（科目）嗎？／是的，我喜歡。（不，我不喜歡。）用於詢問並回答對某學科的喜好。",
               "example": "1. Do you like math? - Yes, I do.2. Do you like science? - No, I don't.",
-              "slot": "subject"
+              "slot": "subject",
+              "zh": "你喜歡【】嗎？",
+              "answerZh": "喜歡。／不喜歡。"
             },
             {
               "english": "What subjects do you like? / I like [subject 1] and [subject 2].",
               "chinese": "你喜歡哪些學科？／我喜歡...和...。用於詢問並具體列出喜愛的學校科目。",
               "example": "1. What subjects do you like, Gogo? - I like art and history.2. What subjects do they like? - They like P.E.",
-              "slot": "subject"
+              "slot": "subject",
+              "zh": "你喜歡哪些科目？我喜歡【】。",
+              "answerZh": "我喜歡（科目）。"
             }
           ],
           "words": [
@@ -6209,6 +8611,53 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "fence",
+              "chinese": "圍籬",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_fence.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "dance",
+              "chinese": "跳舞",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_dance.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "dice",
+              "chinese": "骰子",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_dice.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "face",
+              "chinese": "臉",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_face.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "mice",
+              "chinese": "老鼠（複數）",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_mice.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            }
+          ],
           "expressions": [
             {
               "english": "It's my science book.",
@@ -6235,19 +8684,25 @@
               "english": "Do you want [item]? / Yes, please. (No, thank you.)",
               "chinese": "你想要...嗎？／是的，請給我。（不，謝謝。）用於詢問並回答自身的意願或需求。",
               "example": "1. Do you want a guitar? - Yes, please.2. Do you want a game? - No, thank you.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "你想要【】嗎？",
+              "answerZh": "要，請給我。／不用，謝謝。"
             },
             {
               "english": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
               "chinese": "她/他想要...嗎？／是的，她/他想要。（不，她/他不想。）用於詢問並回答第三人稱單數的意願與需求。",
               "example": "1. Does she want a doll? - No, she doesn't.2. Does he want a toy car? - Yes, he does.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "她／他想要【】嗎？",
+              "answerZh": "要，她／他要。／不，她／他不要。"
             },
             {
               "english": "What do they want? / They want [item].",
               "chinese": "他們想要什麼？／他們想要...。用於詢問並說明複數第三人稱想要的物品。",
               "example": "1. What do they want? - They want a computer game.2. What do you want? - I want a doll.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "他們想要什麼？他們想要【】。",
+              "answerZh": "他們想要（東西）。"
             }
           ],
           "words": [
@@ -6371,6 +8826,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "window",
+              "chinese": "窗戶",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_window.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "wolf",
+              "chinese": "狼",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_wolf.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "walk",
+              "chinese": "走路",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_walk.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/w/"
+            },
+            {
+              "english": "water",
+              "chinese": "水",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_water.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "week",
+              "chinese": "星期",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_week.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "worm",
+              "chinese": "蟲",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_worm.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            }
+          ],
           "expressions": [
             {
               "english": "Yes, please. I like games.",
@@ -6401,13 +8912,17 @@
               "english": "Where's my [item]? / It's [preposition] the [furniture].",
               "chinese": "我的...（單數）在哪裡？／它在...的（後面/前面/旁邊）。用於詢問並描述單數物品的位置。",
               "example": "1. Where's my wallet? - It's behind the sofa.2. Where's my white sock? - It's behind the door.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它在（家具）的（位置）。"
             },
             {
               "english": "Where are my [items]? / They're [preposition] the [furniture].",
               "chinese": "我的...（複數）們在哪裡？／它們在...的...。用於詢問並描述複數或對稱物品（如眼鏡、襪子們）的位置。",
               "example": "1. Where are my glasses? - They're in front of the bookcase.2. Where are they? - They're on the floor.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它們在（家具）的（位置）。"
             }
           ],
           "words": [
@@ -6529,6 +9044,62 @@
                   "chinese": "照片"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "fax",
+              "chinese": "傳真",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_fax.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "fork",
+              "chinese": "叉子",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_fork.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "fan",
+              "chinese": "電風扇",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_fan.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "four",
+              "chinese": "四",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_four.webp",
+              "askType": "read_it",
+              "phonics": "/f/"
+            },
+            {
+              "english": "telephone",
+              "chinese": "電話",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_telephone.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "photo",
+              "chinese": "照片",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_photo.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
             }
           ],
           "expressions": [
@@ -6570,43 +9141,57 @@
               "english": "Do you like [subject]? / Yes, I do. (No, I don't.)",
               "chinese": "你喜歡...（科目）嗎？／是的，我喜歡。（不，我不喜歡。）用於詢問並回答對某學科的喜好。",
               "example": "1. Do you like math? - Yes, I do.2. Do you like science? - No, I don't.",
-              "slot": "subject"
+              "slot": "subject",
+              "zh": "你喜歡【】嗎？",
+              "answerZh": "喜歡。／不喜歡。"
             },
             {
               "english": "What subjects do you like? / I like [subject 1] and [subject 2].",
               "chinese": "你喜歡哪些學科？／我喜歡...和...。用於詢問並具體列出喜愛的學校科目。",
               "example": "1. What subjects do you like, Gogo? - I like art and history.2. What subjects do they like? - They like P.E.",
-              "slot": "subject"
+              "slot": "subject",
+              "zh": "你喜歡哪些科目？我喜歡【】。",
+              "answerZh": "我喜歡（科目）。"
             },
             {
               "english": "Do you want [item]? / Yes, please. (No, thank you.)",
               "chinese": "你想要...嗎？／是的，請給我。（不，謝謝。）用於詢問並回答自身的意願或需求。",
               "example": "1. Do you want a guitar? - Yes, please.2. Do you want a game? - No, thank you.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "你想要【】嗎？",
+              "answerZh": "要，請給我。／不用，謝謝。"
             },
             {
               "english": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
               "chinese": "她/他想要...嗎？／是的，她/他想要。（不，她/他不想。）用於詢問並回答第三人稱單數的意願與需求。",
               "example": "1. Does she want a doll? - No, she doesn't.2. Does he want a toy car? - Yes, he does.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "她／他想要【】嗎？",
+              "answerZh": "要，她／他要。／不，她／他不要。"
             },
             {
               "english": "What do they want? / They want [item].",
               "chinese": "他們想要什麼？／他們想要...。用於詢問並說明複數第三人稱想要的物品。",
               "example": "1. What do they want? - They want a computer game.2. What do you want? - I want a doll.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "他們想要什麼？他們想要【】。",
+              "answerZh": "他們想要（東西）。"
             },
             {
               "english": "Where's my [item]? / It's [preposition] the [furniture].",
               "chinese": "我的...（單數）在哪裡？／它在...的（後面/前面/旁邊）。用於詢問並描述單數物品的位置。",
               "example": "1. Where's my wallet? - It's behind the sofa.2. Where's my white sock? - It's behind the door.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它在（家具）的（位置）。"
             },
             {
               "english": "Where are my [items]? / They're [preposition] the [furniture].",
               "chinese": "我的...（複數）們在哪裡？／它們在...的...。用於詢問並描述複數或對稱物品（如眼鏡、襪子們）的位置。",
               "example": "1. Where are my glasses? - They're in front of the bookcase.2. Where are they? - They're on the floor.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "我的【】在哪裡？",
+              "answerZh": "它們在（家具）的（位置）。"
             }
           ],
           "words": [
@@ -6954,6 +9539,161 @@
                   "chinese": "照片"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "fence",
+              "chinese": "圍籬",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_fence.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "dance",
+              "chinese": "跳舞",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_dance.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "dice",
+              "chinese": "骰子",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_dice.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "face",
+              "chinese": "臉",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_face.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "mice",
+              "chinese": "老鼠（複數）",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u05_mice.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /s/"
+            },
+            {
+              "english": "window",
+              "chinese": "窗戶",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_window.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "wolf",
+              "chinese": "狼",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_wolf.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "walk",
+              "chinese": "走路",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_walk.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "/w/"
+            },
+            {
+              "english": "water",
+              "chinese": "水",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_water.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "week",
+              "chinese": "星期",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_week.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "worm",
+              "chinese": "蟲",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u06_worm.webp",
+              "askType": "what_is_this",
+              "phonics": "/w/"
+            },
+            {
+              "english": "fax",
+              "chinese": "傳真",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_fax.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "fork",
+              "chinese": "叉子",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_fork.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "fan",
+              "chinese": "電風扇",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_fan.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "four",
+              "chinese": "四",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_four.webp",
+              "askType": "read_it",
+              "phonics": "/f/"
+            },
+            {
+              "english": "telephone",
+              "chinese": "電話",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_telephone.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
+            },
+            {
+              "english": "photo",
+              "chinese": "照片",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u07_photo.webp",
+              "askType": "what_is_this",
+              "phonics": "/f/"
             }
           ],
           "expressions": [
@@ -7010,13 +9750,17 @@
               "english": "What's she/he doing? / She's/He's [action-ing].",
               "chinese": "她/他正在做什麼？／她/他正在...。用於詢問並描述第三人稱單數（女性/男性）當下進行的動作。",
               "example": "1. What's she doing? - She's writing.2. What's he doing? - He's reading.",
-              "slot": "action_ing"
+              "slot": "action_ing",
+              "zh": "她／他在做什麼？她／他正在【】。",
+              "answerZh": "她／他正在（做某事）。"
             },
             {
               "english": "What are they doing? / They're [action-ing].",
               "chinese": "他們正在做什麼？／他們正在...。用於詢問並描述複數第三人稱當下的活動。",
               "example": "1. What are they doing? - They're painting.2. What are you doing? - We're shopping, Gogo.",
-              "slot": "action_ing"
+              "slot": "action_ing",
+              "zh": "他們在做什麼？他們正在【】。",
+              "answerZh": "他們正在（做某事）。"
             }
           ],
           "words": [
@@ -7138,6 +9882,62 @@
                   "chinese": "微笑"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "flying",
+              "chinese": "飛",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_flying.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "crying",
+              "chinese": "哭",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_crying.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "singing",
+              "chinese": "唱歌",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_singing.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "laughing",
+              "chinese": "大笑",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_laughing.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "drawing",
+              "chinese": "畫畫",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_drawing.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "smiling",
+              "chinese": "微笑",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_smiling.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
             }
           ],
           "expressions": [
@@ -7175,6 +9975,8 @@
               "chinese": "觸碰你的...！／閉上（張開）你的...！祈使句句型，用於發出與執行身體感官的動作指令。",
               "example": "1. Touch your nose!2. Close your eyes!",
               "slot": "body_part",
+              "zh": "摸你的【】！",
+              "answerZh": "（做動作）",
               "plural": true
             }
           ],
@@ -7303,6 +10105,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "teach",
+              "chinese": "教",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_teach.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "watch",
+              "chinese": "看；手錶",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_watch.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "stretch",
+              "chinese": "伸展",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_stretch.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "catch",
+              "chinese": "接住",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_catch.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "reach",
+              "chinese": "伸手構到",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_reach.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "match",
+              "chinese": "配對；比賽",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_match.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /tʃ/"
+            }
+          ],
           "expressions": [
             {
               "english": "This is his body.",
@@ -7333,7 +10191,9 @@
               "english": "Whose [item] is this? / It's [possessive pronoun/noun's].",
               "chinese": "這是誰的...？／它是（我的/他的/Jenny的）。用於詢問並回答單數物品的所有權。",
               "example": "1. Whose skateboard is this? - It's my skateboard.2. Whose ruler is this? - It's Jenny's.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "這是誰的【】？",
+              "answerZh": "是我的。／是她／他的。"
             }
           ],
           "words": [
@@ -7457,6 +10317,62 @@
               ]
             }
           ],
+          "phonicsWords": [
+            {
+              "english": "hair",
+              "chinese": "頭髮",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_hair.webp",
+              "askType": "what_is_this",
+              "phonics": "/h/"
+            },
+            {
+              "english": "happy",
+              "chinese": "快樂的",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_happy.webp",
+              "askType": "how_is_he",
+              "phonics": "/h/"
+            },
+            {
+              "english": "horse",
+              "chinese": "馬",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_horse.webp",
+              "askType": "what_is_this",
+              "phonics": "/h/"
+            },
+            {
+              "english": "hot",
+              "chinese": "熱的",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_hot.webp",
+              "askType": "how_is_he",
+              "phonics": "/h/"
+            },
+            {
+              "english": "head",
+              "chinese": "頭",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_head.webp",
+              "askType": "what_is_this",
+              "phonics": "/h/"
+            },
+            {
+              "english": "home",
+              "chinese": "家",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_home.webp",
+              "askType": "where_is_this",
+              "phonics": "/h/"
+            }
+          ],
           "expressions": [
             {
               "english": "Whose boat is this? — It's our boat.",
@@ -7492,26 +10408,34 @@
               "english": "What's she/he doing? / She's/He's [action-ing].",
               "chinese": "她/他正在做什麼？／她/他正在...。用於詢問並描述第三人稱單數（女性/男性）當下進行的動作。",
               "example": "1. What's she doing? - She's writing.2. What's he doing? - He's reading.",
-              "slot": "action_ing"
+              "slot": "action_ing",
+              "zh": "她／他在做什麼？她／他正在【】。",
+              "answerZh": "她／他正在（做某事）。"
             },
             {
               "english": "What are they doing? / They're [action-ing].",
               "chinese": "他們正在做什麼？／他們正在...。用於詢問並描述複數第三人稱當下的活動。",
               "example": "1. What are they doing? - They're painting.2. What are you doing? - We're shopping, Gogo.",
-              "slot": "action_ing"
+              "slot": "action_ing",
+              "zh": "他們在做什麼？他們正在【】。",
+              "answerZh": "他們正在（做某事）。"
             },
             {
               "english": "Touch your [body part]! / Close (Open) your [body part]!",
               "chinese": "觸碰你的...！／閉上（張開）你的...！祈使句句型，用於發出與執行身體感官的動作指令。",
               "example": "1. Touch your nose!2. Close your eyes!",
               "slot": "body_part",
+              "zh": "摸你的【】！",
+              "answerZh": "（做動作）",
               "plural": true
             },
             {
               "english": "Whose [item] is this? / It's [possessive pronoun/noun's].",
               "chinese": "這是誰的...？／它是（我的/他的/Jenny的）。用於詢問並回答單數物品的所有權。",
               "example": "1. Whose skateboard is this? - It's my skateboard.2. Whose ruler is this? - It's Jenny's.",
-              "slot": "object"
+              "slot": "object",
+              "zh": "這是誰的【】？",
+              "answerZh": "是我的。／是她／他的。"
             }
           ],
           "words": [
@@ -7863,6 +10787,170 @@
                   "chinese": "家"
                 }
               ]
+            }
+          ],
+          "phonicsWords": [
+            {
+              "english": "flying",
+              "chinese": "飛",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_flying.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "crying",
+              "chinese": "哭",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_crying.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "singing",
+              "chinese": "唱歌",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_singing.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "laughing",
+              "chinese": "大笑",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_laughing.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "drawing",
+              "chinese": "畫畫",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_drawing.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "smiling",
+              "chinese": "微笑",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u09_smiling.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /ɪŋ/"
+            },
+            {
+              "english": "teach",
+              "chinese": "教",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_teach.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "watch",
+              "chinese": "看；手錶",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_watch.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "stretch",
+              "chinese": "伸展",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_stretch.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "catch",
+              "chinese": "接住",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_catch.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "reach",
+              "chinese": "伸手構到",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_reach.webp",
+              "askType": "what_is_he_doing",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "match",
+              "chinese": "配對；比賽",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u10_match.webp",
+              "askType": "what_is_this",
+              "phonics": "字尾 /tʃ/"
+            },
+            {
+              "english": "hair",
+              "chinese": "頭髮",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_hair.webp",
+              "askType": "what_is_this",
+              "phonics": "/h/"
+            },
+            {
+              "english": "happy",
+              "chinese": "快樂的",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_happy.webp",
+              "askType": "how_is_he",
+              "phonics": "/h/"
+            },
+            {
+              "english": "horse",
+              "chinese": "馬",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_horse.webp",
+              "askType": "what_is_this",
+              "phonics": "/h/"
+            },
+            {
+              "english": "hot",
+              "chinese": "熱的",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_hot.webp",
+              "askType": "how_is_he",
+              "phonics": "/h/"
+            },
+            {
+              "english": "head",
+              "chinese": "頭",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_head.webp",
+              "askType": "what_is_this",
+              "phonics": "/h/"
+            },
+            {
+              "english": "home",
+              "chinese": "家",
+              "example": "",
+              "slot": "other",
+              "image": "b3_u11_home.webp",
+              "askType": "where_is_this",
+              "phonics": "/h/"
             }
           ],
           "expressions": [

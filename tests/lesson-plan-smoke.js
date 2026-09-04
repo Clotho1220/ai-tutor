@@ -38,7 +38,8 @@
             book: "Book 1", num: 3, title: "Can you sing?", type: "unit",
             patterns: [{
                 english: "Can you [action]? / Yes, I can. / No, I can't.",
-                chinese: "詢問能力。", slot: "action"
+                chinese: "詢問能力。", slot: "action",
+                zh: "你會【】嗎？", answerZh: "會，我會。／不會，我不會。"
             }],
             words: [
                 { english: "sing (v.)", chinese: "唱歌", slot: "action", image: "b1_u03_sing.webp", askType: "what_is_he_doing" },
@@ -95,8 +96,8 @@
             spellItem.ladder.length === 3 &&
             !spellItem.ladder[0].reveal.english && spellItem.ladder[0].reveal.image &&
             spellItem.ladder[1].reveal.english);
-        check("spelling directives carry the letter-by-letter answer",
-            LP.itemDirective(spellItem, { index: 1, total: 9, attempts: 0 })
+        check("spelling directives carry the letter-by-letter answer from the second step",
+            LP.itemDirective(spellItem, { index: 1, total: 9, attempts: 1 })
                 .indexOf(spellItem.letters) >= 0);
         check("extension words learned earlier come back for review during the week",
             [1, 2, 3, 4, 5].some(day =>
@@ -125,11 +126,27 @@
 
         // ---- 對答題 ----
         const responds = day2.items.filter(item => item.type === "pattern_respond");
-        check("respond items ask the question and expect the answer",
-            responds.length >= 1 && responds[0].ask === "Can you [action]?" &&
-            responds[0].target === "Yes, I can." && responds[0].alternatives[0] === "No, I can't.");
+        // 2026-09-03：對答題的問句／答案改用「對得上的情境圖」上的那一組
+        check("respond items use the matching scene's own question and answer",
+            responds.length >= 1 && responds[0].ask === "Can you swim?" &&
+            responds[0].target === "Yes, I can." && responds[0].alternatives.indexOf("No, I can't.") >= 0);
         check("respond items carry the scene picture",
             responds[0].image === "b1_u03_scene1.webp");
+        check("respond items show the question and a Chinese answer hint on screen",
+            responds[0].display === "Can you swim?" && responds[0].meaning === "會，我會。／不會，我不會。" &&
+            responds[0].ladder[0].reveal.english && responds[0].ladder[0].reveal.chinese);
+        check("a pattern with no matching scene gets no picture",
+            LP.sceneForPattern({ english: "What's that? / It's a [noun]." }, unit.scenes) === null);
+        check("substitute items show the full Chinese sentence",
+            subs[0].meaning === "你會" + subs[0].slotMeaning + "嗎？");
+        check("gap and spell directives withhold the answer until the second step",
+            LP.itemDirective(gapItem, { index: 1, total: 9, attempts: 0 }).indexOf(gapItem.letters) < 0 &&
+            LP.itemDirective(gapItem, { index: 1, total: 9, attempts: 1 }).indexOf(gapItem.letters) >= 0 &&
+            LP.itemDirective(spellItem, { index: 1, total: 9, attempts: 0 }).indexOf(spellItem.letters) < 0);
+        check("phonics words join the daily word drill",
+            LP.build({ person: "Rex", day: 2, unit: Object.assign({}, unit, {
+                phonicsWords: [{ english: "apple", chinese: "蘋果", slot: "other", image: "x.webp" }]
+            }), reviewUnits: [], learnedWords: [] }).items.some(item => item.type === "word_read" && item.target === "apple"));
 
         // ---- 提示階梯 ----
         const wordItem = dayPlans[0].items.find(item => item.type === "word_zh2en");

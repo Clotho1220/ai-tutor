@@ -208,7 +208,9 @@
         // 對答題有情境圖就全程顯示——答案是看圖決定的。
         // 代換題顯示要代換的單字（英文＋中文）：句子結構才是這題要考的，
         // 單字給出來是合理的鷹架；全空白的畫面實測會讓孩子不知道現在在幹嘛。
-        const reveal = kind === "respond" ? { image: true } : { english: true, chinese: true };
+        const reveal = kind === "respond"
+            ? { image: true, english: true, chinese: true }
+            : { english: true, chinese: true };
         const first = kind === "respond"
             ? "扮演提問的人，用英文把這個問題問出來，請學員用英文回答，然後等他回答。"
             : "用中文把整句說出來，請學員試著用英文說出來，然後等他說。";
@@ -374,9 +376,12 @@
             patternNote: text(pattern.chinese),
             slotWord: text(word.english),
             slotMeaning: text(word.chinese),
-            // 畫面顯示用：代換的字與中文（revealFor 讀 display / meaning）
+            // 畫面顯示用：代換的字 + 整句中文（實測只顯示單字時孩子不知道要說哪一句）
             display: bareWord(word.english),
-            meaning: text(word.chinese),
+            promptZh: text(pattern.zh) ? text(pattern.zh).replace(/【】/g, text(word.chinese)) : "",
+            meaning: text(pattern.zh)
+                ? text(pattern.zh).replace(/【】/g, text(word.chinese))
+                : text(word.chinese),
             // 句型有 [空格] 時程式填得出來，第 2 冊的「...」型就留給模型
             target: fillSlot(parts.ask, word) || fillSlot(parts.statements[0], word),
             ladder: sentenceLadder("substitute")
@@ -385,18 +390,55 @@
 
     // 聽問題答句子。情境圖的設計原則是「看圖就能決定答案」，
     // 所以有圖的時候答案唯一，判斷得出對錯。
-    function respondItems(pattern, scene, idPrefix) {
+    // 情境圖的 lines 格式："Who's she? — She's my mother. / Who's he? — He's my father."
+    // 拆成一組組「問句 — 答句」
+    function sceneQAPairs(scene) {
+        return text(scene && scene.lines).split(/\s+\/\s+/).map(chunk => {
+            const parts = chunk.split(/\s+[—–-]\s+/);
+            return parts.length >= 2
+                ? { ask: parts[0].trim(), answer: parts.slice(1).join(" ").trim() }
+                : null;
+        }).filter(Boolean);
+    }
+
+    // 句型的問句開頭（去掉 [空格] 與 she/he 這類擇一）：「Who's she/he?」→ "who s"
+    function askHead(ask) {
+        return text(ask).toLowerCase().replace(/\[[^\]]*\]/g, " ")
+            .replace(/[^a-z0-9']+/g, " ").trim().split(" ").slice(0, 2).join(" ");
+    }
+
+    // 找一張「跟這個句型對得上」的情境圖，並回傳圖上那一組問答。
+    // 2026-09-03 實測：情境圖原本用索引輪流配，Who's she? 配到男孩的圖、
+    // What's that? 配到奶奶的圖（AI 因此教出 It's a grandmother）。
+    function sceneForPattern(pattern, scenes) {
+        const head = askHead(splitPattern(pattern.english).ask);
+        if (!head) return null;
+        for (const scene of scenes || []) {
+            for (const pair of sceneQAPairs(scene)) {
+                if (askHead(pair.ask) === head) return { scene, pair };
+            }
+        }
+        return null;
+    }
+
+    function respondItems(pattern, scenes, idPrefix) {
         const parts = splitPattern(pattern.english);
         if (!parts.answers.length) return [];
+        const matched = sceneForPattern(pattern, scenes);
+        const ask = matched ? matched.pair.ask : parts.ask;
+        const answer = matched ? matched.pair.answer : parts.answers[0];
         return [makeItem({
             id: idPrefix,
             type: "pattern_respond",
             pattern: text(pattern.english),
-            ask: parts.ask,
-            target: parts.answers[0],
-            alternatives: parts.answers.slice(1),
-            image: scene ? text(scene.image) : "",
-            sceneLines: scene ? text(scene.lines) : "",
+            ask,
+            target: answer,
+            alternatives: matched ? parts.answers : parts.answers.slice(1),
+            // 畫面：英文問句 + 中文回答提示（實測只有圖時孩子不知道該說什麼句子）
+            display: ask,
+            meaning: text(pattern.answerZh),
+            image: matched ? text(matched.scene.image) : "",
+            sceneLines: matched ? text(matched.scene.lines) : "",
             ladder: sentenceLadder("respond")
         })];
     }
@@ -432,7 +474,7 @@
         //   第 1 天 中翻英 → 第 2 天 英翻中（認字）→ 第 3 天 三選一 →
         //   第 4 天 填缺漏字母 → 第 5 天 拼出單字
         // 跨單元複習的字也跟著當天模式走，整堂課同一種規則。
-        const distractorPool = unitWords.concat(
+        const distractorPool = unitWords.concat(unit.phonicsWords || []).concat(
             (config.reviewUnits || []).flatMap(reviewUnit => (reviewUnit && reviewUnit.words) || []));
         const wordItemsForDay = (words, idPrefix, sourceLabel) => {
             switch (day) {
@@ -471,9 +513,11 @@
         // ---- 本單元的字：不拆天，每天整個單元照當天模式練 ----
         // 唯一例外是課本的 Review 單元：字數是正課的三倍（20 幾個），
         // 全上會爆掉 15 分鐘上限，仍五天平均攤開、但模式一樣跟著天走。
+        // 發音教學的字（Aa apple / ant…）也一起練（使用者 2026-09-03 要求）
+        const phonicsWords = unit.phonicsWords || [];
         const unitWordsToday = isReviewUnit
-            ? (spreadAcrossDays(unitWords, WEEK_DAYS)[day - 1] || [])
-            : unitWords;
+            ? (spreadAcrossDays(unitWords.concat(phonicsWords), WEEK_DAYS)[day - 1] || [])
+            : unitWords.concat(phonicsWords);
         items.push(...wordItemsForDay(unitWordsToday, "uw", unitLabel));
 
         // ---- 句型代換：句型也不拆天，每個句型每天都練 ----
@@ -493,9 +537,7 @@
         // ---- 聽問題答句子 ----
         const respondPatterns = rotatePick(unitPatterns, day, RESPOND_PER_DAY);
         respondPatterns.forEach((pattern, patternIndex) => {
-            const scene = unitScenes[patternIndex % Math.max(1, unitScenes.length)];
-            items.push(...respondItems(pattern, unitScenes.length ? scene : null,
-                `rp${patternIndex + 1}`));
+            items.push(...respondItems(pattern, unitScenes, `rp${patternIndex + 1}`));
         });
 
         // ---- 結尾 ----
@@ -685,8 +727,11 @@
         const revealNow = (step && step.reveal) || {};
         if (item.type === "word_spell") {
             bits.push(` 目標單字：「${item.display || item.target}」`,
-                item.meaning ? `，中文是「${item.meaning}」` : "",
-                `。正確拼法是「${item.letters}」，判斷與示範都以此為準。`);
+                item.meaning ? `，中文是「${item.meaning}」` : "", "。");
+            // 第一階不給拼法：給了模型就會先講出來（2026-09-03 填字母題實測）。
+            // 這些都是基礎單字，模型自己知道怎麼拼，聽孩子拼完再判斷即可。
+            if (attempts >= 1) bits.push(` 正確拼法是「${item.letters}」，示範時以此為準。`);
+            else bits.push(" 在孩子自己拼之前，絕對不要說出任何字母或拼法；他拼完你再判斷對不對。");
             bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
         } else if (item.type === "word_choice") {
             bits.push(` 正確答案是「${item.target}」，畫面上的三個選項是：${(item.options || []).join("、")}。`);
@@ -695,9 +740,17 @@
                 "他唸出其中一個後，你判斷是不是正確答案。");
             bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
         } else if (item.type === "word_gap") {
-            bits.push(` 目標單字：「${item.answerDisplay || item.target}」，完整拼法「${item.letters}」，` +
-                `畫面顯示的挖空版是「${item.display}」，缺少的字母是「${item.missing}」。`);
-            bits.push(item.meaning ? ` 中文是「${item.meaning}」。` : "");
+            bits.push(` 畫面顯示的挖空版是「${item.display}」` +
+                (item.meaning ? `，中文是「${item.meaning}」` : "") + "。");
+            // 第一階不給答案：實測「填空一開始 AI 就把答案說出來」就是指令把
+            // 完整拼法與缺的字母都給了它。模型自己認得這個字，先聽孩子說再判斷。
+            if (attempts >= 1) {
+                bits.push(` 目標單字是「${item.answerDisplay || item.target}」，完整拼法「${item.letters}」，` +
+                    `缺少的字母是「${item.missing}」。`);
+            } else {
+                bits.push(" 在孩子自己說出缺少的字母之前，絕對不要說出這個字、任何字母或答案；" +
+                    "他說完你再判斷對不對。");
+            }
             bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
         } else if (item.type === "word_image" || item.type === "word_read" || item.type === "word_zh2en") {
             bits.push(` 目標單字：「${item.display || item.target}」`);
@@ -716,9 +769,10 @@
         } else if (item.type === "pattern_substitute") {
             bits.push(` 句型：「${item.pattern}」。這一次要代換進去的字是「${item.slotWord}」` +
                 (item.slotMeaning ? `（${item.slotMeaning}）` : "") + "。");
+            if (item.promptZh) bits.push(` 畫面上顯示的中文句子是「${item.promptZh}」，請用這句中文提示學員。`);
             bits.push(item.target
-                ? ` 學員要說出來的目標句是「${item.target}」，你要說的中文提示就是這句的意思。`
-                : " 請你自己把這個字套進句型組成完整的句子，再把那句的中文說給學員聽。");
+                ? ` 學員要說出來的目標句是「${item.target}」。`
+                : " 請你自己把這個字套進句型組成完整的句子，對應畫面上那句中文。");
         } else if (item.type === "pattern_respond") {
             bits.push(` 你要問的問題：「${item.ask}」。學員應該回答「${item.target}」`);
             bits.push((item.alternatives || []).length
@@ -733,6 +787,6 @@
 
     global.LessonPlan = Object.freeze({
         build, describe, splitPattern, spreadAcrossDays, chunkInOrder, rotatePick,
-        fillSlot, pickSlotWords, createRunner, itemDirective, revealFor
+        fillSlot, pickSlotWords, sceneForPattern, createRunner, itemDirective, revealFor
     });
 })(window);

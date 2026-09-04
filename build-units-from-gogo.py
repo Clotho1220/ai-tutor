@@ -68,13 +68,44 @@ def load_image_index(path):
                 "lines": item.get("en", ""),
                 "image": webp,
             })
-        elif item.get("group") == "word":
-            words[(item["book"], item["unit"], bare(item.get("en", "")))] = {
+        elif item.get("group") in ("word", "phonics"):
+            # 發音單字（Aa apple / ant）與課本單字共用同一張索引；同一個字兩邊都有時課本單字優先
+            key = (item["book"], item["unit"], bare(item.get("en", "")))
+            if key in words and item.get("group") == "phonics":
+                continue
+            words[key] = {
                 "image": webp,
                 "kind": item.get("kind", ""),
                 "askType": item.get("ask_type", ""),
             }
     return words, scenes
+
+
+def convert_phonics_words(phonics, image_key, images, vocabulary):
+    """發音教學的字（Book 1 每單元三個字母各兩個字）也進單字庫，跟課本單字一起練。
+
+    使用者 2026-09-03 要求。不進句型代換池（slot=other），避免「It's a ant」這類句子。
+    與課本單字重複的字略過。
+    """
+    seen = {bare(v.get("en", "")) for v in vocabulary or []}
+    out = []
+    for group in phonics or []:
+        for entry in group.get("words") or []:
+            english = entry.get("en", "")
+            if not english or bare(english) in seen:
+                continue
+            seen.add(bare(english))
+            picture = images.get(image_key + (bare(english),), {})
+            out.append({
+                "english": english,
+                "chinese": entry.get("zh", ""),
+                "example": "",
+                "slot": "other",
+                "image": picture.get("image", ""),
+                "askType": picture.get("askType", ""),
+                "phonics": group.get("letter", ""),
+            })
+    return out
 
 
 def word_slot(display, unit_over, english, kind):
@@ -178,6 +209,8 @@ def convert_unit(book_num, gogo_unit, overlay, images, scenes):
         "grammar": [{"point": g.get("point", ""), "note": g.get("note", "")}
                     for g in gogo_unit.get("grammar") or []],
         "phonics": convert_phonics(gogo_unit.get("phonics")),
+        "phonicsWords": convert_phonics_words(gogo_unit.get("phonics"), (book_num, unit_code),
+                                              images, gogo_unit.get("vocabulary")),
         "expressions": pairs(gogo_unit.get("key_expressions")),
         "notes": gogo_unit.get("notes", "") or "",
     }
@@ -227,6 +260,7 @@ def build_review_unit(book_num, gogo_unit, covered):
         "scenes": [s for unit in covered for s in unit.get("scenes", [])],
         "grammar": [g for unit in covered for g in unit["grammar"]],
         "phonics": [p for unit in covered for p in unit["phonics"]],
+        "phonicsWords": [w for unit in covered for w in unit.get("phonicsWords", [])],
         "expressions": [e for unit in covered for e in unit["expressions"]],
         "notes": gogo_unit.get("notes", "") or "",
     }

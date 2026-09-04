@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.34";
+const APP_VERSION = "3.35";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1778,7 +1778,16 @@ async function startSession() {
             actionBtn.textContent = '安全驗證...';
             logSystem("🔑 向後端請求臨時憑證...");
             try {
-                const result = await syncCall('geminiLiveToken', {});
+                // Apps Script 短暫故障時重試兩次（2026-09-03 一分鐘內三次啟動失敗）
+                let result = null, lastError = null;
+                for (let attempt = 0; attempt < 3 && !result; attempt++) {
+                    try { result = await syncCall('geminiLiveToken', {}); }
+                    catch (error) {
+                        lastError = error;
+                        if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 2000));
+                    }
+                }
+                if (!result) throw lastError || new Error("後端沒有回傳憑證");
                 currentToken = result && (result.name || result.token);
             } catch (tokenError) {
                 logSystem(`<span style="color:#ff8800;">⚠️ Gemini 短效憑證取得失敗：${tokenError.message}</span>`);

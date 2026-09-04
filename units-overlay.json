@@ -9,13 +9,17 @@
           "english": "What's your name? / I'm [Name].",
           "chinese": "詢問對方姓名並自我介紹。",
           "example": "1. What's your name? 2. I'm Tony.",
-          "slot": null
+          "slot": null,
+          "zh": "你叫什麼名字？我叫【】。",
+          "answerZh": "我叫（你的名字）。"
         },
         {
           "english": "Nice to meet you.",
           "chinese": "初次見面時的禮貌問候。",
           "example": "1. Nice to meet you, Tony. 2. Nice to meet you, Jenny.",
-          "slot": null
+          "slot": null,
+          "zh": "很高興認識你。",
+          "answerZh": "很高興認識你。"
         }
       ],
       "words": {
@@ -46,7 +50,9 @@
           "english": "What's this? / It's a/an [object].",
           "chinese": "詢問近處不認識的單數物品。",
           "example": "1. What's this? It's a desk. 2. What's this? It's an eraser.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "這是什麼？這是【】。",
+          "answerZh": "這是（東西）。"
         }
       ],
       "words": {
@@ -77,7 +83,9 @@
           "english": "Can you [action]? / Yes, I can. / No, I can't.",
           "chinese": "詢問對方是否具備某種動作或能力。",
           "example": "1. Can you read? Yes, I can. 2. Can you fly? No, I can't.",
-          "slot": "action"
+          "slot": "action",
+          "zh": "你會【】嗎？",
+          "answerZh": "會，我會。／不會，我不會。"
         }
       ],
       "words": {
@@ -108,7 +116,9 @@
           "english": "Who's she/he? / She's/He's my [family member].",
           "chinese": "詢問某位女性或男性是誰。",
           "example": "1. Who's she? She's my mother. 2. Who's he? He's my father.",
-          "slot": "person"
+          "slot": "person",
+          "zh": "她／他是誰？她／他是我的【】。",
+          "answerZh": "她／他是我的（家人）。"
         }
       ],
       "words": {
@@ -142,7 +152,9 @@
           "english": "What's his/her name? / His/Her name's [Name].",
           "chinese": "詢問第三人（男生／女生）的名字。",
           "example": "1. What's his name? His name's Ben. 2. What's her name? Her name's Ms. Black.",
-          "slot": null
+          "slot": null,
+          "zh": "他／她叫什麼名字？他／她叫【】。",
+          "answerZh": "他／她叫（名字）。"
         }
       ],
       "words": {
@@ -173,7 +185,9 @@
           "english": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
           "chinese": "詢問這是否為某種特定的動物或物品。",
           "example": "1. Is this a giraffe? Yes, it is. 2. Is this a whale? No, it isn't.",
-          "slot": "animal"
+          "slot": "animal",
+          "zh": "這是【】嗎？",
+          "answerZh": "是，它是。／不，它不是。"
         }
       ],
       "words": {
@@ -204,7 +218,9 @@
           "english": "What color is this? / It's [color].",
           "chinese": "詢問某物品的顏色。",
           "example": "1. What color is this? It's orange. 2. What color is this? It's red.",
-          "slot": "color"
+          "slot": "color",
+          "zh": "這是什麼顏色？是【】。",
+          "answerZh": "是（顏色）。"
         }
       ],
       "words": {
@@ -235,7 +251,9 @@
           "english": "How old are you/is [someone]? / I'm [age]. / He's/She's [age].",
           "chinese": "詢問對方或第三人的年齡。",
           "example": "1. How old are you? I'm eight. 2. How old is your brother? He's seven.",
-          "slot": null
+          "slot": null,
+          "zh": "你幾歲？我【】歲。",
+          "answerZh": "我（幾）歲。"
         }
       ],
       "words": {
@@ -266,7 +284,9 @@
           "english": "What do you like? / I like [food].",
           "chinese": "詢問對方喜愛什麼食物或事物。",
           "example": "1. What do you like, Tony? I like cheese. 2. What do you like, Jenny? I like cake.",
-          "slot": "food"
+          "slot": "food",
+          "zh": "你喜歡什麼？我喜歡【】。",
+          "answerZh": "我喜歡（食物）。"
         }
       ],
       "words": {
@@ -297,13 +317,17 @@
           "english": "What's this? / It's a...",
           "chinese": "用於詢問與回答近處的單數物品是什麼。",
           "example": "1. What's this? It's a pencil.2. What's this? It's a notebook.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "這是什麼？這是【】。",
+          "answerZh": "這是（東西）。"
         },
         {
           "english": "What do you like? / I like...",
           "chinese": "用於詢問並表達喜愛的食物或事物。",
           "example": "1. What do you like? I like steak.2. What do you like? I like chicken.",
-          "slot": "food"
+          "slot": "food",
+          "zh": "你喜歡什麼？我喜歡【】。",
+          "answerZh": "我喜歡（東西）。"
         }
       ],
       "words": {
@@ -329,7 +353,9 @@
           "english": "Subject + be + adjective.",
           "chinese": "用於描述人物、動物或事物的狀態與特徵。",
           "example": "1. We're happy.2. They're cold.",
-          "slot": "adjective"
+          "slot": "adjective",
+          "zh": "他們很【】。",
+          "answerZh": "（某人）很（形容詞）。"
         }
       ],
       "words": {
@@ -352,7 +378,9 @@
           "english": "Do you like...? / Yes, I do. (No, I don't.)",
           "chinese": "用於詢問他人是否喜愛某項運動並做回答。",
           "example": "1. Do you like tennis? No, I don't. I like badminton.2. Do you like soccer? Yes, I do.",
-          "slot": "sport"
+          "slot": "sport",
+          "zh": "你喜歡【】嗎？",
+          "answerZh": "喜歡，我喜歡。／不，我不喜歡。"
         }
       ],
       "words": {
@@ -375,13 +403,17 @@
           "english": "What's that? / It's a...",
           "chinese": "用於詢問遠處的單數物品是什麼並回答。",
           "example": "1. What's that? It's a pink lamp.2. What's that? It's a blue desk.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "那是什麼？那是【】。",
+          "answerZh": "那是（東西）。"
         },
         {
           "english": "Is that a...? / Yes, it is. (No, it isn't.)",
           "chinese": "用於確認遠處的單數物品是否為某物並回答。",
           "example": "1. Is that a brown door? Yes, it is.2. Is that a black pillow? No, it isn't.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "那是【】嗎？",
+          "answerZh": "是，它是。／不，它不是。"
         }
       ],
       "words": {
@@ -404,13 +436,17 @@
           "english": "What are these? / They're...",
           "chinese": "用於詢問近處的多個複數物品或水果是什麼並回答。",
           "example": "1. What are these? They're pears.2. What are these? They're grapes.",
-          "slot": "food"
+          "slot": "food",
+          "zh": "這些是什麼？它們是【】。",
+          "answerZh": "它們是（水果）。"
         },
         {
           "english": "Are these...? / Yes, they are. (No, they aren't.)",
           "chinese": "用於確認近處的多個複數物品/水果是否為某物並回答。",
           "example": "1. Are these peaches? No, they aren't. They're oranges.2. Are these grapes? Yes, they are.",
-          "slot": "food"
+          "slot": "food",
+          "zh": "這些是【】嗎？",
+          "answerZh": "是，它們是。／不，它們不是。"
         }
       ],
       "words": {
@@ -434,13 +470,17 @@
           "english": "Where's my [singular]? / It's [prep.] the...",
           "chinese": "用於尋找與回答單數物品的位置。",
           "example": "1. Where's my skirt? It's on the bed.2. Where's my eraser? It's under the desk.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "我的【】在哪裡？",
+          "answerZh": "它在（位置）。"
         },
         {
           "english": "Where are my [plural]? / They're [prep.] the...",
           "chinese": "用於尋找與回答複數物品的位置。",
           "example": "1. Where are my socks? They're under the pillow.2. Where are my pants? They're on the bed.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "我的【】在哪裡？",
+          "answerZh": "它們在（位置）。"
         }
       ],
       "words": {
@@ -462,13 +502,17 @@
           "english": "What time is it? / It's... o'clock.",
           "chinese": "用於詢問時間並以整點回答。",
           "example": "1. What time is it? It's eleven o'clock.2. What time is it? It's five o'clock.",
-          "slot": "time"
+          "slot": "time",
+          "zh": "現在幾點？現在【】。",
+          "answerZh": "現在（幾）點。"
         },
         {
           "english": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
           "chinese": "用於確認是否為某個整點時間並做回答。",
           "example": "1. Is it twelve o'clock? Yes, it is.2. Is it one o'clock? No, it isn't. It's two o'clock.",
-          "slot": "time"
+          "slot": "time",
+          "zh": "現在是【】嗎？",
+          "answerZh": "是。／不是。"
         }
       ],
       "words": {
@@ -491,7 +535,9 @@
           "english": "How many... are there? / There are...",
           "chinese": "用於詢問複數物品的數量並進行回答。",
           "example": "1. How many cherries are there? There are twenty.2. How many strawberries are there? There are thirteen strawberries.",
-          "slot": "number"
+          "slot": "number",
+          "zh": "有幾個？有【】個。",
+          "answerZh": "有（數字）個。"
         }
       ],
       "words": {
@@ -514,13 +560,17 @@
           "english": "Do you have...? / Yes, we do. (No, we don't.)",
           "chinese": "用於詢問第二人稱或複數主詞是否擁有某物。",
           "example": "1. Do you have forks? Yes, we do.2. Do you have spoons? No, we don't.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "你們有【】嗎？",
+          "answerZh": "有，我們有。／沒有，我們沒有。"
         },
         {
           "english": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
           "chinese": "用於詢問第三人稱單數主詞是否擁有某物。",
           "example": "1. Does she have napkins? No, she doesn't. She has bowls.2. Does he have knives? Yes, he does.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "她／他有【】嗎？",
+          "answerZh": "有，她／他有。／沒有，她／他沒有。"
         }
       ],
       "words": {
@@ -544,19 +594,25 @@
           "english": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
           "chinese": "你感到...嗎？／是的，我是。（不，我不是。）用於詢問並回答對方的生理感受或狀態。",
           "example": "1. Are you hungry? - Yes, I am.2. Are you thirsty? - No, I'm not.",
-          "slot": "adjective"
+          "slot": "adjective",
+          "zh": "你【】嗎？",
+          "answerZh": "是，我是。／不，我不是。"
         },
         {
           "english": "Who's she? / She's my [relationship].",
           "chinese": "她是誰？／她是我的...。用於詢問並回答第三者（女性成員）的身份與關係。",
           "example": "1. Who's she? - She's my grandmother.2. Who's he? - He's my grandfather.",
-          "slot": "person"
+          "slot": "person",
+          "zh": "她是誰？她是我的【】。",
+          "answerZh": "她是我的（家人）。"
         },
         {
           "english": "What's that? / It's a [noun].",
           "chinese": "那是什麼？／它是一部/個...。用於詢問並回答單數的事物。",
           "example": "1. What's that? - It's a stapler.2. Is it a jet? - No, it isn't. It's a bird.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "那是什麼？那是【】。",
+          "answerZh": "那是（東西）。"
         }
       ],
       "words": {
@@ -602,13 +658,17 @@
           "english": "What day is it today? / It's [Day].",
           "chinese": "今天星期幾？／今天是星期...。用於詢問並回答當天的星期。",
           "example": "1. What day is it today? - It's Monday.2. What day is it today? - It's Sunday.",
-          "slot": "day"
+          "slot": "day",
+          "zh": "今天星期幾？今天【】。",
+          "answerZh": "今天（星期幾）。"
         },
         {
           "english": "What do you do on [Day]? / I [action] on [Day].",
           "chinese": "你在星期...做什麼？／我在星期...做...。用於詢問與描述在特定星期的例行活動或才藝。",
           "example": "1. What do you do on Monday? - I play the violin on Monday.2. What do you do on Tuesday? - I play badminton on Tuesday.",
-          "slot": "action"
+          "slot": "action",
+          "zh": "你那天做什麼？我【】。",
+          "answerZh": "我（做某事）。"
         }
       ],
       "words": {
@@ -658,13 +718,17 @@
           "english": "Can I have a/an [noun], please? / Sure. Here you are.",
           "chinese": "我可以拿/要一個...嗎？／當然可以，拿去吧。用於有禮貌地向他人請求給予某物，並同意給予。",
           "example": "1. Can I have a peach? - Sure. Here you are.2. Can I have a yellow balloon, please?",
-          "slot": "object"
+          "slot": "object",
+          "zh": "請問我可以拿【】嗎？",
+          "answerZh": "當然，給你。"
         },
         {
           "english": "Can I borrow your [noun]? / No. Sorry.",
           "chinese": "我可以借用你的...嗎？／不行，抱歉。用於有禮貌地向他人借用物品，並在無法出借時給予委婉回應。",
           "example": "1. Can I borrow your ruler? - No. Sorry.2. Can I borrow your pen? - Sure. Here you are.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "我可以借你的【】嗎？",
+          "answerZh": "不行，抱歉。／當然，給你。"
         }
       ],
       "words": {
@@ -711,13 +775,17 @@
           "english": "Do you like [subject]? / Yes, I do. (No, I don't.)",
           "chinese": "你喜歡...（科目）嗎？／是的，我喜歡。（不，我不喜歡。）用於詢問並回答對某學科的喜好。",
           "example": "1. Do you like math? - Yes, I do.2. Do you like science? - No, I don't.",
-          "slot": "subject"
+          "slot": "subject",
+          "zh": "你喜歡【】嗎？",
+          "answerZh": "喜歡。／不喜歡。"
         },
         {
           "english": "What subjects do you like? / I like [subject 1] and [subject 2].",
           "chinese": "你喜歡哪些學科？／我喜歡...和...。用於詢問並具體列出喜愛的學校科目。",
           "example": "1. What subjects do you like, Gogo? - I like art and history.2. What subjects do they like? - They like P.E.",
-          "slot": "subject"
+          "slot": "subject",
+          "zh": "你喜歡哪些科目？我喜歡【】。",
+          "answerZh": "我喜歡（科目）。"
         }
       ],
       "words": {
@@ -767,19 +835,25 @@
           "english": "Do you want [item]? / Yes, please. (No, thank you.)",
           "chinese": "你想要...嗎？／是的，請給我。（不，謝謝。）用於詢問並回答自身的意願或需求。",
           "example": "1. Do you want a guitar? - Yes, please.2. Do you want a game? - No, thank you.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "你想要【】嗎？",
+          "answerZh": "要，請給我。／不用，謝謝。"
         },
         {
           "english": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
           "chinese": "她/他想要...嗎？／是的，她/他想要。（不，她/他不想。）用於詢問並回答第三人稱單數的意願與需求。",
           "example": "1. Does she want a doll? - No, she doesn't.2. Does he want a toy car? - Yes, he does.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "她／他想要【】嗎？",
+          "answerZh": "要，她／他要。／不，她／他不要。"
         },
         {
           "english": "What do they want? / They want [item].",
           "chinese": "他們想要什麼？／他們想要...。用於詢問並說明複數第三人稱想要的物品。",
           "example": "1. What do they want? - They want a computer game.2. What do you want? - I want a doll.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "他們想要什麼？他們想要【】。",
+          "answerZh": "他們想要（東西）。"
         }
       ],
       "words": {
@@ -826,13 +900,17 @@
           "english": "Where's my [item]? / It's [preposition] the [furniture].",
           "chinese": "我的...（單數）在哪裡？／它在...的（後面/前面/旁邊）。用於詢問並描述單數物品的位置。",
           "example": "1. Where's my wallet? - It's behind the sofa.2. Where's my white sock? - It's behind the door.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "我的【】在哪裡？",
+          "answerZh": "它在（家具）的（位置）。"
         },
         {
           "english": "Where are my [items]? / They're [preposition] the [furniture].",
           "chinese": "我的...（複數）們在哪裡？／它們在...的...。用於詢問並描述複數或對稱物品（如眼鏡、襪子們）的位置。",
           "example": "1. Where are my glasses? - They're in front of the bookcase.2. Where are they? - They're on the floor.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "我的【】在哪裡？",
+          "answerZh": "它們在（家具）的（位置）。"
         }
       ],
       "words": {
@@ -878,13 +956,17 @@
           "english": "What's she/he doing? / She's/He's [action-ing].",
           "chinese": "她/他正在做什麼？／她/他正在...。用於詢問並描述第三人稱單數（女性/男性）當下進行的動作。",
           "example": "1. What's she doing? - She's writing.2. What's he doing? - He's reading.",
-          "slot": "action_ing"
+          "slot": "action_ing",
+          "zh": "她／他在做什麼？她／他正在【】。",
+          "answerZh": "她／他正在（做某事）。"
         },
         {
           "english": "What are they doing? / They're [action-ing].",
           "chinese": "他們正在做什麼？／他們正在...。用於詢問並描述複數第三人稱當下的活動。",
           "example": "1. What are they doing? - They're painting.2. What are you doing? - We're shopping, Gogo.",
-          "slot": "action_ing"
+          "slot": "action_ing",
+          "zh": "他們在做什麼？他們正在【】。",
+          "answerZh": "他們正在（做某事）。"
         }
       ],
       "words": {
@@ -931,7 +1013,9 @@
           "english": "Touch your [body part]! / Close (Open) your [body part]!",
           "chinese": "觸碰你的...！／閉上（張開）你的...！祈使句句型，用於發出與執行身體感官的動作指令。",
           "example": "1. Touch your nose!2. Close your eyes!",
-          "slot": "body_part"
+          "slot": "body_part",
+          "zh": "摸你的【】！",
+          "answerZh": "（做動作）"
         }
       ],
       "words": {
@@ -979,7 +1063,9 @@
           "english": "Whose [item] is this? / It's [possessive pronoun/noun's].",
           "chinese": "這是誰的...？／它是（我的/他的/Jenny的）。用於詢問並回答單數物品的所有權。",
           "example": "1. Whose skateboard is this? - It's my skateboard.2. Whose ruler is this? - It's Jenny's.",
-          "slot": "object"
+          "slot": "object",
+          "zh": "這是誰的【】？",
+          "answerZh": "是我的。／是她／他的。"
         }
       ],
       "words": {
@@ -1019,5 +1105,6 @@
       "wordSlot": "possessive"
     }
   },
-  "_slots": "句型代換用的槽位。pattern.slot 指這個句型的空格收哪一類的字（null = 不做代換）；unit.wordSlot 指這個單元的單字都屬於哪一類，wordSlots 是個別覆寫，都沒有的話由 build-units-from-gogo.py 依詞性標記與圖庫的 kind 推導。slot 名稱：object / action / action_ing / animal / food / person / color / sport / adjective / preposition / number / time / day / subject / body_part / possessive / greeting / place / other（other = 不可代換）。"
+  "_slots": "句型代換用的槽位。pattern.slot 指這個句型的空格收哪一類的字（null = 不做代換）；unit.wordSlot 指這個單元的單字都屬於哪一類，wordSlots 是個別覆寫，都沒有的話由 build-units-from-gogo.py 依詞性標記與圖庫的 kind 推導。slot 名稱：object / action / action_ing / animal / food / person / color / sport / adjective / preposition / number / time / day / subject / body_part / possessive / greeting / place / other（other = 不可代換）。",
+  "_zh": "pattern.zh：代換練習時畫面顯示的中文句子模板，【】會換成代換字的中文；pattern.answerZh：對答題畫面顯示的回答提示。"
 }

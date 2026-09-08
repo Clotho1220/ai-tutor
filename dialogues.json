@@ -1495,7 +1495,7 @@
  "b3_u06": [
   {
    "image": "b3_u06_dlg01_computer_game.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "computer game",
    "ask": "Do you want a computer game?",
    "answer": "Yes, please.",
@@ -1503,7 +1503,7 @@
   },
   {
    "image": "b3_u06_dlg01_puzzle.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "puzzle",
    "ask": "Do you want a puzzle?",
    "answer": "Yes, please.",
@@ -1511,7 +1511,7 @@
   },
   {
    "image": "b3_u06_dlg01_skateboard.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "skateboard",
    "ask": "Do you want a skateboard?",
    "answer": "Yes, please.",
@@ -1519,7 +1519,7 @@
   },
   {
    "image": "b3_u06_dlg01_toy_car.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "toy car",
    "ask": "Do you want a toy car?",
    "answer": "Yes, please.",
@@ -1527,7 +1527,7 @@
   },
   {
    "image": "b3_u06_dlg01_doll.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "doll",
    "ask": "Do you want a doll?",
    "answer": "Yes, please.",
@@ -1535,7 +1535,7 @@
   },
   {
    "image": "b3_u06_dlg01_stuffed_animal.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "stuffed animal",
    "ask": "Do you want a stuffed animal?",
    "answer": "Yes, please.",
@@ -1543,7 +1543,7 @@
   },
   {
    "image": "b3_u06_dlg01_drum.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "drum",
    "ask": "Do you want a drum?",
    "answer": "Yes, please.",
@@ -1551,7 +1551,7 @@
   },
   {
    "image": "b3_u06_dlg01_guitar.webp",
-   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "pattern": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
    "word": "guitar",
    "ask": "Do you want a guitar?",
    "answer": "Yes, please.",
@@ -1559,7 +1559,7 @@
   },
   {
    "image": "b3_u06_dlg02_computer_game.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "computer game",
    "ask": "Does she want a computer game?",
    "answer": "Yes, she does.",
@@ -1567,7 +1567,7 @@
   },
   {
    "image": "b3_u06_dlg02_puzzle.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "puzzle",
    "ask": "Does she want a puzzle?",
    "answer": "Yes, she does.",
@@ -1575,7 +1575,7 @@
   },
   {
    "image": "b3_u06_dlg02_skateboard.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "skateboard",
    "ask": "Does she want a skateboard?",
    "answer": "Yes, she does.",
@@ -1583,7 +1583,7 @@
   },
   {
    "image": "b3_u06_dlg02_toy_car.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "toy car",
    "ask": "Does she want a toy car?",
    "answer": "Yes, she does.",
@@ -1591,7 +1591,7 @@
   },
   {
    "image": "b3_u06_dlg02_doll.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "doll",
    "ask": "Does she want a doll?",
    "answer": "Yes, she does.",
@@ -1599,7 +1599,7 @@
   },
   {
    "image": "b3_u06_dlg02_stuffed_animal.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "stuffed animal",
    "ask": "Does she want a stuffed animal?",
    "answer": "Yes, she does.",
@@ -1607,7 +1607,7 @@
   },
   {
    "image": "b3_u06_dlg02_drum.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "drum",
    "ask": "Does she want a drum?",
    "answer": "Yes, she does.",
@@ -1615,7 +1615,7 @@
   },
   {
    "image": "b3_u06_dlg02_guitar.webp",
-   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "pattern": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
    "word": "guitar",
    "ask": "Does she want a guitar?",
    "answer": "Yes, she does.",
@@ -1623,7 +1623,7 @@
   },
   {
    "image": "b3_u06_dlg03_computer_game.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "computer game",
    "ask": "What do they want?",
    "answer": "They want a computer game.",
@@ -1631,7 +1631,7 @@
   },
   {
    "image": "b3_u06_dlg03_puzzle.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "puzzle",
    "ask": "What do they want?",
    "answer": "They want a puzzle.",
@@ -1639,7 +1639,7 @@
   },
   {
    "image": "b3_u06_dlg03_skateboard.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "skateboard",
    "ask": "What do they want?",
    "answer": "They want a skateboard.",
@@ -1647,7 +1647,7 @@
   },
   {
    "image": "b3_u06_dlg03_toy_car.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "toy car",
    "ask": "What do they want?",
    "answer": "They want a toy car.",
@@ -1655,7 +1655,7 @@
   },
   {
    "image": "b3_u06_dlg03_doll.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "doll",
    "ask": "What do they want?",
    "answer": "They want a doll.",
@@ -1663,7 +1663,7 @@
   },
   {
    "image": "b3_u06_dlg03_stuffed_animal.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "stuffed animal",
    "ask": "What do they want?",
    "answer": "They want a stuffed animal.",
@@ -1671,7 +1671,7 @@
   },
   {
    "image": "b3_u06_dlg03_drum.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "drum",
    "ask": "What do they want?",
    "answer": "They want a drum.",
@@ -1679,7 +1679,7 @@
   },
   {
    "image": "b3_u06_dlg03_guitar.webp",
-   "pattern": "What do they want? / They want [item].",
+   "pattern": "What do they want? / They want a/an [item].",
    "word": "guitar",
    "ask": "What do they want?",
    "answer": "They want a guitar.",

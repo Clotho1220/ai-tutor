@@ -5027,7 +5027,8 @@
               "example": "1. Where are my socks? They're under the pillow.2. Where are my pants? They're on the bed.",
               "slot": "object",
               "zh": "我的【】在哪裡？",
-              "answerZh": "它們在（位置）。"
+              "answerZh": "它們在（位置）。",
+              "plural": true
             }
           ],
           "words": [
@@ -5069,7 +5070,8 @@
               "example": "",
               "slot": "object",
               "image": "b2_u07_socks.webp",
-              "askType": "what_is_this"
+              "askType": "what_is_this",
+              "plural": true
             },
             {
               "english": "pants",
@@ -5077,7 +5079,8 @@
               "example": "",
               "slot": "object",
               "image": "b2_u07_pants.webp",
-              "askType": "what_is_this"
+              "askType": "what_is_this",
+              "plural": true
             },
             {
               "english": "skirt",
@@ -5286,7 +5289,8 @@
               "example": "1. Where are my socks? They're under the pillow.2. Where are my pants? They're on the bed.",
               "slot": "object",
               "zh": "我的【】在哪裡？",
-              "answerZh": "它們在（位置）。"
+              "answerZh": "它們在（位置）。",
+              "plural": true
             }
           ],
           "words": [
@@ -5464,7 +5468,8 @@
               "example": "",
               "slot": "object",
               "image": "b2_u07_socks.webp",
-              "askType": "what_is_this"
+              "askType": "what_is_this",
+              "plural": true
             },
             {
               "english": "pants",
@@ -5472,7 +5477,8 @@
               "example": "",
               "slot": "object",
               "image": "b2_u07_pants.webp",
-              "askType": "what_is_this"
+              "askType": "what_is_this",
+              "plural": true
             },
             {
               "english": "skirt",
@@ -8681,7 +8687,7 @@
           "theme": "Asking about and expressing wants and wishes of oneself and others.（表達想要與需求：詢問與表達自己、他人（單數/複數）想要得到的玩具或物品。）",
           "patterns": [
             {
-              "english": "Do you want [item]? / Yes, please. (No, thank you.)",
+              "english": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
               "chinese": "你想要...嗎？／是的，請給我。（不，謝謝。）用於詢問並回答自身的意願或需求。",
               "example": "1. Do you want a guitar? - Yes, please.2. Do you want a game? - No, thank you.",
               "slot": "object",
@@ -8689,7 +8695,7 @@
               "answerZh": "要，請給我。／不用，謝謝。"
             },
             {
-              "english": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+              "english": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
               "chinese": "她/他想要...嗎？／是的，她/他想要。（不，她/他不想。）用於詢問並回答第三人稱單數的意願與需求。",
               "example": "1. Does she want a doll? - No, she doesn't.2. Does he want a toy car? - Yes, he does.",
               "slot": "object",
@@ -8697,7 +8703,7 @@
               "answerZh": "要，她／他要。／不，她／他不要。"
             },
             {
-              "english": "What do they want? / They want [item].",
+              "english": "What do they want? / They want a/an [item].",
               "chinese": "他們想要什麼？／他們想要...。用於詢問並說明複數第三人稱想要的物品。",
               "example": "1. What do they want? - They want a computer game.2. What do you want? - I want a doll.",
               "slot": "object",
@@ -8922,7 +8928,8 @@
               "example": "1. Where are my glasses? - They're in front of the bookcase.2. Where are they? - They're on the floor.",
               "slot": "object",
               "zh": "我的【】在哪裡？",
-              "answerZh": "它們在（家具）的（位置）。"
+              "answerZh": "它們在（家具）的（位置）。",
+              "plural": true
             }
           ],
           "words": [
@@ -8930,7 +8937,7 @@
               "english": "closet (n.)",
               "chinese": "衣櫥",
               "example": "The sock is in the closet.",
-              "slot": "object",
+              "slot": "furniture",
               "image": "b3_u07_closet.webp",
               "askType": "what_is_this"
             },
@@ -8938,7 +8945,7 @@
               "english": "sofa (n.)",
               "chinese": "沙發",
               "example": "It's behind the sofa.",
-              "slot": "object",
+              "slot": "furniture",
               "image": "b3_u07_sofa.webp",
               "askType": "what_is_this"
             },
@@ -8946,7 +8953,7 @@
               "english": "bookcase (n.)",
               "chinese": "書櫃",
               "example": "They are in front of the bookcase.",
-              "slot": "object",
+              "slot": "furniture",
               "image": "b3_u07_bookcase.webp",
               "askType": "what_is_this"
             },
@@ -8964,7 +8971,8 @@
               "example": "Where are my glasses?",
               "slot": "object",
               "image": "b3_u07_glasses.webp",
-              "askType": "what_is_this"
+              "askType": "what_is_this",
+              "plural": true
             },
             {
               "english": "wallet (n.)",
@@ -9154,7 +9162,7 @@
               "answerZh": "我喜歡（科目）。"
             },
             {
-              "english": "Do you want [item]? / Yes, please. (No, thank you.)",
+              "english": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
               "chinese": "你想要...嗎？／是的，請給我。（不，謝謝。）用於詢問並回答自身的意願或需求。",
               "example": "1. Do you want a guitar? - Yes, please.2. Do you want a game? - No, thank you.",
               "slot": "object",
@@ -9162,7 +9170,7 @@
               "answerZh": "要，請給我。／不用，謝謝。"
             },
             {
-              "english": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+              "english": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
               "chinese": "她/他想要...嗎？／是的，她/他想要。（不，她/他不想。）用於詢問並回答第三人稱單數的意願與需求。",
               "example": "1. Does she want a doll? - No, she doesn't.2. Does he want a toy car? - Yes, he does.",
               "slot": "object",
@@ -9170,7 +9178,7 @@
               "answerZh": "要，她／他要。／不，她／他不要。"
             },
             {
-              "english": "What do they want? / They want [item].",
+              "english": "What do they want? / They want a/an [item].",
               "chinese": "他們想要什麼？／他們想要...。用於詢問並說明複數第三人稱想要的物品。",
               "example": "1. What do they want? - They want a computer game.2. What do you want? - I want a doll.",
               "slot": "object",
@@ -9191,7 +9199,8 @@
               "example": "1. Where are my glasses? - They're in front of the bookcase.2. Where are they? - They're on the floor.",
               "slot": "object",
               "zh": "我的【】在哪裡？",
-              "answerZh": "它們在（家具）的（位置）。"
+              "answerZh": "它們在（家具）的（位置）。",
+              "plural": true
             }
           ],
           "words": [
@@ -9327,7 +9336,7 @@
               "english": "closet (n.)",
               "chinese": "衣櫥",
               "example": "The sock is in the closet.",
-              "slot": "object",
+              "slot": "furniture",
               "image": "b3_u07_closet.webp",
               "askType": "what_is_this"
             },
@@ -9335,7 +9344,7 @@
               "english": "sofa (n.)",
               "chinese": "沙發",
               "example": "It's behind the sofa.",
-              "slot": "object",
+              "slot": "furniture",
               "image": "b3_u07_sofa.webp",
               "askType": "what_is_this"
             },
@@ -9343,7 +9352,7 @@
               "english": "bookcase (n.)",
               "chinese": "書櫃",
               "example": "They are in front of the bookcase.",
-              "slot": "object",
+              "slot": "furniture",
               "image": "b3_u07_bookcase.webp",
               "askType": "what_is_this"
             },
@@ -9361,7 +9370,8 @@
               "example": "Where are my glasses?",
               "slot": "object",
               "image": "b3_u07_glasses.webp",
-              "askType": "what_is_this"
+              "askType": "what_is_this",
+              "plural": true
             },
             {
               "english": "wallet (n.)",

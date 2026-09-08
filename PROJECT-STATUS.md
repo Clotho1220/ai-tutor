@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
 最後更新：2026-09-08  
-目前版本：v3.38  
+目前版本：v3.39  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -77,11 +77,43 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.38`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.39`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - GPT 診斷現在也包含單元名稱、預定時間與課程階段。
 
 ## 3. 最近完成的重要修正
+
+### v3.39
+
+2026-09-08：修掉「程式組給孩子唸的句子本身就是錯的」這一批。
+這些句子會直接進導演指令，孩子聽到的就是它們，所以錯的不只是配不到圖。
+
+- **單複數混在同一個單元**：B2U7 的 socks／pants、B3U7 的 glasses 沒被標成複數，
+  組出「Where's my socks?」「Where are my skirt?」。overlay 原本只有單元層級的
+  `plural`（整個單元都是複數，給 B2U6 的水果用），混合單元表達不出來——
+  加了 `wordPlurals` 逐字標，句型也各自帶 `plural`。
+- **一句裡有兩種空格**：`What do you do on [Day]? / I [action] on [Day].` 的槽位是
+  action，`fillSlot()` 把每個空格都換成同一個字，變成「What do you do on go?」。
+  改為只填「名字跟槽位相符」的空格（[item]／[noun]／[singular] 都算 object），
+  填不完整就回空字串交給模型。`[subject 1]` 與 `[subject 2]` 這種要兩個不同的字，
+  同樣交給模型（以前會組出「Which do you like, math or math?」）。
+- **擇一沒解開**：「Does she/he want a puzzle?」「She's/He's my father.」。
+  程式挑不了性別，改用對話漫畫上畫的那一句（圖上是女生就是 She's）。
+  副作用是「She's my grandfather.」這種也一起沒了。
+- **答句留著空格**：對答題沒有情境圖時直接拿句型字串當答案，
+  孩子被要求說「It's [preposition] the [furniture].」。改為改用漫畫上的具體問答。
+- **家具被當成隨身物**：B3U7 的 closet／sofa／bookcase 是答句裡的 [furniture]，
+  不該拿去填「Where's my ___?」。overlay 用 `wordSlots` 標成新的 `furniture` 槽位。
+- **一張情境圖上有兩組問答**：B3U7、B3U2 的圖畫了兩組但中間沒有斜線，
+  `sceneQAPairs()` 把後面那組黏進前一組的答案，變成
+  「They're in front of the bookcase. Where's my wallet? It's behind the sofa.」。
+
+結果：全部 36 單元 × 5 天跑一遍，句型題**沒有任何一句還帶著空格或未解開的擇一**；
+代換題 554/566（98%）有漫畫，對答題 273/273 都有圖（163 張漫畫 + 110 張情境圖）。
+`tests/lesson-plan-smoke.js` 補了 6 條防守這些情況。
+
+剩下 7 句沒有漫畫（`Can I have a ruler, please?`、`Where's my bed?` 之類），
+句子本身是對的，只是沒畫過那個組合的圖。
 
 ### v3.38
 

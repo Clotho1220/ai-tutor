@@ -480,7 +480,8 @@
           "example": "1. Where are my socks? They're under the pillow.2. Where are my pants? They're on the bed.",
           "slot": "object",
           "zh": "我的【】在哪裡？",
-          "answerZh": "它們在（位置）。"
+          "answerZh": "它們在（位置）。",
+          "plural": true
         }
       ],
       "words": {
@@ -492,7 +493,11 @@
           "display": "jacket (n.)",
           "example": "My jacket is on the chair."
         }
-      }
+      },
+      "wordPlurals": [
+        "socks",
+        "pants"
+      ]
     },
     "Book 2|9": {
       "desc": "",
@@ -832,7 +837,7 @@
       "theme": "Asking about and expressing wants and wishes of oneself and others.（表達想要與需求：詢問與表達自己、他人（單數/複數）想要得到的玩具或物品。）",
       "patterns": [
         {
-          "english": "Do you want [item]? / Yes, please. (No, thank you.)",
+          "english": "Do you want a/an [item]? / Yes, please. (No, thank you.)",
           "chinese": "你想要...嗎？／是的，請給我。（不，謝謝。）用於詢問並回答自身的意願或需求。",
           "example": "1. Do you want a guitar? - Yes, please.2. Do you want a game? - No, thank you.",
           "slot": "object",
@@ -840,7 +845,7 @@
           "answerZh": "要，請給我。／不用，謝謝。"
         },
         {
-          "english": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+          "english": "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)",
           "chinese": "她/他想要...嗎？／是的，她/他想要。（不，她/他不想。）用於詢問並回答第三人稱單數的意願與需求。",
           "example": "1. Does she want a doll? - No, she doesn't.2. Does he want a toy car? - Yes, he does.",
           "slot": "object",
@@ -848,7 +853,7 @@
           "answerZh": "要，她／他要。／不，她／他不要。"
         },
         {
-          "english": "What do they want? / They want [item].",
+          "english": "What do they want? / They want a/an [item].",
           "chinese": "他們想要什麼？／他們想要...。用於詢問並說明複數第三人稱想要的物品。",
           "example": "1. What do they want? - They want a computer game.2. What do you want? - I want a doll.",
           "slot": "object",
@@ -910,7 +915,8 @@
           "example": "1. Where are my glasses? - They're in front of the bookcase.2. Where are they? - They're on the floor.",
           "slot": "object",
           "zh": "我的【】在哪裡？",
-          "answerZh": "它們在（家具）的（位置）。"
+          "answerZh": "它們在（家具）的（位置）。",
+          "plural": true
         }
       ],
       "words": {
@@ -946,6 +952,14 @@
           "display": "in front of (prep. phrase)",
           "example": "The dog is in front of the bookcase."
         }
+      },
+      "wordPlurals": [
+        "glasses"
+      ],
+      "wordSlots": {
+        "closet": "furniture",
+        "sofa": "furniture",
+        "bookcase": "furniture"
       }
     },
     "Book 3|9": {
@@ -1105,6 +1119,6 @@
       "wordSlot": "possessive"
     }
   },
-  "_slots": "句型代換用的槽位。pattern.slot 指這個句型的空格收哪一類的字（null = 不做代換）；unit.wordSlot 指這個單元的單字都屬於哪一類，wordSlots 是個別覆寫，都沒有的話由 build-units-from-gogo.py 依詞性標記與圖庫的 kind 推導。slot 名稱：object / action / action_ing / animal / food / person / color / sport / adjective / preposition / number / time / day / subject / body_part / possessive / greeting / place / other（other = 不可代換）。",
+  "_slots": "句型代換用的槽位。pattern.slot 指這個句型的空格收哪一類的字（null = 不做代換）；unit.wordSlot 指這個單元的單字都屬於哪一類，wordSlots 是個別覆寫，都沒有的話由 build-units-from-gogo.py 依詞性標記與圖庫的 kind 推導。slot 名稱：object / action / action_ing / animal / food / person / color / sport / adjective / preposition / number / time / day / subject / body_part / possessive / greeting / place / furniture / other（other = 不可代換）。",
   "_zh": "pattern.zh：代換練習時畫面顯示的中文句子模板，【】會換成代換字的中文；pattern.answerZh：對答題畫面顯示的回答提示。"
 }

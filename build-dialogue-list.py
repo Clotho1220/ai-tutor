@@ -282,16 +282,16 @@ TEMPLATES = {
         "你喜歡哪些科目？我喜歡%s。" % w["chinese"],
         "a classroom; the child holds a textbook and props that clearly stand for the school "
         "subject %s" % bare(w["english"])),
-    "Do you want [item]? / Yes, please. (No, thank you.)": lambda w: T(
+    "Do you want a/an [item]? / Yes, please. (No, thank you.)": lambda w: T(
         "Do you want %s %s?" % (art(bare(w["english"])), bare(w["english"])), "Yes, please.",
         "你想要%s嗎？要，請給我。" % w["chinese"],
         "Gogo is holding out one %s toward the child" % bare(w["english"])),
-    "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)": lambda w: T(
+    "Does she/he want a/an [item]? / Yes, she/he does. (No, she/he doesn't.)": lambda w: T(
         "Does she want %s %s?" % (art(bare(w["english"])), bare(w["english"])), "Yes, she does.",
         "她想要%s嗎？要，她要。" % w["chinese"],
         "a toy shop; a girl in the background gazes longingly at one %s on a shelf"
         % bare(w["english"])),
-    "What do they want? / They want [item].": lambda w: T(
+    "What do they want? / They want a/an [item].": lambda w: T(
         "What do they want?", "They want %s %s." % (art(bare(w["english"])), bare(w["english"])),
         "他們想要什麼？他們想要%s。" % w["chinese"],
         "a toy shop; two children in the background both point eagerly at one %s on a shelf"

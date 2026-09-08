@@ -1,6 +1,6 @@
 # 交接說明（新對話視窗請先讀這份）
 
-最後更新：2026-09-08　目前版本：v3.38
+最後更新：2026-09-08　目前版本：v3.39
 
 這份文件記錄「**使用者定義的教學需求**」與「**目前做到哪、還沒做什麼**」。
 技術細節與版本歷史在 [`PROJECT-STATUS.md`](PROJECT-STATUS.md)，兩份一起看。
@@ -12,7 +12,7 @@
 v3.38 把 239 張句型對話漫畫全部接上線，句子練習從此有圖（見第 2 節）。
 教學模板是 v3.19 起的「辨識驅動」（見第 1 節），計畫模式**預設開啟**，
 教材資料與 766 張圖都來自「Gogo English」專案（見第 7 節）。
-**下一步是實機上一堂課看漫畫的實際效果，另外修第 3 節那批單複數／代換清單的資料錯。**
+**下一步是實機上一堂課看漫畫的實際效果。**
 
 ---
 
@@ -104,7 +104,7 @@ AI 用英文問（Can you fly?），學員要會答（No, I can't.）。
 | 結語要真的講了才下課 | ✅ v3.36 | `completeTrackedAiTurn` 的 `closingSpoken` |
 | **句子練習的對話漫畫圖（239 張）** | ✅ v3.38 全部完成 | 圖已生成並轉進 `images/`（766 張）；`dialogueFor()` 掛圖、`bubblesFor()` 決定泡泡壓什麼字 |
 | 每日單字互動式點選介面 | ⏳ 下一步（對話圖已完成，不再被卡住） | 規劃：day2 唸完點中文、day3 點選再唸、day4 點字母、day5 排字母、對答點答案 |
-| B2U7/B3U7 單複數、B3U3/B3U11 代換清單 | ❌ 未修（v3.38 讓它更明顯了） | 見第 3 節 |
+| B2U7/B3U7 單複數、家具槽位、多空格句型 | ✅ v3.39 | `wordPlurals`／`wordSlots` + 槽位相符的 `fillSlot()` |
 | **開場三種回應處理** | ❌ 未實作 | 目前只有一段 opening 指令 |
 | **學員弱點累積與運用** | ❌ 未實作 | 需要先累積 `report_item_result` 資料 |
 | **結束時完整匯出到試算表** | ⚠️ 部分 | 項目層級結果尚未寫入 |
@@ -112,19 +112,16 @@ AI 用英文問（Can you fly?），學員要會答（No, I can't.）。
 
 ## 3. 立即該做的事
 
-### 3.0 教材資料錯（v3.38 掛圖時整批浮出來）
+### 3.0 句型題的句子品質（v3.39 已修，這裡記錄結論）
 
-代換題挑不到漫畫的 26 句，幾乎都是資料本身組出了不通的句子。
-挑不到圖只是症狀——這些句子本來就會被唸給孩子聽：
+程式組給孩子唸的句子曾經有一整批是錯的（單複數、一句兩種空格、she/he 沒解開、
+答句留著 `[preposition]`、家具被當隨身物、一張圖兩組問答黏在一起）。
+v3.39 全部修掉，`tests/lesson-plan-smoke.js` 有防守。判斷方式：
+全部單元跑一遍，句型題的 `target` 與 `ask` **不應該出現 `[` 或 `a/b` 這種擇一**。
 
-- **單複數**（B2U7／B3U7）：`Where's my socks?`、`Where's my pants?`、
-  `Where are my bed?`、`Where are my pillow?`——單複數句型的代換字沒有依單複數分流
-- **slot 標錯**（B3U3）：`What do you do on [Day]?` 收到 `go`、`use`
-  → `What do you do on go?`。Day 的代換字要是星期，不是動詞
-- **家具被當成隨身物**：`Where's my bed?`、`Where's my sofa?`、`Where's my closet?`
-- **不可數／複數的 want 題**：`Do you want computer game?`（少了 a）
-
-修法在 `units-overlay.json` 標好 slot 與 plural，不要改 `units.json`（那是產生物）。
+剩下 7 句沒有對話漫畫（`Can I have a ruler, please?`、`Where's my bed?`、
+`Where's my puzzle?` 等）。句子是對的，只是沒畫過那個組合——
+要補就在 `build-dialogue-list.py` 加模板再請 Gogo English 專案生圖。
 
 ### 3.1 上課前的確認
 

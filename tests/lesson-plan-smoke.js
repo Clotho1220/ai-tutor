@@ -25,6 +25,27 @@
             LP.fillSlot("Can you [action]?", { english: "jump (v.)" }) === "Can you jump?");
         check("fillSlot leaves dotted patterns to the model",
             LP.fillSlot("What's this? / It's a...", { english: "desk" }) === "");
+        // 一句裡有兩種空格時，只有跟這個字的槽位相符的那個能填；
+        // 填不完整就交給模型，不要組出「What do you do on go?」
+        check("fillSlot only fills the placeholder matching the word's slot",
+            LP.fillSlot("What do you do on [Day]?",
+                { english: "go (v.)", slot: "action" }) === "");
+        check("fillSlot fills the matching name for that slot",
+            LP.fillSlot("What do you do on [Day]?",
+                { english: "Sunday (n.)", slot: "day" }) === "What do you do on sunday?");
+        // 單複數：[singular] 只收單數形的字，[plural] 只收複數形的
+        check("fillSlot keeps singular and plural apart",
+            LP.fillSlot("Where's my [singular]?",
+                { english: "socks", slot: "object", plural: true }) === "" &&
+            LP.fillSlot("Where are my [plural]?",
+                { english: "socks", slot: "object", plural: true }) === "Where are my socks?");
+        // 兩個不同名字的空格要兩個不同的字，程式只有一個
+        check("fillSlot leaves two different placeholders to the model",
+            LP.fillSlot("Which do you like, [subject 1] or [subject 2]?",
+                { english: "math (n.)", slot: "subject" }) === "");
+        check("fillSlot picks a or an after filling",
+            LP.fillSlot("Is this a/an [animal]?",
+                { english: "elephant (n.)", slot: "animal" }) === "Is this an elephant?");
 
         // ---- 分配規則 ----
         check("12 words spread over 5 days give 2-3 per day",
@@ -137,6 +158,19 @@
             responds[0].ladder[0].reveal.english && responds[0].ladder[0].reveal.chinese);
         check("a pattern with no matching scene gets no picture",
             LP.sceneForPattern({ english: "What's that? / It's a [noun]." }, unit.scenes) === null);
+        // 一張情境圖上畫了兩組問答、中間沒有斜線（B3U7 就是這樣），
+        // 兩組都要拆得出來，不能把後面那組黏進前一組的答案裡
+        check("a scene holding two exchanges splits into two pairs", (function () {
+            const scenes = [{
+                image: "two.webp",
+                lines: "Where are my glasses? — They're in front of the bookcase. " +
+                    "Where's my wallet? — It's behind the sofa."
+            }];
+            const found = LP.sceneForPattern(
+                { english: "Where's my [item]? / It's [preposition] the [furniture]." }, scenes);
+            return found && found.pair.ask === "Where's my wallet?" &&
+                found.pair.answer === "It's behind the sofa.";
+        })());
         check("substitute items show the full Chinese sentence",
             subs[0].meaning === "你會" + subs[0].slotMeaning + "嗎？");
         check("gap and spell directives withhold the answer until the second step",

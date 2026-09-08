@@ -172,7 +172,10 @@ def convert_words(vocabulary, overlay_words, unit_over, image_key, images):
             "image": picture.get("image", ""),
             "askType": picture.get("askType", ""),
         }
-        if unit_over.get("plural"):
+        # unit_over["plural"] 是整個單元都是複數（B2U6 的水果）；
+        # wordPlurals 是單元裡只有幾個字是複數（B2U7 的 socks／pants、B3U7 的 glasses），
+        # 這種混合單元用單元層級標不出來，會組出 Where's my socks?
+        if unit_over.get("plural") or bare(english) in (unit_over.get("wordPlurals") or []):
             word["plural"] = True
         words.append(word)
     return words

@@ -72,19 +72,54 @@
         return { ask: first, answers: [], statements: parts };
     }
 
+    // 空格的名字對應到哪一種槽位。課本的句型各寫各的（[item]／[noun]／[singular]
+    // 都是「一樣東西」），所以要先正規化再比對。
+    const SLOT_ALIAS = {
+        item: "object", items: "object", noun: "object", nouns: "object",
+        thing: "object", things: "object", singular: "object", plural: "object",
+        familymember: "person", relationship: "person", someone: "person",
+        prep: "preposition", bodypart: "body_part", actioning: "action_ing"
+    };
+
+    function slotOf(placeholder) {
+        const key = text(placeholder).toLowerCase().replace(/[^a-z]/g, "");
+        return SLOT_ALIAS[key] || key;
+    }
+
     // 把單字填進句型的空格。`Can you [action]?` + jump → `Can you jump?`
-    // 第 2 冊的句型用「...」而不是 [空格]，那種就回空字串，交給模型自己組。
+    //
+    // 只填「跟這個句型的槽位相符」的空格。課本有些句型一句裡有兩個不同的空格
+    // （`What do you do on [Day]? / I [action] on [Day].` 的槽位是 action），
+    // 全部一起換會組出「What do you do on go?」這種句子，而這句會直接進導演指令
+    // 唸給孩子聽。填不完整就回空字串，交給模型自己組（第 2 冊的「...」型也一樣）。
     function fillSlot(patternPart, word) {
         const sentence = text(patternPart);
         const value = bareWord(word && word.english);
-        if (!sentence || !value) return "";
-        if (/\[[^\]]+\]/.test(sentence)) {
-            // 句型寫的是「a/an」，填完字要挑一個：Is this a/an whale? → Is this a whale?
-            return sentence.replace(/\[[^\]]+\]/g, value)
-                .replace(/\ba\/an\s+(\w)/gi,
-                    (whole, first) => (/[aeiou]/i.test(first) ? "an " : "a ") + first);
-        }
-        return "";
+        if (!sentence || !value || !/\[[^\]]+\]/.test(sentence)) return "";
+
+        const slot = text(word && word.slot);
+        const filledNames = new Set();
+        let mismatched = false;
+        const out = sentence.replace(/\[([^\]]+)\]/g, (whole, name) => {
+            // 沒標槽位的字（自訂教材、測試資料）就照舊填，不要因為比對不到而整句放棄
+            if (slot && slotOf(name) !== slotOf(slot)) return whole;
+            // [singular] 與 [plural] 是同一個槽位的單複數兩型，字要跟著對
+            const key = text(name).toLowerCase().replace(/[^a-z]/g, "");
+            const wantsPlural = key === "plural" || key === "items";
+            if ((key === "singular" || wantsPlural) && !!word.plural !== wantsPlural) {
+                mismatched = true;
+                return whole;
+            }
+            filledNames.add(text(name).toLowerCase());
+            return value;
+        });
+        // 兩個不同名字的空格（[subject 1] 或 [subject 2]）要兩個不同的字，
+        // 程式只有一個字，全填成一樣會變成「Which do you like, math or math?」
+        if (!filledNames.size || filledNames.size > 1) return "";
+        if (mismatched || /\[[^\]]+\]/.test(out)) return "";
+        // 句型寫的是「a/an」，填完字要挑一個：Is this a/an whale? → Is this a whale?
+        return out.replace(/\ba\/an\s+(\w)/gi,
+            (whole, first) => (/[aeiou]/i.test(first) ? "an " : "a ") + first);
     }
 
     // ---------------- 提示階梯 ----------------
@@ -409,9 +444,19 @@
         const parts = splitPattern(pattern.english);
         return (words || []).map((word, index) => {
         const dlg = dialogueFor(dialogues, pattern.english, word.english);
-        const target = fillSlot(parts.ask, word) || fillSlot(parts.statements[0], word);
+        const asked = fillSlot(parts.ask, word) || fillSlot(parts.statements[0], word);
+        // 句型裡的擇一（Does she/he want...、She's/He's my...）程式挑不了，
+        // 挑錯就變成「She's my grandfather.」。漫畫上畫的是哪一個就用哪一句。
+        const eitherOr = /[A-Za-z']+\/[A-Za-z']+/.test(asked);
         // 圖裡演的情境要跟要練的句子是同一句，不然孩子看圖說出來的會是另一句
-        const usable = dlg && (!target || sameSentence(dlg.ask, target));
+        const usable = !!dlg && (!asked || eitherOr
+            || sameSentence(dlg.ask, asked) || sameSentence(dlg.answer, asked));
+        // 代換的空格不一定在問句裡（「What do they want? / They want a/an [item].」練的是
+        // 答句），但答句也常留著擇一，所以答句放最後。
+        const target = (asked && !eitherOr ? asked : "")
+            || (usable ? sentenceWith(dlg, word.english) : "")
+            || asked
+            || parts.answers.reduce((found, part) => found || fillSlot(part, word), "");
         return makeItem({
             id: `${idPrefix}-${index + 1}`,
             type: "pattern_substitute",
@@ -425,13 +470,21 @@
             meaning: text(pattern.zh)
                 ? text(pattern.zh).replace(/【】/g, text(word.chinese))
                 : text(word.chinese),
-            // 句型有 [空格] 時程式填得出來，第 2 冊的「...」型就留給模型
-            target: target || (usable ? text(dlg.ask) : ""),
+            // 三種都組不出來（第 2 冊的「...」型）就留空，交給模型組
+            target,
             image: usable ? text(dlg.image) : "",
             dialogue: usable,
             ladder: sentenceLadder("substitute")
         });
         });
+    }
+
+    // 漫畫的問句與答句裡，含這個代換字的是哪一句（都沒有就用問句）
+    function sentenceWith(dlg, wordEnglish) {
+        const key = bareWord(wordEnglish);
+        const has = sentence => key && text(sentence).toLowerCase().includes(key);
+        if (has(dlg && dlg.answer) && !has(dlg && dlg.ask)) return text(dlg.answer);
+        return text(dlg && dlg.ask);
     }
 
     // 比較兩句英文是不是同一句（忽略大小寫、標點與多餘空白）
@@ -445,12 +498,22 @@
     // 情境圖的 lines 格式："Who's she? — She's my mother. / Who's he? — He's my father."
     // 拆成一組組「問句 — 答句」
     function sceneQAPairs(scene) {
-        return text(scene && scene.lines).split(/\s+\/\s+/).map(chunk => {
-            const parts = chunk.split(/\s+[—–-]\s+/);
-            return parts.length >= 2
-                ? { ask: parts[0].trim(), answer: parts.slice(1).join(" ").trim() }
-                : null;
-        }).filter(Boolean);
+        const pairs = [];
+        text(scene && scene.lines).split(/\s+\/\s+/).forEach(chunk => {
+            const parts = chunk.split(/\s+[—–-]\s+/).map(part => part.trim()).filter(Boolean);
+            if (parts.length < 2) return;
+            // 一張圖上可能畫了兩組問答，中間沒有斜線：
+            // 「Where are my glasses? — They're in front of the bookcase.
+            //   Where's my wallet? — It's behind the sofa.」
+            // 用破折號切完，中間那段會是「答句。下一個問句?」，在句尾標點後再切一次。
+            let ask = parts[0];
+            for (let i = 1; i < parts.length && ask; i++) {
+                const both = i < parts.length - 1 && parts[i].match(/^(.*?[.!?])\s+(.+\?)$/);
+                pairs.push({ ask, answer: (both ? both[1] : parts[i]).trim() });
+                ask = both ? both[2].trim() : "";
+            }
+        });
+        return pairs;
     }
 
     // 句型的問句開頭（去掉 [空格] 與 she/he 這類擇一）：「Who's she/he?」→ "who s"
@@ -477,8 +540,15 @@
         const parts = splitPattern(pattern.english);
         if (!parts.answers.length) return [];
         const matched = sceneForPattern(pattern, scenes);
-        const ask = matched ? matched.pair.ask : parts.ask;
-        const answer = matched ? matched.pair.answer : parts.answers[0];
+        // 沒有情境圖時，句型字串本身留著空格：「It's [preposition] the [furniture].」
+        // 直接拿來當答案，等於要孩子照著唸空格。對話漫畫的問答是具體的，改用它。
+        const concrete = (dialogues || []).find(d => text(d.pattern) === text(pattern.english)
+            && !/\[[^\]]*\]/.test(text(d.ask) + text(d.answer)));
+        const fallback = !matched && concrete
+            ? { ask: text(concrete.ask), answer: text(concrete.answer) }
+            : { ask: parts.ask, answer: parts.answers[0] };
+        const ask = matched ? matched.pair.ask : fallback.ask;
+        const answer = matched ? matched.pair.answer : fallback.answer;
         // 對話漫畫比情境圖更貼題（一張圖就是一組問答），問句與答句都對得上才用，
         // 否則沿用原本的情境圖。
         const dlg = (dialogues || []).find(d => text(d.pattern) === text(pattern.english)

@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.37";
+const APP_VERSION = "3.38";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -606,6 +606,34 @@ async function loadUnitsData() {
         if (res.ok) UNITS_DATA = await res.json();
     } catch (e) {}
     return UNITS_DATA;
+}
+
+// 句型對話漫畫索引（dialogues.json，由 build-dialogue-list.py 產生）。
+// 鍵是 b1_u03 這種單元代號，值是該單元每個「句型 × 代換字」的一張圖。
+let DIALOGUES_DATA = null;
+
+async function loadDialoguesData() {
+    if (DIALOGUES_DATA) return DIALOGUES_DATA;
+    try {
+        const res = await fetch("dialogues.json?t=" + Date.now());
+        if (res.ok) DIALOGUES_DATA = await res.json();
+    } catch (e) {}
+    return DIALOGUES_DATA;
+}
+
+// units.json 的 book 是 "Book 1"、unit.num 是 3 → "b1_u03"
+// 本單元的排前面，其餘全部接在後面：Review 單元與跨單元的代換字
+// （第 4 單元練到第 3 單元的 Can you fly?）本來就會用到別的單元那張圖。
+// 挑圖時還會再比對「圖上演的句子跟要練的句子是同一句」，所以接進來不會配錯。
+function dialoguesForUnit(unit) {
+    if (!DIALOGUES_DATA || !unit) return [];
+    const book = Number(String(unit.book || "").replace(/\D+/g, ""));
+    const key = book && unit.num ? `b${book}_u${String(unit.num).padStart(2, "0")}` : "";
+    const own = (key && DIALOGUES_DATA[key]) || [];
+    const rest = Object.keys(DIALOGUES_DATA)
+        .filter(k => !k.startsWith("_") && k !== key)
+        .reduce((all, k) => all.concat(DIALOGUES_DATA[k] || []), []);
+    return own.concat(rest);
 }
 
 function findUnit(bookName, num) {
@@ -2524,6 +2552,7 @@ async function buildTodayLessonPlan() {
     const selection = person.unit;
     if (!selection || !selection.book) return null;
     await loadUnitsData();
+    await loadDialoguesData();
     const unit = findUnit(selection.book, selection.num);
     if (!unit || !UNITS_DATA) return null;
 
@@ -2541,6 +2570,7 @@ async function buildTodayLessonPlan() {
         day,
         unit,
         reviewUnits: window.CourseProgression.previousUnits(UNITS_DATA.books, unit, 2),
+        dialogues: dialoguesForUnit(unit),
         learnedWords: loadVocabLog()
     });
 }
@@ -2603,6 +2633,8 @@ function applyPlanReveal(item, attempts) {
     if (item.type === "opening" || item.type === "closing") return;   // 保留畫面現狀
     studentView.showCard({
         imageUrl: reveal.image && reveal.picture ? "images/" + reveal.picture : "",
+        // 對話漫畫的空白泡泡要壓什麼字（不是漫畫就是 null，泡泡不顯示）
+        bubbles: reveal.bubbles,
         word: reveal.english ? reveal.word : "",
         meaning: reveal.chinese ? reveal.meaning : "",
         icon: item.type === "pattern_substitute" ? "💬" : "🎧"

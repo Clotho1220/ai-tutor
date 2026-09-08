@@ -13,6 +13,9 @@
             topics: doc.getElementById('svTopics'),
             welcome: doc.getElementById('svWelcomeImage'),
             image: doc.getElementById('svImage'),
+            imageWrap: doc.getElementById('svImageWrap'),
+            bubbleLeft: doc.getElementById('svBubbleLeft'),
+            bubbleRight: doc.getElementById('svBubbleRight'),
             placeholder: doc.getElementById('svImagePlaceholder'),
             imageStatus: doc.getElementById('svImageStatus'),
             word: doc.getElementById('svWord'),
@@ -79,7 +82,21 @@
             state.timeoutHandle = null;
         }
 
+        // 對話漫畫的泡泡：圖片一換掉就要跟著清乾淨，
+        // 不然上一題的句子會留在下一張圖上（等於直接洩答）。
+        function setBubbles(bubbles) {
+            const left = bubbles && bubbles.left ? String(bubbles.left) : "";
+            const right = bubbles && bubbles.right ? String(bubbles.right) : "";
+            if (elements.imageWrap) elements.imageWrap.classList.toggle('dialogue', !!bubbles);
+            [[elements.bubbleLeft, left], [elements.bubbleRight, right]].forEach(([el, value]) => {
+                if (!el) return;
+                el.textContent = value;
+                el.style.display = value ? 'block' : 'none';
+            });
+        }
+
         function hideActualImage() {
+            setBubbles(null);
             if (!elements.image) return;
             elements.image.style.display = 'none';
             elements.image.removeAttribute('src');
@@ -222,6 +239,7 @@
                     elements.image.style.display = 'block';
                     elements.image.removeAttribute('aria-busy');
                 }
+                setBubbles(data.bubbles || null);
             } else {
                 invalidateImage(data.icon || '🎧', "");
             }

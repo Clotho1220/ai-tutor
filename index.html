@@ -72,6 +72,14 @@
                              font-size:17px; font-weight:800; }
         #svImage { max-width:min(64vw,300px); max-height:27vh; border-radius:24px; display:none;
                    box-shadow:0 6px 20px rgba(0,0,0,0.12); background:#fff; }
+        #svImageWrap { position:relative; display:inline-block; line-height:0; }
+        /* 對話漫畫比單字卡大：兩個角色＋兩個泡泡，太小看不清楚 */
+        #svImageWrap.dialogue #svImage { max-width:min(88vw,460px); max-height:40vh; }
+        .sv-bubble { position:absolute; top:6.5%; width:27%; max-height:18%; display:none;
+                     overflow:hidden; line-height:1.15; text-align:center; color:#22303f;
+                     font-size:clamp(11px,2.4vw,17px); font-weight:700; word-break:break-word; }
+        #svBubbleLeft { left:8%; }
+        #svBubbleRight { right:8%; }
         #svImagePlaceholder { font-size:70px; line-height:1; }
         #svImageStatus { display:none; min-height:24px; font-size:17px; color:#8a7a64; }
         #svWord { font-size:42px; font-weight:800; color:#2b6cb0; word-break:break-word; }
@@ -175,7 +183,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.37</div>
+            <div id="appVersion">AI Tutor Studio v3.38</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -340,7 +348,13 @@
         <section id="svVisualSection" aria-label="課程圖片與選項">
             <img id="svWelcomeImage" src="tutor-welcome.webp?v=301" alt="親切的 AI 英文老師向學生揮手">
             <div id="svImagePlaceholder" style="display:none;">✨</div>
-            <img id="svImage" src="" alt="教學圖片">
+            <div id="svImageWrap">
+                <img id="svImage" src="" alt="教學圖片">
+                <!-- 對話漫畫的兩個空白泡泡（左上 Gogo、右上小朋友）：圖上不含文字，
+                     句子由前端依提示階梯壓上去，位置對齊母版寫死的泡泡框 -->
+                <div id="svBubbleLeft" class="sv-bubble"></div>
+                <div id="svBubbleRight" class="sv-bubble sv-bubble-right"></div>
+            </div>
             <div id="svImageStatus" role="status" aria-live="polite"></div>
             <div id="svWord"></div>
             <div id="svMeaning"></div>
@@ -357,16 +371,16 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="dom-utils.js?v=20260904b"></script>
-    <script src="student-view.js?v=20260904b"></script>
-    <script src="live-session.js?v=20260904b"></script>
-    <script src="learning-records.js?v=20260904b"></script>
-    <script src="course-progression.js?v=20260904b"></script>
-    <script src="lesson-plan.js?v=20260904b"></script>
-    <script src="stage-transition.js?v=20260904b"></script>
-    <script src="practice-observer.js?v=20260904b"></script>
-    <script src="session-diagnostics.js?v=20260904b"></script>
-    <script src="lesson-ending.js?v=20260904b"></script>
-    <script src="openai-realtime.js?v=20260904b"></script>
-    <script src="app.js?v=20260904b"></script>
+    <script src="dom-utils.js?v=20260908a"></script>
+    <script src="student-view.js?v=20260908a"></script>
+    <script src="live-session.js?v=20260908a"></script>
+    <script src="learning-records.js?v=20260908a"></script>
+    <script src="course-progression.js?v=20260908a"></script>
+    <script src="lesson-plan.js?v=20260908a"></script>
+    <script src="stage-transition.js?v=20260908a"></script>
+    <script src="practice-observer.js?v=20260908a"></script>
+    <script src="session-diagnostics.js?v=20260908a"></script>
+    <script src="lesson-ending.js?v=20260908a"></script>
+    <script src="openai-realtime.js?v=20260908a"></script>
+    <script src="app.js?v=20260908a"></script>
 </body></html>

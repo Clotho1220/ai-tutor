@@ -72,7 +72,10 @@ def main():
             missing += 1
             missing_names.append(png)
             continue
-        if os.path.exists(target) and not args.force:
+        # 母版重生成過（比 webp 新）就一定要重轉，否則舊圖會一直留著
+        stale = (os.path.exists(target)
+                 and os.path.getmtime(sources[png]) > os.path.getmtime(target))
+        if os.path.exists(target) and not args.force and not stale:
             skipped += 1
             total_bytes += os.path.getsize(target)
             continue

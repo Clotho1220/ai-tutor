@@ -1,0 +1,1969 @@
+{
+ "_說明": "句型對話漫畫的網頁索引，由 AI tutor/build-dialogue-list.py 產生，不要手改。image 是 images/ 裡的檔名；圖上兩個泡泡都是空白，ask（左上 Gogo）與 answer（右上 Tony）由前端決定要不要壓字。",
+ "b1_u01": [
+  {
+   "image": "b1_u01_dlg01_x.webp",
+   "pattern": "What's your name? / I'm [Name].",
+   "word": "",
+   "ask": "What's your name?",
+   "answer": "I'm Tony.",
+   "zh": "你叫什麼名字？我叫 Tony。"
+  },
+  {
+   "image": "b1_u01_dlg02_x.webp",
+   "pattern": "Nice to meet you.",
+   "word": "",
+   "ask": "Nice to meet you.",
+   "answer": "Nice to meet you, too.",
+   "zh": "很高興認識你。我也很高興認識你。"
+  }
+ ],
+ "b1_u02": [
+  {
+   "image": "b1_u02_dlg01_table.webp",
+   "pattern": "What's this? / It's a/an [object].",
+   "word": "table",
+   "ask": "What's this?",
+   "answer": "It's a table.",
+   "zh": "這是什麼？這是桌子。"
+  },
+  {
+   "image": "b1_u02_dlg01_desk.webp",
+   "pattern": "What's this? / It's a/an [object].",
+   "word": "desk",
+   "ask": "What's this?",
+   "answer": "It's a desk.",
+   "zh": "這是什麼？這是書桌。"
+  },
+  {
+   "image": "b1_u02_dlg01_chair.webp",
+   "pattern": "What's this? / It's a/an [object].",
+   "word": "chair",
+   "ask": "What's this?",
+   "answer": "It's a chair.",
+   "zh": "這是什麼？這是椅子。"
+  },
+  {
+   "image": "b1_u02_dlg01_book.webp",
+   "pattern": "What's this? / It's a/an [object].",
+   "word": "book",
+   "ask": "What's this?",
+   "answer": "It's a book.",
+   "zh": "這是什麼？這是書。"
+  },
+  {
+   "image": "b1_u02_dlg01_pencil.webp",
+   "pattern": "What's this? / It's a/an [object].",
+   "word": "pencil",
+   "ask": "What's this?",
+   "answer": "It's a pencil.",
+   "zh": "這是什麼？這是鉛筆。"
+  },
+  {
+   "image": "b1_u02_dlg01_eraser.webp",
+   "pattern": "What's this? / It's a/an [object].",
+   "word": "eraser",
+   "ask": "What's this?",
+   "answer": "It's an eraser.",
+   "zh": "這是什麼？這是橡皮擦。"
+  }
+ ],
+ "b1_u03": [
+  {
+   "image": "b1_u03_dlg01_fly.webp",
+   "pattern": "Can you [action]? / Yes, I can. / No, I can't.",
+   "word": "fly",
+   "ask": "Can you fly?",
+   "answer": "No, I can't.",
+   "zh": "你會飛嗎？不會，我不會。"
+  },
+  {
+   "image": "b1_u03_dlg01_read.webp",
+   "pattern": "Can you [action]? / Yes, I can. / No, I can't.",
+   "word": "read",
+   "ask": "Can you read?",
+   "answer": "Yes, I can.",
+   "zh": "你會閱讀；讀書嗎？會，我會。"
+  },
+  {
+   "image": "b1_u03_dlg01_sing.webp",
+   "pattern": "Can you [action]? / Yes, I can. / No, I can't.",
+   "word": "sing",
+   "ask": "Can you sing?",
+   "answer": "Yes, I can.",
+   "zh": "你會唱歌嗎？會，我會。"
+  },
+  {
+   "image": "b1_u03_dlg01_draw.webp",
+   "pattern": "Can you [action]? / Yes, I can. / No, I can't.",
+   "word": "draw",
+   "ask": "Can you draw?",
+   "answer": "Yes, I can.",
+   "zh": "你會畫畫嗎？會，我會。"
+  },
+  {
+   "image": "b1_u03_dlg01_swim.webp",
+   "pattern": "Can you [action]? / Yes, I can. / No, I can't.",
+   "word": "swim",
+   "ask": "Can you swim?",
+   "answer": "Yes, I can.",
+   "zh": "你會游泳嗎？會，我會。"
+  },
+  {
+   "image": "b1_u03_dlg01_cook.webp",
+   "pattern": "Can you [action]? / Yes, I can. / No, I can't.",
+   "word": "cook",
+   "ask": "Can you cook?",
+   "answer": "Yes, I can.",
+   "zh": "你會煮飯嗎？會，我會。"
+  }
+ ],
+ "b1_u05": [
+  {
+   "image": "b1_u05_dlg01_mother.webp",
+   "pattern": "Who's she/he? / She's/He's my [family member].",
+   "word": "mother",
+   "ask": "Who's she?",
+   "answer": "She's my mother.",
+   "zh": "她是誰？她是我的媽媽。"
+  },
+  {
+   "image": "b1_u05_dlg01_father.webp",
+   "pattern": "Who's she/he? / She's/He's my [family member].",
+   "word": "father",
+   "ask": "Who's he?",
+   "answer": "He's my father.",
+   "zh": "他是誰？他是我的爸爸。"
+  },
+  {
+   "image": "b1_u05_dlg01_sister.webp",
+   "pattern": "Who's she/he? / She's/He's my [family member].",
+   "word": "sister",
+   "ask": "Who's she?",
+   "answer": "She's my sister.",
+   "zh": "她是誰？她是我的姊姊；妹妹。"
+  },
+  {
+   "image": "b1_u05_dlg01_brother.webp",
+   "pattern": "Who's she/he? / She's/He's my [family member].",
+   "word": "brother",
+   "ask": "Who's he?",
+   "answer": "He's my brother.",
+   "zh": "他是誰？他是我的哥哥；弟弟。"
+  },
+  {
+   "image": "b1_u05_dlg01_friend.webp",
+   "pattern": "Who's she/he? / She's/He's my [family member].",
+   "word": "friend",
+   "ask": "Who's he?",
+   "answer": "He's my friend.",
+   "zh": "他是誰？他是我的朋友。"
+  }
+ ],
+ "b1_u06": [
+  {
+   "image": "b1_u06_dlg01_x.webp",
+   "pattern": "What's his/her name? / His/Her name's [Name].",
+   "word": "",
+   "ask": "What's her name?",
+   "answer": "Her name's Jenny.",
+   "zh": "她叫什麼名字？她叫 Jenny。"
+  }
+ ],
+ "b1_u07": [
+  {
+   "image": "b1_u07_dlg01_whale.webp",
+   "pattern": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+   "word": "whale",
+   "ask": "Is this a whale?",
+   "answer": "Yes, it is.",
+   "zh": "這是鯨魚嗎？是，它是。"
+  },
+  {
+   "image": "b1_u07_dlg01_penguin.webp",
+   "pattern": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+   "word": "penguin",
+   "ask": "Is this a penguin?",
+   "answer": "Yes, it is.",
+   "zh": "這是企鵝嗎？是，它是。"
+  },
+  {
+   "image": "b1_u07_dlg01_polar_bear.webp",
+   "pattern": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+   "word": "polar bear",
+   "ask": "Is this a polar bear?",
+   "answer": "Yes, it is.",
+   "zh": "這是北極熊嗎？是，它是。"
+  },
+  {
+   "image": "b1_u07_dlg01_giraffe.webp",
+   "pattern": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+   "word": "giraffe",
+   "ask": "Is this a giraffe?",
+   "answer": "Yes, it is.",
+   "zh": "這是長頸鹿嗎？是，它是。"
+  },
+  {
+   "image": "b1_u07_dlg01_leopard.webp",
+   "pattern": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+   "word": "leopard",
+   "ask": "Is this a leopard?",
+   "answer": "Yes, it is.",
+   "zh": "這是花豹嗎？是，它是。"
+  },
+  {
+   "image": "b1_u07_dlg01_ostrich.webp",
+   "pattern": "Is this a/an [animal]? / Yes, it is. / No, it isn't.",
+   "word": "ostrich",
+   "ask": "Is this an ostrich?",
+   "answer": "Yes, it is.",
+   "zh": "這是鴕鳥嗎？是，它是。"
+  }
+ ],
+ "b1_u09": [
+  {
+   "image": "b1_u09_dlg01_red.webp",
+   "pattern": "What color is this? / It's [color].",
+   "word": "red",
+   "ask": "What color is this?",
+   "answer": "It's red.",
+   "zh": "這是什麼顏色？是紅色。"
+  },
+  {
+   "image": "b1_u09_dlg01_yellow.webp",
+   "pattern": "What color is this? / It's [color].",
+   "word": "yellow",
+   "ask": "What color is this?",
+   "answer": "It's yellow.",
+   "zh": "這是什麼顏色？是黃色。"
+  },
+  {
+   "image": "b1_u09_dlg01_blue.webp",
+   "pattern": "What color is this? / It's [color].",
+   "word": "blue",
+   "ask": "What color is this?",
+   "answer": "It's blue.",
+   "zh": "這是什麼顏色？是藍色。"
+  },
+  {
+   "image": "b1_u09_dlg01_green.webp",
+   "pattern": "What color is this? / It's [color].",
+   "word": "green",
+   "ask": "What color is this?",
+   "answer": "It's green.",
+   "zh": "這是什麼顏色？是綠色。"
+  },
+  {
+   "image": "b1_u09_dlg01_orange.webp",
+   "pattern": "What color is this? / It's [color].",
+   "word": "orange",
+   "ask": "What color is this?",
+   "answer": "It's orange.",
+   "zh": "這是什麼顏色？是橘色。"
+  },
+  {
+   "image": "b1_u09_dlg01_purple.webp",
+   "pattern": "What color is this? / It's [color].",
+   "word": "purple",
+   "ask": "What color is this?",
+   "answer": "It's purple.",
+   "zh": "這是什麼顏色？是紫色。"
+  }
+ ],
+ "b1_u10": [
+  {
+   "image": "b1_u10_dlg01_x.webp",
+   "pattern": "How old are you/is [someone]? / I'm [age]. / He's/She's [age].",
+   "word": "",
+   "ask": "How old are you?",
+   "answer": "I'm seven.",
+   "zh": "你幾歲？我七歲。"
+  }
+ ],
+ "b1_u11": [
+  {
+   "image": "b1_u11_dlg01_cake.webp",
+   "pattern": "What do you like? / I like [food].",
+   "word": "cake",
+   "ask": "What do you like?",
+   "answer": "I like cake.",
+   "zh": "你喜歡什麼？我喜歡蛋糕。"
+  },
+  {
+   "image": "b1_u11_dlg01_cheese.webp",
+   "pattern": "What do you like? / I like [food].",
+   "word": "cheese",
+   "ask": "What do you like?",
+   "answer": "I like cheese.",
+   "zh": "你喜歡什麼？我喜歡起司。"
+  },
+  {
+   "image": "b1_u11_dlg01_ice_cream.webp",
+   "pattern": "What do you like? / I like [food].",
+   "word": "ice cream",
+   "ask": "What do you like?",
+   "answer": "I like ice cream.",
+   "zh": "你喜歡什麼？我喜歡冰淇淋。"
+  },
+  {
+   "image": "b1_u11_dlg01_bread.webp",
+   "pattern": "What do you like? / I like [food].",
+   "word": "bread",
+   "ask": "What do you like?",
+   "answer": "I like bread.",
+   "zh": "你喜歡什麼？我喜歡麵包。"
+  },
+  {
+   "image": "b1_u11_dlg01_salad.webp",
+   "pattern": "What do you like? / I like [food].",
+   "word": "salad",
+   "ask": "What do you like?",
+   "answer": "I like salad.",
+   "zh": "你喜歡什麼？我喜歡沙拉。"
+  },
+  {
+   "image": "b1_u11_dlg01_soda.webp",
+   "pattern": "What do you like? / I like [food].",
+   "word": "soda",
+   "ask": "What do you like?",
+   "answer": "I like soda.",
+   "zh": "你喜歡什麼？我喜歡汽水。"
+  }
+ ],
+ "b2_u01": [
+  {
+   "image": "b2_u01_dlg01_notebook.webp",
+   "pattern": "What's this? / It's a...",
+   "word": "notebook",
+   "ask": "What's this?",
+   "answer": "It's a notebook.",
+   "zh": "這是什麼？這是筆記本。"
+  },
+  {
+   "image": "b2_u01_dlg01_pencil_case.webp",
+   "pattern": "What's this? / It's a...",
+   "word": "pencil case",
+   "ask": "What's this?",
+   "answer": "It's a pencil case.",
+   "zh": "這是什麼？這是鉛筆盒。"
+  },
+  {
+   "image": "b2_u01_dlg02_soup.webp",
+   "pattern": "What do you like? / I like...",
+   "word": "soup",
+   "ask": "What do you like?",
+   "answer": "I like soup.",
+   "zh": "你喜歡什麼？我喜歡湯。"
+  },
+  {
+   "image": "b2_u01_dlg02_steak.webp",
+   "pattern": "What do you like? / I like...",
+   "word": "steak",
+   "ask": "What do you like?",
+   "answer": "I like steak.",
+   "zh": "你喜歡什麼？我喜歡牛排。"
+  }
+ ],
+ "b2_u02": [
+  {
+   "image": "b2_u02_dlg01_happy.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "happy",
+   "ask": "Look at them!",
+   "answer": "They're happy.",
+   "zh": "你看他們！他們很快樂的。"
+  },
+  {
+   "image": "b2_u02_dlg01_sad.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "sad",
+   "ask": "Look at them!",
+   "answer": "They're sad.",
+   "zh": "你看他們！他們很難過的。"
+  },
+  {
+   "image": "b2_u02_dlg01_heavy.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "heavy",
+   "ask": "Look at them!",
+   "answer": "They're heavy.",
+   "zh": "你看他們！他們很重的。"
+  },
+  {
+   "image": "b2_u02_dlg01_light.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "light",
+   "ask": "Look at them!",
+   "answer": "They're light.",
+   "zh": "你看他們！他們很輕的。"
+  },
+  {
+   "image": "b2_u02_dlg01_hot.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "hot",
+   "ask": "Look at them!",
+   "answer": "They're hot.",
+   "zh": "你看他們！他們很熱的。"
+  },
+  {
+   "image": "b2_u02_dlg01_cold.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "cold",
+   "ask": "Look at them!",
+   "answer": "They're cold.",
+   "zh": "你看他們！他們很冷的。"
+  },
+  {
+   "image": "b2_u02_dlg01_big.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "big",
+   "ask": "Look at them!",
+   "answer": "They're big.",
+   "zh": "你看他們！他們很大的。"
+  },
+  {
+   "image": "b2_u02_dlg01_small.webp",
+   "pattern": "Subject + be + adjective.",
+   "word": "small",
+   "ask": "Look at them!",
+   "answer": "They're small.",
+   "zh": "你看他們！他們很小的。"
+  }
+ ],
+ "b2_u03": [
+  {
+   "image": "b2_u03_dlg01_soccer.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "soccer",
+   "ask": "Do you like soccer?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡足球嗎？喜歡，我喜歡。"
+  },
+  {
+   "image": "b2_u03_dlg01_basketball.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "basketball",
+   "ask": "Do you like basketball?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡籃球嗎？喜歡，我喜歡。"
+  },
+  {
+   "image": "b2_u03_dlg01_baseball.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "baseball",
+   "ask": "Do you like baseball?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡棒球嗎？喜歡，我喜歡。"
+  },
+  {
+   "image": "b2_u03_dlg01_dodge_ball.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "dodge ball",
+   "ask": "Do you like dodge ball?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡躲避球嗎？喜歡，我喜歡。"
+  },
+  {
+   "image": "b2_u03_dlg01_badminton.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "badminton",
+   "ask": "Do you like badminton?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡羽毛球嗎？喜歡，我喜歡。"
+  },
+  {
+   "image": "b2_u03_dlg01_volleyball.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "volleyball",
+   "ask": "Do you like volleyball?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡排球嗎？喜歡，我喜歡。"
+  },
+  {
+   "image": "b2_u03_dlg01_tennis.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "tennis",
+   "ask": "Do you like tennis?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡網球嗎？喜歡，我喜歡。"
+  },
+  {
+   "image": "b2_u03_dlg01_ping_pong.webp",
+   "pattern": "Do you like...? / Yes, I do. (No, I don't.)",
+   "word": "ping-pong",
+   "ask": "Do you like ping-pong?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡桌球嗎？喜歡，我喜歡。"
+  }
+ ],
+ "b2_u05": [
+  {
+   "image": "b2_u05_dlg01_bed.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "bed",
+   "ask": "What's that?",
+   "answer": "It's a bed.",
+   "zh": "那是什麼？那是床。"
+  },
+  {
+   "image": "b2_u05_dlg01_pillow.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "pillow",
+   "ask": "What's that?",
+   "answer": "It's a pillow.",
+   "zh": "那是什麼？那是枕頭。"
+  },
+  {
+   "image": "b2_u05_dlg01_window.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "window",
+   "ask": "What's that?",
+   "answer": "It's a window.",
+   "zh": "那是什麼？那是窗戶。"
+  },
+  {
+   "image": "b2_u05_dlg01_clock.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "clock",
+   "ask": "What's that?",
+   "answer": "It's a clock.",
+   "zh": "那是什麼？那是時鐘。"
+  },
+  {
+   "image": "b2_u05_dlg01_mirror.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "mirror",
+   "ask": "What's that?",
+   "answer": "It's a mirror.",
+   "zh": "那是什麼？那是鏡子。"
+  },
+  {
+   "image": "b2_u05_dlg01_blanket.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "blanket",
+   "ask": "What's that?",
+   "answer": "It's a blanket.",
+   "zh": "那是什麼？那是毯子。"
+  },
+  {
+   "image": "b2_u05_dlg01_door.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "door",
+   "ask": "What's that?",
+   "answer": "It's a door.",
+   "zh": "那是什麼？那是門。"
+  },
+  {
+   "image": "b2_u05_dlg01_lamp.webp",
+   "pattern": "What's that? / It's a...",
+   "word": "lamp",
+   "ask": "What's that?",
+   "answer": "It's a lamp.",
+   "zh": "那是什麼？那是檯燈。"
+  },
+  {
+   "image": "b2_u05_dlg02_bed.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "bed",
+   "ask": "Is that a bed?",
+   "answer": "Yes, it is.",
+   "zh": "那是床嗎？是，它是。"
+  },
+  {
+   "image": "b2_u05_dlg02_pillow.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "pillow",
+   "ask": "Is that a pillow?",
+   "answer": "Yes, it is.",
+   "zh": "那是枕頭嗎？是，它是。"
+  },
+  {
+   "image": "b2_u05_dlg02_window.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "window",
+   "ask": "Is that a window?",
+   "answer": "Yes, it is.",
+   "zh": "那是窗戶嗎？是，它是。"
+  },
+  {
+   "image": "b2_u05_dlg02_clock.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "clock",
+   "ask": "Is that a clock?",
+   "answer": "Yes, it is.",
+   "zh": "那是時鐘嗎？是，它是。"
+  },
+  {
+   "image": "b2_u05_dlg02_mirror.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "mirror",
+   "ask": "Is that a mirror?",
+   "answer": "Yes, it is.",
+   "zh": "那是鏡子嗎？是，它是。"
+  },
+  {
+   "image": "b2_u05_dlg02_blanket.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "blanket",
+   "ask": "Is that a blanket?",
+   "answer": "Yes, it is.",
+   "zh": "那是毯子嗎？是，它是。"
+  },
+  {
+   "image": "b2_u05_dlg02_door.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "door",
+   "ask": "Is that a door?",
+   "answer": "Yes, it is.",
+   "zh": "那是門嗎？是，它是。"
+  },
+  {
+   "image": "b2_u05_dlg02_lamp.webp",
+   "pattern": "Is that a...? / Yes, it is. (No, it isn't.)",
+   "word": "lamp",
+   "ask": "Is that a lamp?",
+   "answer": "Yes, it is.",
+   "zh": "那是檯燈嗎？是，它是。"
+  }
+ ],
+ "b2_u06": [
+  {
+   "image": "b2_u06_dlg01_strawberries.webp",
+   "pattern": "What are these? / They're...",
+   "word": "strawberries",
+   "ask": "What are these?",
+   "answer": "They're strawberries.",
+   "zh": "這些是什麼？它們是草莓。"
+  },
+  {
+   "image": "b2_u06_dlg01_cherries.webp",
+   "pattern": "What are these? / They're...",
+   "word": "cherries",
+   "ask": "What are these?",
+   "answer": "They're cherries.",
+   "zh": "這些是什麼？它們是櫻桃。"
+  },
+  {
+   "image": "b2_u06_dlg01_pears.webp",
+   "pattern": "What are these? / They're...",
+   "word": "pears",
+   "ask": "What are these?",
+   "answer": "They're pears.",
+   "zh": "這些是什麼？它們是梨子。"
+  },
+  {
+   "image": "b2_u06_dlg01_oranges.webp",
+   "pattern": "What are these? / They're...",
+   "word": "oranges",
+   "ask": "What are these?",
+   "answer": "They're oranges.",
+   "zh": "這些是什麼？它們是柳丁。"
+  },
+  {
+   "image": "b2_u06_dlg01_peaches.webp",
+   "pattern": "What are these? / They're...",
+   "word": "peaches",
+   "ask": "What are these?",
+   "answer": "They're peaches.",
+   "zh": "這些是什麼？它們是水蜜桃。"
+  },
+  {
+   "image": "b2_u06_dlg01_mangoes.webp",
+   "pattern": "What are these? / They're...",
+   "word": "mangoes",
+   "ask": "What are these?",
+   "answer": "They're mangoes.",
+   "zh": "這些是什麼？它們是芒果。"
+  },
+  {
+   "image": "b2_u06_dlg01_grapes.webp",
+   "pattern": "What are these? / They're...",
+   "word": "grapes",
+   "ask": "What are these?",
+   "answer": "They're grapes.",
+   "zh": "這些是什麼？它們是葡萄。"
+  },
+  {
+   "image": "b2_u06_dlg01_pineapples.webp",
+   "pattern": "What are these? / They're...",
+   "word": "pineapples",
+   "ask": "What are these?",
+   "answer": "They're pineapples.",
+   "zh": "這些是什麼？它們是鳳梨。"
+  },
+  {
+   "image": "b2_u06_dlg02_strawberries.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "strawberries",
+   "ask": "Are these strawberries?",
+   "answer": "Yes, they are.",
+   "zh": "這些是草莓嗎？是，它們是。"
+  },
+  {
+   "image": "b2_u06_dlg02_cherries.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "cherries",
+   "ask": "Are these cherries?",
+   "answer": "Yes, they are.",
+   "zh": "這些是櫻桃嗎？是，它們是。"
+  },
+  {
+   "image": "b2_u06_dlg02_pears.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "pears",
+   "ask": "Are these pears?",
+   "answer": "Yes, they are.",
+   "zh": "這些是梨子嗎？是，它們是。"
+  },
+  {
+   "image": "b2_u06_dlg02_oranges.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "oranges",
+   "ask": "Are these oranges?",
+   "answer": "Yes, they are.",
+   "zh": "這些是柳丁嗎？是，它們是。"
+  },
+  {
+   "image": "b2_u06_dlg02_peaches.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "peaches",
+   "ask": "Are these peaches?",
+   "answer": "Yes, they are.",
+   "zh": "這些是水蜜桃嗎？是，它們是。"
+  },
+  {
+   "image": "b2_u06_dlg02_mangoes.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "mangoes",
+   "ask": "Are these mangoes?",
+   "answer": "Yes, they are.",
+   "zh": "這些是芒果嗎？是，它們是。"
+  },
+  {
+   "image": "b2_u06_dlg02_grapes.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "grapes",
+   "ask": "Are these grapes?",
+   "answer": "Yes, they are.",
+   "zh": "這些是葡萄嗎？是，它們是。"
+  },
+  {
+   "image": "b2_u06_dlg02_pineapples.webp",
+   "pattern": "Are these...? / Yes, they are. (No, they aren't.)",
+   "word": "pineapples",
+   "ask": "Are these pineapples?",
+   "answer": "Yes, they are.",
+   "zh": "這些是鳳梨嗎？是，它們是。"
+  }
+ ],
+ "b2_u07": [
+  {
+   "image": "b2_u07_dlg01_skirt.webp",
+   "pattern": "Where's my [singular]? / It's [prep.] the...",
+   "word": "skirt",
+   "ask": "Where's my skirt?",
+   "answer": "It's on the bed.",
+   "zh": "我的裙子在哪裡？在床上。"
+  },
+  {
+   "image": "b2_u07_dlg01_jacket.webp",
+   "pattern": "Where's my [singular]? / It's [prep.] the...",
+   "word": "jacket",
+   "ask": "Where's my jacket?",
+   "answer": "It's in the box.",
+   "zh": "我的外套在哪裡？在箱子裡。"
+  },
+  {
+   "image": "b2_u07_dlg02_socks.webp",
+   "pattern": "Where are my [plural]? / They're [prep.] the...",
+   "word": "socks",
+   "ask": "Where are my socks?",
+   "answer": "They're under the pillow.",
+   "zh": "我的襪子在哪裡？在枕頭下。"
+  },
+  {
+   "image": "b2_u07_dlg02_pants.webp",
+   "pattern": "Where are my [plural]? / They're [prep.] the...",
+   "word": "pants",
+   "ask": "Where are my pants?",
+   "answer": "They're between the boxes.",
+   "zh": "我的長褲在哪裡？在兩個箱子中間。"
+  }
+ ],
+ "b2_u09": [
+  {
+   "image": "b2_u09_dlg01_one_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "one o'clock",
+   "ask": "What time is it?",
+   "answer": "It's one o'clock.",
+   "zh": "現在幾點？現在一點。"
+  },
+  {
+   "image": "b2_u09_dlg01_two_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "two o'clock",
+   "ask": "What time is it?",
+   "answer": "It's two o'clock.",
+   "zh": "現在幾點？現在兩點。"
+  },
+  {
+   "image": "b2_u09_dlg01_three_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "three o'clock",
+   "ask": "What time is it?",
+   "answer": "It's three o'clock.",
+   "zh": "現在幾點？現在三點。"
+  },
+  {
+   "image": "b2_u09_dlg01_four_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "four o'clock",
+   "ask": "What time is it?",
+   "answer": "It's four o'clock.",
+   "zh": "現在幾點？現在四點。"
+  },
+  {
+   "image": "b2_u09_dlg01_five_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "five o'clock",
+   "ask": "What time is it?",
+   "answer": "It's five o'clock.",
+   "zh": "現在幾點？現在五點。"
+  },
+  {
+   "image": "b2_u09_dlg01_six_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "six o'clock",
+   "ask": "What time is it?",
+   "answer": "It's six o'clock.",
+   "zh": "現在幾點？現在六點。"
+  },
+  {
+   "image": "b2_u09_dlg01_seven_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "seven o'clock",
+   "ask": "What time is it?",
+   "answer": "It's seven o'clock.",
+   "zh": "現在幾點？現在七點。"
+  },
+  {
+   "image": "b2_u09_dlg01_eight_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "eight o'clock",
+   "ask": "What time is it?",
+   "answer": "It's eight o'clock.",
+   "zh": "現在幾點？現在八點。"
+  },
+  {
+   "image": "b2_u09_dlg01_nine_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "nine o'clock",
+   "ask": "What time is it?",
+   "answer": "It's nine o'clock.",
+   "zh": "現在幾點？現在九點。"
+  },
+  {
+   "image": "b2_u09_dlg01_ten_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "ten o'clock",
+   "ask": "What time is it?",
+   "answer": "It's ten o'clock.",
+   "zh": "現在幾點？現在十點。"
+  },
+  {
+   "image": "b2_u09_dlg01_eleven_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "eleven o'clock",
+   "ask": "What time is it?",
+   "answer": "It's eleven o'clock.",
+   "zh": "現在幾點？現在十一點。"
+  },
+  {
+   "image": "b2_u09_dlg01_twelve_oclock.webp",
+   "pattern": "What time is it? / It's... o'clock.",
+   "word": "twelve o'clock",
+   "ask": "What time is it?",
+   "answer": "It's twelve o'clock.",
+   "zh": "現在幾點？現在十二點。"
+  },
+  {
+   "image": "b2_u09_dlg02_one_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "one o'clock",
+   "ask": "Is it one o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是一點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_two_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "two o'clock",
+   "ask": "Is it two o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是兩點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_three_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "three o'clock",
+   "ask": "Is it three o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是三點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_four_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "four o'clock",
+   "ask": "Is it four o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是四點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_five_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "five o'clock",
+   "ask": "Is it five o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是五點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_six_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "six o'clock",
+   "ask": "Is it six o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是六點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_seven_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "seven o'clock",
+   "ask": "Is it seven o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是七點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_eight_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "eight o'clock",
+   "ask": "Is it eight o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是八點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_nine_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "nine o'clock",
+   "ask": "Is it nine o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是九點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_ten_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "ten o'clock",
+   "ask": "Is it ten o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是十點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_eleven_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "eleven o'clock",
+   "ask": "Is it eleven o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是十一點嗎？是。"
+  },
+  {
+   "image": "b2_u09_dlg02_twelve_oclock.webp",
+   "pattern": "Is it... o'clock? / Yes, it is. (No, it isn't.)",
+   "word": "twelve o'clock",
+   "ask": "Is it twelve o'clock?",
+   "answer": "Yes, it is.",
+   "zh": "現在是十二點嗎？是。"
+  }
+ ],
+ "b2_u10": [
+  {
+   "image": "b2_u10_dlg01_thirteen.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "thirteen",
+   "ask": "How many apples are there?",
+   "answer": "There are thirteen.",
+   "zh": "有幾個蘋果？有十三個。"
+  },
+  {
+   "image": "b2_u10_dlg01_fourteen.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "fourteen",
+   "ask": "How many apples are there?",
+   "answer": "There are fourteen.",
+   "zh": "有幾個蘋果？有十四個。"
+  },
+  {
+   "image": "b2_u10_dlg01_fifteen.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "fifteen",
+   "ask": "How many apples are there?",
+   "answer": "There are fifteen.",
+   "zh": "有幾個蘋果？有十五個。"
+  },
+  {
+   "image": "b2_u10_dlg01_sixteen.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "sixteen",
+   "ask": "How many apples are there?",
+   "answer": "There are sixteen.",
+   "zh": "有幾個蘋果？有十六個。"
+  },
+  {
+   "image": "b2_u10_dlg01_seventeen.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "seventeen",
+   "ask": "How many apples are there?",
+   "answer": "There are seventeen.",
+   "zh": "有幾個蘋果？有十七個。"
+  },
+  {
+   "image": "b2_u10_dlg01_eighteen.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "eighteen",
+   "ask": "How many apples are there?",
+   "answer": "There are eighteen.",
+   "zh": "有幾個蘋果？有十八個。"
+  },
+  {
+   "image": "b2_u10_dlg01_nineteen.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "nineteen",
+   "ask": "How many apples are there?",
+   "answer": "There are nineteen.",
+   "zh": "有幾個蘋果？有十九個。"
+  },
+  {
+   "image": "b2_u10_dlg01_twenty.webp",
+   "pattern": "How many... are there? / There are...",
+   "word": "twenty",
+   "ask": "How many apples are there?",
+   "answer": "There are twenty.",
+   "zh": "有幾個蘋果？有二十個。"
+  }
+ ],
+ "b2_u11": [
+  {
+   "image": "b2_u11_dlg01_forks.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "forks",
+   "ask": "Do you have forks?",
+   "answer": "Yes, we do.",
+   "zh": "你們有叉子嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg01_spoons.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "spoons",
+   "ask": "Do you have spoons?",
+   "answer": "Yes, we do.",
+   "zh": "你們有湯匙嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg01_knives.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "knives",
+   "ask": "Do you have knives?",
+   "answer": "Yes, we do.",
+   "zh": "你們有刀子嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg01_chopsticks.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "chopsticks",
+   "ask": "Do you have chopsticks?",
+   "answer": "Yes, we do.",
+   "zh": "你們有筷子嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg01_napkins.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "napkins",
+   "ask": "Do you have napkins?",
+   "answer": "Yes, we do.",
+   "zh": "你們有餐巾嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg01_glasses.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "glasses",
+   "ask": "Do you have glasses?",
+   "answer": "Yes, we do.",
+   "zh": "你們有玻璃杯嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg01_tissues.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "tissues",
+   "ask": "Do you have tissues?",
+   "answer": "Yes, we do.",
+   "zh": "你們有面紙嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg01_bowls.webp",
+   "pattern": "Do you have...? / Yes, we do. (No, we don't.)",
+   "word": "bowls",
+   "ask": "Do you have bowls?",
+   "answer": "Yes, we do.",
+   "zh": "你們有碗嗎？有，我們有。"
+  },
+  {
+   "image": "b2_u11_dlg02_forks.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "forks",
+   "ask": "Does she have forks?",
+   "answer": "Yes, she does.",
+   "zh": "她有叉子嗎？有，她有。"
+  },
+  {
+   "image": "b2_u11_dlg02_spoons.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "spoons",
+   "ask": "Does she have spoons?",
+   "answer": "Yes, she does.",
+   "zh": "她有湯匙嗎？有，她有。"
+  },
+  {
+   "image": "b2_u11_dlg02_knives.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "knives",
+   "ask": "Does she have knives?",
+   "answer": "Yes, she does.",
+   "zh": "她有刀子嗎？有，她有。"
+  },
+  {
+   "image": "b2_u11_dlg02_chopsticks.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "chopsticks",
+   "ask": "Does she have chopsticks?",
+   "answer": "Yes, she does.",
+   "zh": "她有筷子嗎？有，她有。"
+  },
+  {
+   "image": "b2_u11_dlg02_napkins.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "napkins",
+   "ask": "Does she have napkins?",
+   "answer": "Yes, she does.",
+   "zh": "她有餐巾嗎？有，她有。"
+  },
+  {
+   "image": "b2_u11_dlg02_glasses.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "glasses",
+   "ask": "Does she have glasses?",
+   "answer": "Yes, she does.",
+   "zh": "她有玻璃杯嗎？有，她有。"
+  },
+  {
+   "image": "b2_u11_dlg02_tissues.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "tissues",
+   "ask": "Does she have tissues?",
+   "answer": "Yes, she does.",
+   "zh": "她有面紙嗎？有，她有。"
+  },
+  {
+   "image": "b2_u11_dlg02_bowls.webp",
+   "pattern": "Does she/he have...? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "bowls",
+   "ask": "Does she have bowls?",
+   "answer": "Yes, she does.",
+   "zh": "她有碗嗎？有，她有。"
+  }
+ ],
+ "b3_u01": [
+  {
+   "image": "b3_u01_dlg01_hungry.webp",
+   "pattern": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
+   "word": "hungry",
+   "ask": "Are you hungry?",
+   "answer": "Yes, I am.",
+   "zh": "你飢餓的嗎？是，我是。"
+  },
+  {
+   "image": "b3_u01_dlg01_thirsty.webp",
+   "pattern": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
+   "word": "thirsty",
+   "ask": "Are you thirsty?",
+   "answer": "Yes, I am.",
+   "zh": "你口渴的嗎？是，我是。"
+  },
+  {
+   "image": "b3_u01_dlg01_short.webp",
+   "pattern": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
+   "word": "short",
+   "ask": "Are you short?",
+   "answer": "Yes, I am.",
+   "zh": "你矮的；短的嗎？是，我是。"
+  },
+  {
+   "image": "b3_u01_dlg01_tall.webp",
+   "pattern": "Are you [adjective]? / Yes, I am. (No, I'm not.)",
+   "word": "tall",
+   "ask": "Are you tall?",
+   "answer": "Yes, I am.",
+   "zh": "你高的嗎？是，我是。"
+  },
+  {
+   "image": "b3_u01_dlg02_grandmother.webp",
+   "pattern": "Who's she? / She's my [relationship].",
+   "word": "grandmother",
+   "ask": "Who's she?",
+   "answer": "She's my grandmother.",
+   "zh": "她是誰？她是我的奶奶；外婆。"
+  },
+  {
+   "image": "b3_u01_dlg02_grandfather.webp",
+   "pattern": "Who's she? / She's my [relationship].",
+   "word": "grandfather",
+   "ask": "Who's he?",
+   "answer": "He's my grandfather.",
+   "zh": "他是誰？他是我的爺爺；外公。"
+  },
+  {
+   "image": "b3_u01_dlg03_ruler.webp",
+   "pattern": "What's that? / It's a [noun].",
+   "word": "ruler",
+   "ask": "What's that?",
+   "answer": "It's a ruler.",
+   "zh": "那是什麼？那是尺。"
+  },
+  {
+   "image": "b3_u01_dlg03_stapler.webp",
+   "pattern": "What's that? / It's a [noun].",
+   "word": "stapler",
+   "ask": "What's that?",
+   "answer": "It's a stapler.",
+   "zh": "那是什麼？那是訂書機。"
+  }
+ ],
+ "b3_u02": [
+  {
+   "image": "b3_u02_dlg01_sunday.webp",
+   "pattern": "What day is it today? / It's [Day].",
+   "word": "Sunday",
+   "ask": "What day is it today?",
+   "answer": "It's Sunday.",
+   "zh": "今天星期幾？今天星期日。"
+  },
+  {
+   "image": "b3_u02_dlg01_monday.webp",
+   "pattern": "What day is it today? / It's [Day].",
+   "word": "Monday",
+   "ask": "What day is it today?",
+   "answer": "It's Monday.",
+   "zh": "今天星期幾？今天星期一。"
+  },
+  {
+   "image": "b3_u02_dlg01_tuesday.webp",
+   "pattern": "What day is it today? / It's [Day].",
+   "word": "Tuesday",
+   "ask": "What day is it today?",
+   "answer": "It's Tuesday.",
+   "zh": "今天星期幾？今天星期二。"
+  },
+  {
+   "image": "b3_u02_dlg01_wednesday.webp",
+   "pattern": "What day is it today? / It's [Day].",
+   "word": "Wednesday",
+   "ask": "What day is it today?",
+   "answer": "It's Wednesday.",
+   "zh": "今天星期幾？今天星期三。"
+  },
+  {
+   "image": "b3_u02_dlg01_thursday.webp",
+   "pattern": "What day is it today? / It's [Day].",
+   "word": "Thursday",
+   "ask": "What day is it today?",
+   "answer": "It's Thursday.",
+   "zh": "今天星期幾？今天星期四。"
+  },
+  {
+   "image": "b3_u02_dlg01_friday.webp",
+   "pattern": "What day is it today? / It's [Day].",
+   "word": "Friday",
+   "ask": "What day is it today?",
+   "answer": "It's Friday.",
+   "zh": "今天星期幾？今天星期五。"
+  },
+  {
+   "image": "b3_u02_dlg01_saturday.webp",
+   "pattern": "What day is it today? / It's [Day].",
+   "word": "Saturday",
+   "ask": "What day is it today?",
+   "answer": "It's Saturday.",
+   "zh": "今天星期幾？今天星期六。"
+  },
+  {
+   "image": "b3_u02_dlg02_x.webp",
+   "pattern": "What do you do on [Day]? / I [action] on [Day].",
+   "word": "",
+   "ask": "What do you do on Sunday?",
+   "answer": "I play soccer on Sunday.",
+   "zh": "你星期天做什麼？我星期天踢足球。"
+  }
+ ],
+ "b3_u03": [
+  {
+   "image": "b3_u03_dlg01_go.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "go",
+   "ask": "Can I go to the park?",
+   "answer": "Sure.",
+   "zh": "我可以去公園嗎？當然。"
+  },
+  {
+   "image": "b3_u03_dlg01_use.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "use",
+   "ask": "Can I use your pen?",
+   "answer": "Sure.",
+   "zh": "我可以用你的筆嗎？當然。"
+  },
+  {
+   "image": "b3_u03_dlg01_have.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "have",
+   "ask": "Can I have a cookie, please?",
+   "answer": "Sure. Here you are.",
+   "zh": "請問我可以拿一片餅乾嗎？當然，給你。"
+  },
+  {
+   "image": "b3_u03_dlg01_borrow.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "borrow",
+   "ask": "Can I borrow your ruler?",
+   "answer": "No. Sorry.",
+   "zh": "我可以借你的尺嗎？不行，抱歉。"
+  },
+  {
+   "image": "b3_u03_dlg01_buy.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "buy",
+   "ask": "Can I buy a toy car?",
+   "answer": "Sure.",
+   "zh": "我可以買一台玩具車嗎？當然。"
+  },
+  {
+   "image": "b3_u03_dlg01_watch.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "watch",
+   "ask": "Can I watch TV?",
+   "answer": "No. Sorry.",
+   "zh": "我可以看電視嗎？不行，抱歉。"
+  },
+  {
+   "image": "b3_u03_dlg01_call.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "call",
+   "ask": "Can I call Jenny?",
+   "answer": "Sure.",
+   "zh": "我可以打電話給 Jenny 嗎？當然。"
+  },
+  {
+   "image": "b3_u03_dlg01_listen.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "listen",
+   "ask": "Can I listen to music?",
+   "answer": "Sure.",
+   "zh": "我可以聽音樂嗎？當然。"
+  }
+ ],
+ "b3_u05": [
+  {
+   "image": "b3_u05_dlg01_english.webp",
+   "pattern": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+   "word": "English",
+   "ask": "Do you like English?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡英文嗎？喜歡。"
+  },
+  {
+   "image": "b3_u05_dlg01_music.webp",
+   "pattern": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+   "word": "music",
+   "ask": "Do you like music?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡音樂嗎？喜歡。"
+  },
+  {
+   "image": "b3_u05_dlg01_art.webp",
+   "pattern": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+   "word": "art",
+   "ask": "Do you like art?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡美術嗎？喜歡。"
+  },
+  {
+   "image": "b3_u05_dlg01_math.webp",
+   "pattern": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+   "word": "math",
+   "ask": "Do you like math?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡數學嗎？喜歡。"
+  },
+  {
+   "image": "b3_u05_dlg01_science.webp",
+   "pattern": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+   "word": "science",
+   "ask": "Do you like science?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡自然科學嗎？喜歡。"
+  },
+  {
+   "image": "b3_u05_dlg01_history.webp",
+   "pattern": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+   "word": "history",
+   "ask": "Do you like history?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡歷史嗎？喜歡。"
+  },
+  {
+   "image": "b3_u05_dlg01_pe.webp",
+   "pattern": "Do you like [subject]? / Yes, I do. (No, I don't.)",
+   "word": "P.E",
+   "ask": "Do you like P.E?",
+   "answer": "Yes, I do.",
+   "zh": "你喜歡體育嗎？喜歡。"
+  },
+  {
+   "image": "b3_u05_dlg02_english.webp",
+   "pattern": "What subjects do you like? / I like [subject 1] and [subject 2].",
+   "word": "English",
+   "ask": "What subjects do you like?",
+   "answer": "I like English.",
+   "zh": "你喜歡哪些科目？我喜歡英文。"
+  },
+  {
+   "image": "b3_u05_dlg02_music.webp",
+   "pattern": "What subjects do you like? / I like [subject 1] and [subject 2].",
+   "word": "music",
+   "ask": "What subjects do you like?",
+   "answer": "I like music.",
+   "zh": "你喜歡哪些科目？我喜歡音樂。"
+  },
+  {
+   "image": "b3_u05_dlg02_art.webp",
+   "pattern": "What subjects do you like? / I like [subject 1] and [subject 2].",
+   "word": "art",
+   "ask": "What subjects do you like?",
+   "answer": "I like art.",
+   "zh": "你喜歡哪些科目？我喜歡美術。"
+  },
+  {
+   "image": "b3_u05_dlg02_math.webp",
+   "pattern": "What subjects do you like? / I like [subject 1] and [subject 2].",
+   "word": "math",
+   "ask": "What subjects do you like?",
+   "answer": "I like math.",
+   "zh": "你喜歡哪些科目？我喜歡數學。"
+  },
+  {
+   "image": "b3_u05_dlg02_science.webp",
+   "pattern": "What subjects do you like? / I like [subject 1] and [subject 2].",
+   "word": "science",
+   "ask": "What subjects do you like?",
+   "answer": "I like science.",
+   "zh": "你喜歡哪些科目？我喜歡自然科學。"
+  },
+  {
+   "image": "b3_u05_dlg02_history.webp",
+   "pattern": "What subjects do you like? / I like [subject 1] and [subject 2].",
+   "word": "history",
+   "ask": "What subjects do you like?",
+   "answer": "I like history.",
+   "zh": "你喜歡哪些科目？我喜歡歷史。"
+  },
+  {
+   "image": "b3_u05_dlg02_pe.webp",
+   "pattern": "What subjects do you like? / I like [subject 1] and [subject 2].",
+   "word": "P.E",
+   "ask": "What subjects do you like?",
+   "answer": "I like P.E.",
+   "zh": "你喜歡哪些科目？我喜歡體育。"
+  }
+ ],
+ "b3_u06": [
+  {
+   "image": "b3_u06_dlg01_computer_game.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "computer game",
+   "ask": "Do you want a computer game?",
+   "answer": "Yes, please.",
+   "zh": "你想要電腦遊戲嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg01_puzzle.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "puzzle",
+   "ask": "Do you want a puzzle?",
+   "answer": "Yes, please.",
+   "zh": "你想要拼圖嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg01_skateboard.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "skateboard",
+   "ask": "Do you want a skateboard?",
+   "answer": "Yes, please.",
+   "zh": "你想要滑板嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg01_toy_car.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "toy car",
+   "ask": "Do you want a toy car?",
+   "answer": "Yes, please.",
+   "zh": "你想要玩具車嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg01_doll.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "doll",
+   "ask": "Do you want a doll?",
+   "answer": "Yes, please.",
+   "zh": "你想要洋娃娃嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg01_stuffed_animal.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "stuffed animal",
+   "ask": "Do you want a stuffed animal?",
+   "answer": "Yes, please.",
+   "zh": "你想要填充玩偶嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg01_drum.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "drum",
+   "ask": "Do you want a drum?",
+   "answer": "Yes, please.",
+   "zh": "你想要鼓嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg01_guitar.webp",
+   "pattern": "Do you want [item]? / Yes, please. (No, thank you.)",
+   "word": "guitar",
+   "ask": "Do you want a guitar?",
+   "answer": "Yes, please.",
+   "zh": "你想要吉他嗎？要，請給我。"
+  },
+  {
+   "image": "b3_u06_dlg02_computer_game.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "computer game",
+   "ask": "Does she want a computer game?",
+   "answer": "Yes, she does.",
+   "zh": "她想要電腦遊戲嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg02_puzzle.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "puzzle",
+   "ask": "Does she want a puzzle?",
+   "answer": "Yes, she does.",
+   "zh": "她想要拼圖嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg02_skateboard.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "skateboard",
+   "ask": "Does she want a skateboard?",
+   "answer": "Yes, she does.",
+   "zh": "她想要滑板嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg02_toy_car.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "toy car",
+   "ask": "Does she want a toy car?",
+   "answer": "Yes, she does.",
+   "zh": "她想要玩具車嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg02_doll.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "doll",
+   "ask": "Does she want a doll?",
+   "answer": "Yes, she does.",
+   "zh": "她想要洋娃娃嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg02_stuffed_animal.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "stuffed animal",
+   "ask": "Does she want a stuffed animal?",
+   "answer": "Yes, she does.",
+   "zh": "她想要填充玩偶嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg02_drum.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "drum",
+   "ask": "Does she want a drum?",
+   "answer": "Yes, she does.",
+   "zh": "她想要鼓嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg02_guitar.webp",
+   "pattern": "Does she/he want [item]? / Yes, she/he does. (No, she/he doesn't.)",
+   "word": "guitar",
+   "ask": "Does she want a guitar?",
+   "answer": "Yes, she does.",
+   "zh": "她想要吉他嗎？要，她要。"
+  },
+  {
+   "image": "b3_u06_dlg03_computer_game.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "computer game",
+   "ask": "What do they want?",
+   "answer": "They want a computer game.",
+   "zh": "他們想要什麼？他們想要電腦遊戲。"
+  },
+  {
+   "image": "b3_u06_dlg03_puzzle.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "puzzle",
+   "ask": "What do they want?",
+   "answer": "They want a puzzle.",
+   "zh": "他們想要什麼？他們想要拼圖。"
+  },
+  {
+   "image": "b3_u06_dlg03_skateboard.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "skateboard",
+   "ask": "What do they want?",
+   "answer": "They want a skateboard.",
+   "zh": "他們想要什麼？他們想要滑板。"
+  },
+  {
+   "image": "b3_u06_dlg03_toy_car.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "toy car",
+   "ask": "What do they want?",
+   "answer": "They want a toy car.",
+   "zh": "他們想要什麼？他們想要玩具車。"
+  },
+  {
+   "image": "b3_u06_dlg03_doll.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "doll",
+   "ask": "What do they want?",
+   "answer": "They want a doll.",
+   "zh": "他們想要什麼？他們想要洋娃娃。"
+  },
+  {
+   "image": "b3_u06_dlg03_stuffed_animal.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "stuffed animal",
+   "ask": "What do they want?",
+   "answer": "They want a stuffed animal.",
+   "zh": "他們想要什麼？他們想要填充玩偶。"
+  },
+  {
+   "image": "b3_u06_dlg03_drum.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "drum",
+   "ask": "What do they want?",
+   "answer": "They want a drum.",
+   "zh": "他們想要什麼？他們想要鼓。"
+  },
+  {
+   "image": "b3_u06_dlg03_guitar.webp",
+   "pattern": "What do they want? / They want [item].",
+   "word": "guitar",
+   "ask": "What do they want?",
+   "answer": "They want a guitar.",
+   "zh": "他們想要什麼？他們想要吉他。"
+  }
+ ],
+ "b3_u07": [
+  {
+   "image": "b3_u07_dlg01_wallet.webp",
+   "pattern": "Where's my [item]? / It's [preposition] the [furniture].",
+   "word": "wallet",
+   "ask": "Where's my wallet?",
+   "answer": "It's behind the sofa.",
+   "zh": "我的皮夾；錢包在哪裡？在沙發後面。"
+  },
+  {
+   "image": "b3_u07_dlg02_glasses.webp",
+   "pattern": "Where are my [items]? / They're [preposition] the [furniture].",
+   "word": "glasses",
+   "ask": "Where are my glasses?",
+   "answer": "They're in front of the bookcase.",
+   "zh": "我的眼鏡在哪裡？在書櫃前面。"
+  }
+ ],
+ "b3_u09": [
+  {
+   "image": "b3_u09_dlg01_playing.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "playing",
+   "ask": "What's she doing?",
+   "answer": "She's playing.",
+   "zh": "她在做什麼？她正在玩。"
+  },
+  {
+   "image": "b3_u09_dlg01_shopping.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "shopping",
+   "ask": "What's he doing?",
+   "answer": "He's shopping.",
+   "zh": "他在做什麼？他正在購物。"
+  },
+  {
+   "image": "b3_u09_dlg01_studying.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "studying",
+   "ask": "What's she doing?",
+   "answer": "She's studying.",
+   "zh": "她在做什麼？她正在讀書；用功。"
+  },
+  {
+   "image": "b3_u09_dlg01_painting.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "painting",
+   "ask": "What's he doing?",
+   "answer": "He's painting.",
+   "zh": "他在做什麼？他正在畫畫（用顏料）。"
+  },
+  {
+   "image": "b3_u09_dlg01_eating.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "eating",
+   "ask": "What's she doing?",
+   "answer": "She's eating.",
+   "zh": "她在做什麼？她正在吃。"
+  },
+  {
+   "image": "b3_u09_dlg01_running.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "running",
+   "ask": "What's he doing?",
+   "answer": "He's running.",
+   "zh": "他在做什麼？他正在跑步。"
+  },
+  {
+   "image": "b3_u09_dlg01_sleeping.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "sleeping",
+   "ask": "What's she doing?",
+   "answer": "She's sleeping.",
+   "zh": "她在做什麼？她正在睡覺。"
+  },
+  {
+   "image": "b3_u09_dlg01_writing.webp",
+   "pattern": "What's she/he doing? / She's/He's [action-ing].",
+   "word": "writing",
+   "ask": "What's he doing?",
+   "answer": "He's writing.",
+   "zh": "他在做什麼？他正在寫字。"
+  },
+  {
+   "image": "b3_u09_dlg02_playing.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "playing",
+   "ask": "What are they doing?",
+   "answer": "They're playing.",
+   "zh": "他們在做什麼？他們正在玩。"
+  },
+  {
+   "image": "b3_u09_dlg02_shopping.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "shopping",
+   "ask": "What are they doing?",
+   "answer": "They're shopping.",
+   "zh": "他們在做什麼？他們正在購物。"
+  },
+  {
+   "image": "b3_u09_dlg02_studying.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "studying",
+   "ask": "What are they doing?",
+   "answer": "They're studying.",
+   "zh": "他們在做什麼？他們正在讀書；用功。"
+  },
+  {
+   "image": "b3_u09_dlg02_painting.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "painting",
+   "ask": "What are they doing?",
+   "answer": "They're painting.",
+   "zh": "他們在做什麼？他們正在畫畫（用顏料）。"
+  },
+  {
+   "image": "b3_u09_dlg02_eating.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "eating",
+   "ask": "What are they doing?",
+   "answer": "They're eating.",
+   "zh": "他們在做什麼？他們正在吃。"
+  },
+  {
+   "image": "b3_u09_dlg02_running.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "running",
+   "ask": "What are they doing?",
+   "answer": "They're running.",
+   "zh": "他們在做什麼？他們正在跑步。"
+  },
+  {
+   "image": "b3_u09_dlg02_sleeping.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "sleeping",
+   "ask": "What are they doing?",
+   "answer": "They're sleeping.",
+   "zh": "他們在做什麼？他們正在睡覺。"
+  },
+  {
+   "image": "b3_u09_dlg02_writing.webp",
+   "pattern": "What are they doing? / They're [action-ing].",
+   "word": "writing",
+   "ask": "What are they doing?",
+   "answer": "They're writing.",
+   "zh": "他們在做什麼？他們正在寫字。"
+  }
+ ],
+ "b3_u10": [
+  {
+   "image": "b3_u10_dlg01_eyes.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "eyes",
+   "ask": "Touch your eyes!",
+   "answer": "(does the action)",
+   "zh": "摸你的眼睛！（做動作）"
+  },
+  {
+   "image": "b3_u10_dlg01_ears.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "ears",
+   "ask": "Touch your ears!",
+   "answer": "(does the action)",
+   "zh": "摸你的耳朵！（做動作）"
+  },
+  {
+   "image": "b3_u10_dlg01_nose.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "nose",
+   "ask": "Touch your nose!",
+   "answer": "(does the action)",
+   "zh": "摸你的鼻子！（做動作）"
+  },
+  {
+   "image": "b3_u10_dlg01_mouth.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "mouth",
+   "ask": "Touch your mouth!",
+   "answer": "(does the action)",
+   "zh": "摸你的嘴巴！（做動作）"
+  },
+  {
+   "image": "b3_u10_dlg01_arms.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "arms",
+   "ask": "Touch your arms!",
+   "answer": "(does the action)",
+   "zh": "摸你的手臂！（做動作）"
+  },
+  {
+   "image": "b3_u10_dlg01_legs.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "legs",
+   "ask": "Touch your legs!",
+   "answer": "(does the action)",
+   "zh": "摸你的腿！（做動作）"
+  },
+  {
+   "image": "b3_u10_dlg01_hands.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "hands",
+   "ask": "Touch your hands!",
+   "answer": "(does the action)",
+   "zh": "摸你的手！（做動作）"
+  },
+  {
+   "image": "b3_u10_dlg01_feet.webp",
+   "pattern": "Touch your [body part]! / Close (Open) your [body part]!",
+   "word": "feet",
+   "ask": "Touch your feet!",
+   "answer": "(does the action)",
+   "zh": "摸你的腳（foot 的複數）！（做動作）"
+  }
+ ],
+ "b3_u11": [
+  {
+   "image": "b3_u11_dlg01_mine.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "mine",
+   "ask": "Whose bag is this?",
+   "answer": "It's mine.",
+   "zh": "這是誰的書包？是我的。"
+  },
+  {
+   "image": "b3_u11_dlg01_yours.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "yours",
+   "ask": "Whose ruler is this?",
+   "answer": "It's yours.",
+   "zh": "這是誰的尺？是你的。"
+  },
+  {
+   "image": "b3_u11_dlg01_his.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "his",
+   "ask": "Whose skateboard is this?",
+   "answer": "It's his.",
+   "zh": "這是誰的滑板？是他的。"
+  },
+  {
+   "image": "b3_u11_dlg01_hers.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "hers",
+   "ask": "Whose hat is this?",
+   "answer": "It's hers.",
+   "zh": "這是誰的帽子？是她的。"
+  },
+  {
+   "image": "b3_u11_dlg01_ours.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "ours",
+   "ask": "Whose ball is this?",
+   "answer": "It's ours.",
+   "zh": "這是誰的球？是我們的。"
+  },
+  {
+   "image": "b3_u11_dlg01_theirs.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "theirs",
+   "ask": "Whose kite is this?",
+   "answer": "It's theirs.",
+   "zh": "這是誰的風箏？是他們的。"
+  },
+  {
+   "image": "b3_u11_dlg01_jennys.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "Jenny's",
+   "ask": "Whose pencil case is this?",
+   "answer": "It's Jenny's.",
+   "zh": "這是誰的鉛筆盒？是 Jenny 的。"
+  },
+  {
+   "image": "b3_u11_dlg01_gogos.webp",
+   "pattern": "Whose [item] is this? / It's [possessive pronoun/noun's].",
+   "word": "Gogo's",
+   "ask": "Whose book is this?",
+   "answer": "It's Gogo's.",
+   "zh": "這是誰的書？是 Gogo 的。"
+  }
+ ]
+}

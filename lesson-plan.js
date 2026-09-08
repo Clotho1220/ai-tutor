@@ -79,7 +79,10 @@
         const value = bareWord(word && word.english);
         if (!sentence || !value) return "";
         if (/\[[^\]]+\]/.test(sentence)) {
-            return sentence.replace(/\[[^\]]+\]/g, value);
+            // 句型寫的是「a/an」，填完字要挑一個：Is this a/an whale? → Is this a whale?
+            return sentence.replace(/\[[^\]]+\]/g, value)
+                .replace(/\ba\/an\s+(\w)/gi,
+                    (whole, first) => (/[aeiou]/i.test(first) ? "an " : "a ") + first);
         }
         return "";
     }
@@ -211,18 +214,20 @@
         // 對答題有情境圖就全程顯示——答案是看圖決定的。
         // 代換題顯示要代換的單字（英文＋中文）：句子結構才是這題要考的，
         // 單字給出來是合理的鷹架；全空白的畫面實測會讓孩子不知道現在在幹嘛。
-        const reveal = kind === "respond"
-            ? { image: true, english: true, chinese: true }
-            : { english: true, chinese: true };
+        // 有對話漫畫時圖全程顯示（沒有圖的項目 revealFor 會自己擋掉）。
+        // sentence＝把整句英文壓進漫畫的泡泡裡。第一階不給：那句正是要孩子自己說的，
+        // 先寫上去就等於洩答。等到 AI 已經示範過（第二階起）再顯示，當作對照。
+        const reveal = { image: true, english: true, chinese: true };
+        const shown = { image: true, english: true, chinese: true, sentence: true };
         const first = kind === "respond"
             ? "扮演提問的人，用英文把這個問題問出來，請學員用英文回答，然後等他回答。"
             : "用中文把整句說出來，請學員試著用英文說出來，然後等他說。";
         return [
             { reveal, instruction: first },
-            { reveal,
+            { reveal: shown,
               instruction: "說得不對。明確指出是哪裡不對（用錯的字、少了什麼、順序不對），" +
                   "示範一次正確的句子，請他再說一次，然後等他說。" },
-            { reveal,
+            { reveal: shown,
               instruction: "還是不對。慢慢地再示範一次完整句子，請他跟著說一次。" +
                   "這是第二次糾正，也是最後一次，說完就往下走。" }
         ];
@@ -373,9 +378,41 @@
     //
     // 程式只決定「用哪個字、練幾次」，句子與中文提示交給模型組。
     // 原因是中文的量詞跟著名詞變（一張書桌／一顆蘋果），程式自動組會出錯。
-    function substituteItems(pattern, words, idPrefix) {
+    // ---- 句型對話漫畫（dialogues.json）----
+    // 一張圖＝一個句型 × 一個代換字。左上 Gogo 的泡泡、右上小朋友的泡泡都是空白的，
+    // 句子要不要壓進泡泡由前端依提示階梯決定（見 bubblesFor）。
+    function dialogueFor(dialogues, patternEnglish, word) {
+        const pat = text(patternEnglish);
+        const key = bareWord(word);
+        const samePattern = (dialogues || []).filter(d => text(d.pattern) === pat);
+        if (!samePattern.length) return null;
+        if (!key) return samePattern[0];
+        return samePattern.find(d => bareWord(d.word) === key) || null;
+    }
+
+    // 圖上兩個泡泡各要寫什麼。代換題是「孩子自己把句子說出來」，
+    // 先寫上去就等於洩答，所以要等提示階梯揭露英文之後才填。
+    function bubblesFor(item, reveal) {
+        if (!item || !item.image || !item.dialogue) return null;
+        const showSentence = !!(reveal && reveal.sentence);
+        if (item.type === "pattern_respond") {
+            // 問句是 AI 自己會唸出來的，寫在泡泡裡不算洩答；答句要孩子說。
+            return { left: text(item.ask), right: showSentence ? text(item.target) : "" };
+        }
+        if (item.type === "pattern_substitute") {
+            return { left: showSentence ? text(item.target) : "", right: "" };
+        }
+        return null;
+    }
+
+    function substituteItems(pattern, words, idPrefix, dialogues) {
         const parts = splitPattern(pattern.english);
-        return (words || []).map((word, index) => makeItem({
+        return (words || []).map((word, index) => {
+        const dlg = dialogueFor(dialogues, pattern.english, word.english);
+        const target = fillSlot(parts.ask, word) || fillSlot(parts.statements[0], word);
+        // 圖裡演的情境要跟要練的句子是同一句，不然孩子看圖說出來的會是另一句
+        const usable = dlg && (!target || sameSentence(dlg.ask, target));
+        return makeItem({
             id: `${idPrefix}-${index + 1}`,
             type: "pattern_substitute",
             pattern: text(pattern.english),
@@ -389,9 +426,18 @@
                 ? text(pattern.zh).replace(/【】/g, text(word.chinese))
                 : text(word.chinese),
             // 句型有 [空格] 時程式填得出來，第 2 冊的「...」型就留給模型
-            target: fillSlot(parts.ask, word) || fillSlot(parts.statements[0], word),
+            target: target || (usable ? text(dlg.ask) : ""),
+            image: usable ? text(dlg.image) : "",
+            dialogue: usable,
             ladder: sentenceLadder("substitute")
-        }));
+        });
+        });
+    }
+
+    // 比較兩句英文是不是同一句（忽略大小寫、標點與多餘空白）
+    function sameSentence(a, b) {
+        const norm = s => text(s).toLowerCase().replace(/[^a-z0-9']+/g, " ").trim();
+        return !!norm(a) && norm(a) === norm(b);
     }
 
     // 聽問題答句子。情境圖的設計原則是「看圖就能決定答案」，
@@ -427,12 +473,16 @@
         return null;
     }
 
-    function respondItems(pattern, scenes, idPrefix) {
+    function respondItems(pattern, scenes, idPrefix, dialogues) {
         const parts = splitPattern(pattern.english);
         if (!parts.answers.length) return [];
         const matched = sceneForPattern(pattern, scenes);
         const ask = matched ? matched.pair.ask : parts.ask;
         const answer = matched ? matched.pair.answer : parts.answers[0];
+        // 對話漫畫比情境圖更貼題（一張圖就是一組問答），問句與答句都對得上才用，
+        // 否則沿用原本的情境圖。
+        const dlg = (dialogues || []).find(d => text(d.pattern) === text(pattern.english)
+            && sameSentence(d.ask, ask) && sameSentence(d.answer, answer));
         return [makeItem({
             id: idPrefix,
             type: "pattern_respond",
@@ -443,7 +493,8 @@
             // 畫面：英文問句 + 中文回答提示（實測只有圖時孩子不知道該說什麼句子）
             display: ask,
             meaning: text(pattern.answerZh),
-            image: matched ? text(matched.scene.image) : "",
+            image: dlg ? text(dlg.image) : (matched ? text(matched.scene.image) : ""),
+            dialogue: !!dlg,
             sceneLines: matched ? text(matched.scene.lines) : "",
             ladder: sentenceLadder("respond")
         })];
@@ -458,6 +509,7 @@
         const unitWords = unit.words || [];
         const unitPatterns = unit.patterns || [];
         const unitScenes = unit.scenes || [];
+        const unitDialogues = config.dialogues || [];
         const unitLabel = `${text(unit.book)} Unit ${unit.num}: ${text(unit.title)}`.trim();
         const isReviewUnit = text(unit.type) === "review";
         const isFinalDay = day === WEEK_DAYS;
@@ -539,13 +591,13 @@
 
         todaysPatterns.forEach((pattern, patternIndex) => {
             const picked = pickSlotWords(pattern, config, subsPerPattern);
-            items.push(...substituteItems(pattern, picked, `sb${patternIndex + 1}`));
+            items.push(...substituteItems(pattern, picked, `sb${patternIndex + 1}`, unitDialogues));
         });
 
         // ---- 聽問題答句子 ----
         const respondPatterns = rotatePick(unitPatterns, day, RESPOND_PER_DAY);
         respondPatterns.forEach((pattern, patternIndex) => {
-            items.push(...respondItems(pattern, unitScenes, `rp${patternIndex + 1}`));
+            items.push(...respondItems(pattern, unitScenes, `rp${patternIndex + 1}`, unitDialogues));
         });
 
         // ---- 結尾 ----
@@ -622,11 +674,13 @@
                     (item.image ? "" : "　⚠️ 沒有圖");
             } else if (item.type === "pattern_substitute") {
                 detail = `${item.pattern} ← ${item.slotWord}` +
-                    (item.target ? `　→「${item.target}」` : "　（句子由模型組）");
+                    (item.target ? `　→「${item.target}」` : "　（句子由模型組）") +
+                    (item.dialogue ? "　🗯️ 對話漫畫" : "　⚠️ 沒有漫畫");
             } else if (item.type === "pattern_respond") {
                 const alts = (item.alternatives || []).length
                     ? "／或 " + item.alternatives.join("／") : "";
-                detail = `${item.ask} → ${item.target}${alts}`;
+                detail = `${item.ask} → ${item.target}${alts}` +
+                    (item.dialogue ? "　🗯️ 對話漫畫" : (item.image ? "　🖼️ 情境圖" : "　⚠️ 沒有圖"));
             }
             return `${index + 1}. [${name}] ${detail}`.trim();
         }).join("\n");
@@ -710,8 +764,11 @@
         const ladder = (item && item.ladder) || [];
         const step = ladder[Math.min(Math.max(0, Number(attempts) || 0), ladder.length - 1)];
         const reveal = (step && step.reveal) || {};
+        const showImage = !!reveal.image && !!text(item && item.image);
         return {
-            image: !!reveal.image && !!text(item && item.image),
+            image: showImage,
+            // 對話漫畫的兩個空白泡泡要不要壓字（沒有圖或不是漫畫就是 null）
+            bubbles: showImage ? bubblesFor(item, reveal) : null,
             english: !!reveal.english,
             chinese: !!reveal.chinese,
             word: text(item && item.display) || text(item && item.target),
@@ -800,6 +857,7 @@
 
     global.LessonPlan = Object.freeze({
         build, describe, splitPattern, spreadAcrossDays, chunkInOrder, rotatePick,
-        fillSlot, pickSlotWords, sceneForPattern, createRunner, itemDirective, revealFor
+        fillSlot, pickSlotWords, sceneForPattern, createRunner, itemDirective, revealFor,
+        dialogueFor, bubblesFor
     });
 })(window);

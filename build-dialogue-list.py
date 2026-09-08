@@ -19,6 +19,8 @@ from collections import OrderedDict
 sys.stdout.reconfigure(encoding="utf-8")
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(os.path.dirname(HERE), "Gogo English", "圖片提示詞", "dialogues.json")
+# 網頁端用的精簡版：檔名改成 images/ 裡的 .webp，不含生圖用的 hint
+LOCAL_OUT = os.path.join(HERE, "dialogues.json")
 
 SHE = {"mother", "sister", "grandmother", "aunt", "girl"}
 HE = {"father", "brother", "grandfather", "uncle", "boy", "friend"}
@@ -41,6 +43,31 @@ def slug(s):
 
 def art(w):
     return "an" if w[:1].lower() in "aeiou" else "a"
+
+
+# 現在分詞。swim -> swimming（重複子音）、ride -> riding（去 e）、lie -> lying。
+ING_EXCEPTIONS = {"ski": "skiing", "be": "being", "see": "seeing"}
+
+
+def ing(word):
+    w = bare(word).lower()
+    if not w:
+        return w
+    if w in ING_EXCEPTIONS:
+        return ING_EXCEPTIONS[w]
+    if w.endswith("ie"):
+        return w[:-2] + "ying"
+    if w.endswith("ee") or w.endswith("ye") or w.endswith("oe"):
+        return w + "ing"
+    if w.endswith("e"):
+        return w[:-1] + "ing"
+    # 單音節子音-母音-子音：重複字尾子音（swim→swimming、run→running、shop→shopping）
+    vowels = "aeiou"
+    if (len(w) >= 3 and w[-1] not in vowels and w[-1] not in "wxy"
+            and w[-2] in vowels and w[-3] not in vowels
+            and sum(1 for c in w if c in vowels) == 1):
+        return w + w[-1] + "ing"
+    return w + "ing"
 
 
 def is_plural(word):
@@ -127,8 +154,8 @@ TEMPLATES = {
           "in the sky") if bare(w["english"]).lower() == "fly" else
         T("Can you %s?" % bare(w["english"]), "Yes, I can.",
           "你會%s嗎？會，我會。" % w["chinese"],
-          "the child is happily %sing (clearly performing the action %s), thumbs up"
-          % (bare(w["english"]), bare(w["english"])))),
+          "the child is happily %s (clearly performing the action %s), thumbs up"
+          % (ing(w["english"]), bare(w["english"])))),
     "Who's she/he? / She's/He's my [family member].": whos,
     "Who's she? / She's my [relationship].": whos,
     "What's his/her name? / His/Her name's [Name].": lambda w: T(
@@ -412,6 +439,26 @@ def main():
     io.open(OUT, "w", encoding="utf-8", newline="\n").write(
         json.dumps(out, ensure_ascii=False, indent=1) + "\n")
     print("寫出", OUT, "共", total, "張")
+
+    # 網頁端用的精簡版：lesson-plan.js 拿 pattern + word 對回這張圖
+    local = OrderedDict()
+    local["_說明"] = ("句型對話漫畫的網頁索引，由 AI tutor/build-dialogue-list.py 產生，不要手改。"
+                     "image 是 images/ 裡的檔名；圖上兩個泡泡都是空白，"
+                     "ask（左上 Gogo）與 answer（右上 Tony）由前端決定要不要壓字。")
+    for key, rows in out.items():
+        if key.startswith("_"):
+            continue
+        local[key] = [OrderedDict([
+            ("image", os.path.splitext(r["filename"])[0] + ".webp"),
+            ("pattern", r["pattern"]),
+            ("word", r["word"]),
+            ("ask", r["ask"]),
+            ("answer", r["answer"]),
+            ("zh", r["zh"]),
+        ]) for r in rows]
+    io.open(LOCAL_OUT, "w", encoding="utf-8", newline="\n").write(
+        json.dumps(local, ensure_ascii=False, indent=1) + "\n")
+    print("寫出", LOCAL_OUT)
     if missing:
         print("[!] 沒有模板的句型：")
         for m in missing:

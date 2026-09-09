@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.39";
+const APP_VERSION = "3.40";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -65,7 +65,10 @@ function readApiKey() {
 if (!window.SafeDOM) throw new Error("dom-utils.js 未載入");
 const { clear: clearNode, text: setText, appendText, element: makeElement, legacyMarkupToText } = window.SafeDOM;
 if (!window.StudentView) throw new Error("student-view.js 未載入");
-const studentView = window.StudentView.create({ timeoutMs: 5000 });
+const studentView = window.StudentView.create({
+    timeoutMs: 5000,
+    onTap: id => handlePlanTap(id)
+});
 if (!window.LiveSession) throw new Error("live-session.js 未載入");
 if (!window.CourseProgression) throw new Error("course-progression.js 未載入");
 const liveSession = window.LiveSession.create({ maxReconnects: 3 });
@@ -2631,14 +2634,55 @@ function applyPlanReveal(item, attempts) {
     if (!window.LessonPlan.revealFor) return;
     const reveal = window.LessonPlan.revealFor(item, attempts);
     if (item.type === "opening" || item.type === "closing") return;   // 保留畫面現狀
+    // 新的一階＝新的一次作答，之前點到的都要清掉
+    planTap = reveal.tap ? { itemId: item.id, tap: reveal.tap, picked: [] } : null;
     studentView.showCard({
         imageUrl: reveal.image && reveal.picture ? "images/" + reveal.picture : "",
         // 對話漫畫的空白泡泡要壓什麼字（不是漫畫就是 null，泡泡不顯示）
         bubbles: reveal.bubbles,
         word: reveal.english ? reveal.word : "",
         meaning: reveal.chinese ? reveal.meaning : "",
+        tap: reveal.tap,
+        tapState: { picked: [] },
         icon: item.type === "pattern_substitute" ? "💬" : "🎧"
     });
+}
+
+// ---- 點選作答（第 2〜5 天的單字與對答題） ----
+// 對錯由程式判定、程式推進。模型只負責出題與回饋，不參與判分——
+// 「拼字用語音辨識不可靠」「發音正確性偵測不到」這兩個已知限制就是這樣繞過去的。
+let planTap = null;
+
+function handlePlanTap(optionId) {
+    if (!planTap || !planRunner || planRunner.isFinished()) return;
+    const item = planRunner.current();
+    if (!item || item.id !== planTap.itemId) return;
+
+    planTap.picked = planTap.picked.concat(optionId);
+    const verdict = window.LessonPlan.checkTap(
+        Object.assign({}, item, { tap: planTap.tap }), planTap.picked);
+
+    // 還沒點完（點字母、排字母點到一半）：只更新畫面，不算一次作答
+    if (!verdict.done) {
+        studentView.showTap(planTap.tap, { picked: planTap.picked });
+        return;
+    }
+
+    studentView.showTap(planTap.tap, {
+        picked: planTap.picked, locked: true, verdict: verdict.correct ? "right" : "wrong"
+    });
+    const answer = planTap.tap.answer
+        .map(id => (planTap.tap.options.find(o => o.id === id) || {}).label).join("");
+    sessionDiagnostics.record("plan_tap", {
+        id: item.id, type: item.type, mode: planTap.tap.mode,
+        correct: verdict.correct, answer,
+        picked: planTap.picked.map(id =>
+            (planTap.tap.options.find(o => o.id === id) || {}).label).join("")
+    });
+    logSystem(`👆 點選作答：${verdict.correct ? "✅ 對" : "❌ 錯"}（${item.target || item.id}）`);
+    planTap = null;
+    // 判完先讓孩子看到對錯，再換下一題
+    setTimeout(() => advancePlan(verdict.correct ? "correct" : "incorrect", "tap"), 900);
 }
 
 // ---- 跳針偵測 ----
@@ -2792,6 +2836,9 @@ function planFallbackAfterTurn(completedStudentTurn, completedGeneration) {
     if (completedGeneration != null && completedGeneration <= planItemSentGeneration) return;
     const item = planRunner.current();
     if (!item) return;
+    // 點選題只有孩子點下去才會推進。孩子講完話、AI 回完一輪就兜底推進的話，
+    // 他還沒碰到螢幕題目就換掉了。
+    if (window.LessonPlan.isTapItem(item)) return;
     // 補問機制（HANDOFF 階段 4，遵從率 0.6~0.9 的處方）：
     // 漏回報時先要求模型回報，而不是直接無聲跳過——2026-09-02 實測
     // 「上到一半跳掉」就是兜底把沒回報的項目靜靜推進造成的。
@@ -2897,7 +2944,15 @@ function recordItemResult(args) {
         // 結尾項目沒有目標，任何回報都「對得上」——2026-09-04 實測最後一題的
         // 重複回報流到結尾頭上，計畫立刻算完成、AI 一個字都沒說就下課。
         // 結尾只靠「AI 真的講了結語」收尾（completeTrackedAiTurn 的 closingSpoken）。
-        if (currentItem && currentItem.type === "closing") {
+        // 點選題由孩子的手指決定對錯，模型的回報一律不吃——模型看不到他點了什麼，
+        // 讓它推進等於憑空判分，還會在孩子還沒點之前就把題目換掉。
+        if (currentItem && window.LessonPlan.isTapItem(currentItem)) {
+            sessionDiagnostics.record("plan_report_ignored", {
+                reported: target, expected: currentItem.target || currentItem.id,
+                outcome, reason: "tap_item"
+            });
+            logSystem(`↩️ 這一題由孩子點選作答，不採用模型的回報「${target}」。`);
+        } else if (currentItem && currentItem.type === "closing") {
             sessionDiagnostics.record("plan_report_ignored", {
                 reported: target, expected: "closing", outcome
             });

@@ -22,8 +22,13 @@
             meaning: doc.getElementById('svMeaning'),
             sayBox: doc.getElementById('svSayBox'),
             say: doc.getElementById('svSay'),
-            transcript: doc.getElementById('svTranscript')
+            transcript: doc.getElementById('svTranscript'),
+            tapArea: doc.getElementById('svTapArea'),
+            tapHint: doc.getElementById('svTapHint'),
+            tapPicked: doc.getElementById('svTapPicked'),
+            tapOptions: doc.getElementById('svTapOptions')
         };
+        const onTap = typeof config.onTap === 'function' ? config.onTap : null;
 
         const state = {
             contentVersion: 0,
@@ -93,6 +98,54 @@
                 el.textContent = value;
                 el.style.display = value ? 'block' : 'none';
             });
+        }
+
+        // 點選作答的選項。判分不在這裡——這裡只負責畫出來、把點到的 id 回報出去。
+        // state 由呼叫端給：picked（已經點了哪些）、verdict（"right"／"wrong"／空）。
+        function showTap(tap, viewState) {
+            const area = elements.tapArea;
+            if (!area) return;
+            const info = viewState || {};
+            const picked = info.picked || [];
+            // 有選項時圖片縮小一點，讓題目與選項盡量同時看得到（CSS 的 body.tap-mode）
+            const body = doc.body;
+            if (!tap || !(tap.options || []).length) {
+                area.hidden = true;
+                if (body) body.classList.remove('tap-mode');
+                if (elements.tapOptions) elements.tapOptions.textContent = "";
+                return;
+            }
+            area.hidden = false;
+            if (body) body.classList.add('tap-mode');
+            if (elements.tapHint) elements.tapHint.textContent = tap.hint || "";
+            // 依序點的題目（點字母、排字母）把已經點到的字母列出來當進度
+            if (elements.tapPicked) {
+                elements.tapPicked.textContent = tap.ordered
+                    ? picked.map(id => labelOf(tap, id)).join("") : "";
+            }
+            if (!elements.tapOptions) return;
+            elements.tapOptions.textContent = "";
+            tap.options.forEach(option => {
+                const button = doc.createElement('button');
+                button.type = 'button';
+                button.className = 'sv-tap';
+                button.textContent = option.label;
+                button.dataset.optionId = option.id;
+                const used = picked.indexOf(option.id) >= 0;
+                if (used) button.classList.add(info.verdict === 'wrong' ? 'wrong'
+                    : (info.verdict === 'right' ? 'right' : 'picked'));
+                // 依序點的題目點過就不能再點；單選題判完就整組鎖住
+                button.disabled = !!info.locked || (tap.ordered && used);
+                if (onTap && !button.disabled) {
+                    button.addEventListener('click', () => onTap(option.id));
+                }
+                elements.tapOptions.appendChild(button);
+            });
+        }
+
+        function labelOf(tap, id) {
+            const found = ((tap && tap.options) || []).find(option => option.id === id);
+            return found ? found.label : "";
         }
 
         function hideActualImage() {
@@ -212,6 +265,8 @@
         function showCard(card) {
             const data = card || {};
             hideTopics();
+            // 換卡片就換題目：上一題的選項一定要收掉
+            showTap(data.tap || null, data.tapState || null);
             state.contentVersion += 1;
             state.wordKey = normalize(data.word || "");
             if (elements.word) elements.word.textContent = data.word || "";
@@ -354,6 +409,7 @@
         function reset() {
             state.contentVersion += 1;
             state.wordKey = "";
+            showTap(null, null);
             invalidateImage('🎈', "");
             if (elements.topics) {
                 elements.topics.replaceChildren();
@@ -381,6 +437,7 @@
             hideTopics,
             showWord,
             showCard,
+            showTap,
             showImage,
             beginTranscriptTurn,
             appendTranscript,

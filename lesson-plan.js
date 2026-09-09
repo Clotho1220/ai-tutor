@@ -126,6 +126,9 @@
     // 每一階就是「第幾次嘗試」。答得出來就直接過，答不出來才往下一階。
     // reveal 告訴前端這一階該讓學生看到什麼。
 
+    // 點選題共用的那段規則。每個階梯都要講一次，模型才不會自己判分或搶著推進。
+    const TAP_RULE = "（孩子用點的：畫面上有選項，他會直接點。對錯由系統判定並自動換下一題，你不要判斷對錯、不要呼叫 report_item_result，也不要唸出選項——讀選項是他的工作。）";
+
     // 圖庫替每個字標了「這張圖適合問哪種問題」，直接拿來當提問方式
     const ASK_BY_TYPE = {
         what_is_this: "What's this?",
@@ -163,8 +166,8 @@
 
     // 看英文字說意思：字 → 加圖 → 加中文 → 跟讀
     // 這是為了「看得懂聽不懂、看不出意思」設計的反向練習，直接練認字。
-    function readLadder() {
-        return [
+    function readLadder(hasTap) {
+        if (!hasTap) return [
             { reveal: { english: true },
               instruction: "只顯示這個英文單字，不給圖也不給中文。" +
                   "請學員把這個字唸出來，並說出它的中文意思，然後等他回答。" +
@@ -175,6 +178,17 @@
               instruction: "還是不行。把中文也顯示出來，請他把英文再唸一次，然後等他唸。" },
             { reveal: { english: true, image: true, chinese: true },
               instruction: "清楚唸一次給他聽，請他跟著唸一次。這是最後一階，唸完就往下走。" }
+        ];
+        // 唸完點中文：先唸這個字，再從三個中文裡點出意思
+        return [
+            { reveal: { english: true, tap: true },
+              instruction: "畫面顯示這個英文單字和三個中文選項。請學員先把這個字唸出來，" +
+                  "再點出正確的中文意思，然後結束回合等他做。" + TAP_RULE },
+            { reveal: { english: true, image: true, tap: true },
+              instruction: "點錯了。把圖顯示出來當提示，請他再唸一次這個字、再點一次中文。" + TAP_RULE },
+            { reveal: { english: true, image: true, chinese: true, tap: true },
+              instruction: "還是不行。清楚唸一次這個字、說出它的中文意思，" +
+                  "請他跟著唸一次再點那個中文。這是最後一階。" + TAP_RULE }
         ];
     }
 
@@ -196,7 +210,17 @@
 
     // 三選一（第 3 天）：畫面顯示三個英文字，AI 說中文，孩子唸出正確的那個。
     // 練的是相似字形的辨識，跟紙本練習卷的第三天同題型。
-    function choiceLadder() {
+    function choiceLadder(hasTap) {
+        if (hasTap) return [
+            { reveal: { english: true, tap: true },
+              instruction: "畫面顯示三個英文單字。你用中文說出目標的意思，" +
+                  "請學員點出正確的那一個、再把它唸出來，然後結束回合等他做。" + TAP_RULE },
+            { reveal: { english: true, image: true, tap: true },
+              instruction: "點錯了。把圖顯示出來當提示，請他再點一次、再唸一次。" + TAP_RULE },
+            { reveal: { english: true, image: true, chinese: true, tap: true },
+              instruction: "還是不行。告訴他正確答案是哪一個並唸給他聽，" +
+                  "請他跟著唸一次再點它。這是最後一階。" + TAP_RULE }
+        ];
         return [
             { reveal: { english: true },
               instruction: "畫面顯示三個英文單字。你用中文說出目標的意思，" +
@@ -211,7 +235,19 @@
     }
 
     // 填缺漏字母（第 4 天）：畫面顯示 d_s_ 這種遮罩字，孩子說出缺的字母、再唸整個字
-    function gapLadder() {
+    function gapLadder(hasTap) {
+        if (hasTap) return [
+            { reveal: { image: true, chinese: true, english: true, tap: true },
+              instruction: "畫面顯示這個字的挖空版本（缺的字母用底線代替）、圖，" +
+                  "以及一排字母。用中文說這個字的意思，請學員照順序點出缺少的字母，" +
+                  "再把整個字唸出來，然後結束回合等他做。" +
+                  "你自己不要把這個英文字唸出來，也不要說出缺的是哪些字母。" + TAP_RULE },
+            { reveal: { image: true, chinese: true, english: true, tap: true },
+              instruction: "點錯了。唸出整個字讓他對照，請他再點一次缺少的字母。" + TAP_RULE },
+            { reveal: { image: true, chinese: true, english: true, tap: true },
+              instruction: "還是不行。你把缺少的字母一個一個唸出來，請他跟著唸再點出來，" +
+                  "最後請他唸整個字。這是最後一階。" + TAP_RULE }
+        ];
         return [
             { reveal: { image: true, chinese: true, english: true },
               instruction: "畫面顯示這個字的挖空版本（部分字母用底線代替）和圖。" +
@@ -231,7 +267,18 @@
     // 拼字：憑記憶拼 → 看著字拼 → AI 示範跟拼
     // 語音轉文字會把逐字母拼讀轉爛（HANDOFF 已知陷阱），所以對錯只能靠
     // 原生音訊模型自己聽，前端不做驗證——與發音判斷同一個信任模式。
-    function spellLadder() {
+    function spellLadder(hasTap) {
+        if (hasTap) return [
+            { reveal: { image: true, chinese: true, tap: true },
+              instruction: "畫面顯示圖、中文，和打散的字母。先請學員說出這個東西的英文，" +
+                  "說對後請他照順序把字母點出來，把這個字排出來，然後結束回合等他做。" +
+                  "畫面上沒有完整的英文字，這一階練的是記憶。" + TAP_RULE },
+            { reveal: { image: true, chinese: true, english: true, tap: true },
+              instruction: "排錯了。把英文字顯示出來，請他看著字再排一次。" + TAP_RULE },
+            { reveal: { image: true, chinese: true, english: true, tap: true },
+              instruction: "還是不行。你一個字母一個字母慢慢唸一次，請他跟著唸、跟著點。" +
+                  "這是最後一階。" + TAP_RULE }
+        ];
         return [
             { reveal: { image: true, chinese: true },
               instruction: "先請學員說出這個東西的英文，說對後請他憑記憶一個字母一個字母拼出來，" +
@@ -245,7 +292,26 @@
     }
 
     // 句型代換與對答：原本 + 糾正兩次（使用者要求最多糾正 2 次）
-    function sentenceLadder(kind) {
+    function sentenceLadder(kind, hasTap) {
+        // 對答題點答案：句型給了兩個答句（Yes, I can. ／ No, I can't.），
+        // 哪一個對是看圖決定的，點完再說一次。代換題不做（那題要練自己講出來）。
+        if (kind === "respond" && hasTap) {
+            const withTap = { image: true, english: true, chinese: true, tap: true };
+            const withSentence = { image: true, english: true, chinese: true,
+                                   tap: true, sentence: true };
+            return [
+                { reveal: withTap,
+                  instruction: "扮演提問的人，用英文把這個問題問出來。畫面上有幾個答句可以點，" +
+                      "請學員看圖點出正確的那一句、再用英文說一次，然後結束回合等他做。" +
+                      TAP_RULE },
+                { reveal: withSentence,
+                  instruction: "點錯了。用圖提醒他答案要看圖決定，請他再點一次、再說一次。" +
+                      TAP_RULE },
+                { reveal: withSentence,
+                  instruction: "還是不對。慢慢地把正確的答句說一次，請他跟著說一次再點它。" +
+                      "這是最後一階。" + TAP_RULE }
+            ];
+        }
         // 對答題有情境圖就全程顯示——答案是看圖決定的。
         // 代換題顯示要代換的單字（英文＋中文）：句子結構才是這題要考的，
         // 單字給出來是合理的鷹架；全空白的畫面實測會讓孩子不知道現在在幹嘛。
@@ -266,6 +332,86 @@
               instruction: "還是不對。慢慢地再示範一次完整句子，請他跟著說一次。" +
                   "這是第二次糾正，也是最後一次，說完就往下走。" }
         ];
+    }
+
+    // ---------------- 點選作答（2026-09-09 使用者定案） ----------------
+    // 第 2〜5 天的單字與句子對答改成「畫面上點」：
+    //   第 2 天 唸完點中文、第 3 天 點選再唸、第 4 天 點缺的字母、第 5 天 排字母、
+    //   對答題點答案。
+    //
+    // 對錯由程式判定、程式推進，模型只負責出題與回饋。這一來
+    // 「拼字用語音辨識不可靠」與「發音正確性偵測不到」這兩個已知限制就繞過去了
+    // （孩子唸 a-p-p-l-e 幾乎一定被轉錯，逐字稿根本看不出他拼對沒有）。
+    //
+    // 第 1 天中翻英與句型代換維持純口說：那兩項要練的是「自己講出來」，
+    // 給選項就變成認字題。
+
+    // 固定的洗牌：同一個字每次跑出來的順序都一樣，測試與診斷才對得起來。
+    function seededOrder(count, seed) {
+        const order = Array.from({ length: count }, (_, i) => i);
+        let n = 0;
+        for (const ch of text(seed)) n = (n * 31 + ch.charCodeAt(0)) % 100003;
+        // 低位元的隨機性很差，取中段的位元；先空轉幾次讓種子散開，
+        // 否則三選一的答案會有一半落在中間那格，孩子會學會「猜中間」
+        for (let warm = 0; warm < 8; warm++) n = (n * 1103515245 + 12345) % 2147483648;
+        for (let i = count - 1; i > 0; i--) {
+            n = (n * 1103515245 + 12345) % 2147483648;
+            const j = Math.floor(n / 65536) % (i + 1);
+            const tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+        }
+        return order;
+    }
+
+    // keepDuplicates：排字母時 apple 的兩個 p 都要在，不能被去重掉
+    function tapOptions(labels, seed, keepDuplicates) {
+        const list = labels.map(text).filter((label, i, all) =>
+            label && (keepDuplicates || all.indexOf(label) === i));
+        return seededOrder(list.length, seed).map((from, i) => ({
+            id: "o" + (i + 1), label: list[from]
+        }));
+    }
+
+    function idOf(options, label) {
+        const found = (options || []).find(option => option.label === text(label));
+        return found ? found.id : "";
+    }
+
+    // 單選：點一下就是一次作答
+    function pickOne(labels, correct, seed, hint) {
+        const options = tapOptions(labels, seed);
+        const answer = idOf(options, correct);
+        if (!answer || options.length < 2) return null;
+        return { mode: "pick", ordered: false, options, answer: [answer], hint };
+    }
+
+    // 依序點：字母要一個一個按順序點出來
+    function pickOrder(labels, sequence, seed, hint, mode) {
+        const options = tapOptions(labels, seed, true);
+        // 同一個字母可能出現兩次（apple 的 p），照順序配掉還沒用過的那一個
+        const used = new Set();
+        const answer = sequence.map(letter => {
+            const found = (options || []).find(option =>
+                option.label === text(letter) && !used.has(option.id));
+            if (found) used.add(found.id);
+            return found ? found.id : "";
+        });
+        if (!answer.length || answer.some(id => !id)) return null;
+        return { mode: mode || "order", ordered: true, options, answer, hint };
+    }
+
+    // 這一題點對了沒。picked 是已經點下去的 id 陣列（依點的順序）。
+    // 回傳 done＝這次作答結束（該報結果了）、correct＝對不對。
+    function checkTap(item, picked) {
+        const tap = item && item.tap;
+        const chosen = (picked || []).filter(Boolean);
+        if (!tap || !chosen.length) return { done: false, correct: false };
+        if (!tap.ordered) {
+            return { done: true, correct: chosen[0] === tap.answer[0] };
+        }
+        // 依序點：只要有一步點錯就算這次作答失敗，不用等他點完
+        const wrong = chosen.some((id, i) => id !== tap.answer[i]);
+        if (wrong) return { done: true, correct: false };
+        return { done: chosen.length >= tap.answer.length, correct: true };
     }
 
     function makeItem(item) {
@@ -293,18 +439,28 @@
         }));
     }
 
-    function readWordItems(words, idPrefix, sourceLabel) {
-        return (words || []).map((word, index) => makeItem({
-            id: `${idPrefix}-${index + 1}`,
-            type: "word_read",
-            target: bareWord(word.english),
-            display: text(word.english),
-            meaning: text(word.chinese),
-            example: text(word.example),
-            image: text(word.image),
-            source: sourceLabel || "",
-            ladder: readLadder()
-        }));
+    function readWordItems(words, pool, idPrefix, sourceLabel) {
+        const meanings = (pool || words || []).map(other => text(other.chinese)).filter(Boolean);
+        return (words || []).map((word, index) => {
+            const answer = text(word.chinese);
+            const others = meanings.filter(meaning => meaning !== answer);
+            const tap = pickOne(
+                [answer].concat(others.slice(index % Math.max(1, others.length)).slice(0, 2),
+                    others.slice(0, 2)).slice(0, 3),
+                answer, `${idPrefix}-${index}-${answer}`, "唸完之後，點出它的中文意思");
+            return makeItem({
+                id: `${idPrefix}-${index + 1}`,
+                type: "word_read",
+                target: bareWord(word.english),
+                display: text(word.english),
+                meaning: answer,
+                example: text(word.example),
+                image: text(word.image),
+                source: sourceLabel || "",
+                tap,
+                ladder: readLadder(!!tap)
+            });
+        });
     }
 
     function spellWordItems(words, idPrefix, sourceLabel) {
@@ -318,8 +474,17 @@
             letters: bareWord(word.english).replace(/[^a-z0-9]/g, "").split("").join("-"),
             image: text(word.image),
             source: sourceLabel || "",
-            ladder: spellLadder()
+            tap: spellTap(word),
+            ladder: spellLadder(!!spellTap(word))
         }));
+    }
+
+    // 第 5 天排字母：整個字的字母打散，照順序點回來
+    function spellTap(word) {
+        const letters = bareWord(word.english).replace(/[^a-z0-9]/g, "").split("");
+        if (letters.length < 2) return null;
+        return pickOrder(letters, letters, "spell-" + letters.join(""),
+            "照順序點出字母，把這個字排出來", "spell");
     }
 
     function zh2enWordItems(words, idPrefix, sourceLabel) {
@@ -376,8 +541,22 @@
             missing: missingLetters(word.english),
             image: text(word.image),
             source: sourceLabel || "",
-            ladder: gapLadder()
+            tap: gapTap(word),
+            ladder: gapLadder(!!gapTap(word))
         }));
+    }
+
+    // 第 4 天點字母：缺的那兩個字母，混進字裡其他字母當誘答，湊到六顆
+    function gapTap(word) {
+        const letters = bareWord(word.english).replace(/[^a-z0-9]/g, "").split("");
+        const missing = missingLetters(word.english).split("-").filter(Boolean);
+        if (!missing.length) return null;
+        const extras = letters.filter(letter => missing.indexOf(letter) < 0);
+        const alphabet = "abcdefghijklmnopqrstuvwxyz".split("");
+        const filler = alphabet.filter(letter => letters.indexOf(letter) < 0);
+        const pad = extras.concat(filler).slice(0, Math.max(0, 6 - missing.length));
+        return pickOrder(missing.concat(pad), missing,
+            "gap-" + bareWord(word.english), "點出缺少的字母（照順序）", "letters");
     }
 
     // 三選一的誘答選項：從同一批字裡輪流取兩個（相同 slot 的字外形與主題最接近）
@@ -403,7 +582,8 @@
                 meaning: text(word.chinese),
                 image: text(word.image),
                 source: sourceLabel || "",
-                ladder: choiceLadder()
+                tap: pickOne(rotated, answer, "choice-" + answer, "點出正確的那個字，再唸一次"),
+                ladder: choiceLadder(rotated.length > 1)
             });
         });
     }
@@ -553,12 +733,21 @@
         // 否則沿用原本的情境圖。
         const dlg = (dialogues || []).find(d => text(d.pattern) === text(pattern.english)
             && sameSentence(d.ask, ask) && sameSentence(d.answer, answer));
+        // 點答案：句型本身就給了幾個答句（Yes, I can. ／ No, I can't.），
+        // 哪一個對是看圖決定的，正好可以讓孩子點。只有一個答句或答句還帶著
+        // 空格的句型就不做，維持純口說。
+        const choices = parts.answers.map(text)
+            .filter(one => one && !/\[[^\]]*\]/.test(one));
+        const tap = choices.length >= 2 && choices.indexOf(text(answer)) >= 0
+            ? pickOne(choices, answer, "respond-" + text(pattern.english), "點出正確的回答，再說一次")
+            : null;
         return [makeItem({
             id: idPrefix,
             type: "pattern_respond",
             pattern: text(pattern.english),
             ask,
             target: answer,
+            tap,
             alternatives: matched ? parts.answers : parts.answers.slice(1),
             // 畫面：英文問句 + 中文回答提示（實測只有圖時孩子不知道該說什麼句子）
             display: ask,
@@ -566,7 +755,7 @@
             image: dlg ? text(dlg.image) : (matched ? text(matched.scene.image) : ""),
             dialogue: !!dlg,
             sceneLines: matched ? text(matched.scene.lines) : "",
-            ladder: sentenceLadder("respond")
+            ladder: sentenceLadder("respond", !!tap)
         })];
     }
 
@@ -609,7 +798,7 @@
         const wordItemsForDay = (words, idPrefix, sourceLabel) => {
             switch (day) {
                 case 1: return zh2enWordItems(words, idPrefix, sourceLabel);
-                case 2: return readWordItems(words, idPrefix, sourceLabel);
+                case 2: return readWordItems(words, distractorPool, idPrefix, sourceLabel);
                 case 3: return choiceWordItems(words, distractorPool, idPrefix, sourceLabel);
                 case 4: return gapWordItems(words, idPrefix, sourceLabel);
                 default: return spellWordItems(words, idPrefix, sourceLabel);
@@ -752,7 +941,8 @@
                 detail = `${item.ask} → ${item.target}${alts}` +
                     (item.dialogue ? "　🗯️ 對話漫畫" : (item.image ? "　🖼️ 情境圖" : "　⚠️ 沒有圖"));
             }
-            return `${index + 1}. [${name}] ${detail}`.trim();
+            const tap = isTapItem(item) ? "　👆 點選作答" : "";
+            return `${index + 1}. [${name}] ${detail}${tap}`.trim();
         }).join("\n");
     }
 
@@ -843,8 +1033,16 @@
             chinese: !!reveal.chinese,
             word: text(item && item.display) || text(item && item.target),
             meaning: text(item && item.meaning),
-            picture: text(item && item.image)
+            picture: text(item && item.image),
+            // 這一階要不要給孩子點的選項（不是點選題就是 null）
+            tap: reveal.tap && item && item.tap ? item.tap : null
         };
+    }
+
+    // 這一項是不是由孩子點選作答的（由程式判分、程式推進）
+    function isTapItem(item) {
+        return !!(item && item.tap && (item.ladder || []).some(step =>
+            step && step.reveal && step.reveal.tap));
     }
 
     // 把一個項目的「這一階」轉成給模型的具體指示（導演指令的內容）
@@ -928,6 +1126,6 @@
     global.LessonPlan = Object.freeze({
         build, describe, splitPattern, spreadAcrossDays, chunkInOrder, rotatePick,
         fillSlot, pickSlotWords, sceneForPattern, createRunner, itemDirective, revealFor,
-        dialogueFor, bubblesFor
+        dialogueFor, bubblesFor, checkTap, isTapItem
     });
 })(window);

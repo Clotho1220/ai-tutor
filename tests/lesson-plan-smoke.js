@@ -182,6 +182,61 @@
                 phonicsWords: [{ english: "apple", chinese: "蘋果", slot: "other", image: "x.webp" }]
             }), reviewUnits: [], learnedWords: [] }).items.some(item => item.type === "word_read" && item.target === "apple"));
 
+        // ---- 點選作答（第 2〜5 天的單字與對答題，程式判分、程式推進） ----
+        const tapOf = (plan, type) => (plan.items.find(item => item.type === type) || {});
+        check("day 1 and substitution stay voice only",
+            !tapOf(dayPlans[0], "word_zh2en").tap &&
+            !tapOf(dayPlans[1], "pattern_substitute").tap);
+        check("days 2-5 each give the child something to tap",
+            [1, 2, 3, 4].every(i => LP.isTapItem(tapOf(dayPlans[i], modeOfDay[i]))));
+        check("day 2 taps the Chinese meaning, day 3 taps the English word", (function () {
+            const read = tapOf(dayPlans[1], "word_read");
+            const choice = tapOf(dayPlans[2], "word_choice");
+            const labelOf = (item, id) => item.tap.options.find(o => o.id === id).label;
+            return labelOf(read, read.tap.answer[0]) === read.meaning &&
+                labelOf(choice, choice.tap.answer[0]) === choice.target;
+        })());
+        check("the answer is not always in the same slot", (function () {
+            const spots = dayPlans[2].items.filter(item => item.tap && !item.tap.ordered)
+                .map(item => item.tap.options.findIndex(o => o.id === item.tap.answer[0]));
+            return spots.length >= 3 && new Set(spots).size > 1;
+        })());
+        check("day 4 asks for exactly the missing letters, in order", (function () {
+            const gap = dayPlans[3].items.find(item => item.target === "swim");
+            const letters = gap.tap.answer.map(id => gap.tap.options.find(o => o.id === id).label);
+            return gap.tap.ordered && letters.join("-") === gap.missing;
+        })());
+        check("day 5 scrambles the whole word but keeps every letter", (function () {
+            const spell = dayPlans[4].items.find(item => item.target === "swim");
+            const letters = spell.tap.answer.map(id => spell.tap.options.find(o => o.id === id).label);
+            return spell.tap.ordered && letters.join("") === "swim" &&
+                spell.tap.options.length === 4;
+        })());
+        check("ordered taps only finish when the last letter lands", (function () {
+            const spell = dayPlans[4].items.find(item => item.target === "swim");
+            const half = spell.tap.answer.slice(0, 2);
+            const mid = LP.checkTap(spell, half);
+            const all = LP.checkTap(spell, spell.tap.answer);
+            return mid.correct && !mid.done && all.correct && all.done;
+        })());
+        check("one wrong tap ends the attempt straight away", (function () {
+            const spell = dayPlans[4].items.find(item => item.target === "swim");
+            const wrong = spell.tap.options.find(o => o.id !== spell.tap.answer[0]).id;
+            const verdict = LP.checkTap(spell, [wrong]);
+            return verdict.done && !verdict.correct;
+        })());
+        check("tap options only reach the screen on a step that asks for them", (function () {
+            const spell = dayPlans[4].items.find(item => item.target === "swim");
+            const plain = dayPlans[0].items.find(item => item.type === "word_zh2en");
+            return !!LP.revealFor(spell, 0).tap && !LP.revealFor(plain, 0).tap;
+        })());
+        // 模型看不到孩子點了什麼，所以指令必須明講「不要判分、不要回報」
+        check("tap directives tell the model to keep out of the judging", (function () {
+            const spell = dayPlans[4].items.find(item => item.target === "swim");
+            const directive = LP.itemDirective(spell, { index: 1, total: 9, attempts: 0 });
+            return directive.indexOf("report_item_result") >= 0 && directive.indexOf("點") >= 0;
+        })());
+
         // ---- 提示階梯 ----
         const wordItem = dayPlans[0].items.find(item => item.type === "word_zh2en");
         check("zh2en items start with picture+Chinese and only then reveal English",
@@ -375,6 +430,15 @@
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",
             appSource.indexOf('"word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond"') >= 0);
+        // 點選題只有孩子的手指能推進。模型看不到他點了什麼，讓模型判分等於憑空給分；
+        // 「一輪問答結束就兜底推進」則會在他還沒碰到螢幕之前把題目換掉。
+        check("a tap item never advances on the model's word",
+            /isTapItem\(currentItem\)/.test(appSource) && /reason: "tap_item"/.test(appSource));
+        check("a tap item never advances on the turn fallback",
+            /if \(window\.LessonPlan\.isTapItem\(item\)\) return;/.test(appSource));
+        check("a tap is judged by the program and recorded",
+            /LessonPlan\.checkTap/.test(appSource) && /plan_tap/.test(appSource) &&
+            /advancePlan\(verdict\.correct \? "correct" : "incorrect", "tap"\)/.test(appSource));
         check("news mode keeps the original flow",
             /時事討論不使用計畫驅動/.test(appSource));
 

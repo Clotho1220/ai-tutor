@@ -75,11 +75,29 @@
         #svImageWrap { position:relative; display:inline-block; line-height:0; }
         /* 對話漫畫比單字卡大：兩個角色＋兩個泡泡，太小看不清楚 */
         #svImageWrap.dialogue #svImage { max-width:min(88vw,460px); max-height:40vh; }
+        body.tap-mode #svImage { max-height:20vh; }
+        body.tap-mode #svImageWrap.dialogue #svImage { max-height:26vh; }
         .sv-bubble { position:absolute; top:6.5%; width:27%; max-height:18%; display:none;
                      overflow:hidden; line-height:1.15; text-align:center; color:#22303f;
                      font-size:clamp(11px,2.4vw,17px); font-weight:700; word-break:break-word; }
         #svBubbleLeft { left:8%; }
         #svBubbleRight { right:8%; }
+        /* 點選作答：按鈕要夠大，六到八歲的手指按得準 */
+        /* 下緣留出說話按鈕的高度，不然最後一排選項會被那顆固定按鈕蓋住 */
+        #svTapArea { width:min(92vw,520px); display:flex; flex-direction:column; align-items:center;
+                     gap:10px; padding-bottom:96px; }
+        #svTapHint { font-size:17px; color:#8a7a64; font-weight:700; }
+        #svTapPicked { min-height:44px; font-size:34px; font-weight:800; letter-spacing:4px;
+                       color:#2b6cb0; display:flex; align-items:center; }
+        #svTapOptions { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; width:100%; }
+        .sv-tap { background:#fff; color:#2b3a4a; border:2px solid #e4d8c4; border-radius:18px;
+                  padding:14px 22px; font-size:24px; font-weight:800; min-width:72px;
+                  box-shadow:0 3px 10px rgba(0,0,0,0.08); cursor:pointer;
+                  -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
+        .sv-tap:disabled { opacity:0.45; box-shadow:none; cursor:default; }
+        .sv-tap.picked { background:#eaf3fb; border-color:#2b6cb0; }
+        .sv-tap.right { background:#e7f7e9; border-color:#3aa655; color:#26713a; }
+        .sv-tap.wrong { background:#fdeceb; border-color:#d9534f; color:#a2312d; }
         #svImagePlaceholder { font-size:70px; line-height:1; }
         #svImageStatus { display:none; min-height:24px; font-size:17px; color:#8a7a64; }
         #svWord { font-size:42px; font-weight:800; color:#2b6cb0; word-break:break-word; }
@@ -183,7 +201,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.39</div>
+            <div id="appVersion">AI Tutor Studio v3.40</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -358,6 +376,12 @@
             <div id="svImageStatus" role="status" aria-live="polite"></div>
             <div id="svWord"></div>
             <div id="svMeaning"></div>
+            <!-- 點選作答（第 2〜5 天的單字與對答題）。對錯由程式判定，點完直接換下一題 -->
+            <div id="svTapArea" hidden>
+                <div id="svTapHint"></div>
+                <div id="svTapPicked"></div>
+                <div id="svTapOptions"></div>
+            </div>
             <div id="svSayBox">
                 <div id="svSayLabel">🗣️ 你說說看</div>
                 <div id="svSay"></div>
@@ -371,16 +395,16 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="dom-utils.js?v=20260908b"></script>
-    <script src="student-view.js?v=20260908b"></script>
-    <script src="live-session.js?v=20260908b"></script>
-    <script src="learning-records.js?v=20260908b"></script>
-    <script src="course-progression.js?v=20260908b"></script>
-    <script src="lesson-plan.js?v=20260908b"></script>
-    <script src="stage-transition.js?v=20260908b"></script>
-    <script src="practice-observer.js?v=20260908b"></script>
-    <script src="session-diagnostics.js?v=20260908b"></script>
-    <script src="lesson-ending.js?v=20260908b"></script>
-    <script src="openai-realtime.js?v=20260908b"></script>
-    <script src="app.js?v=20260908b"></script>
+    <script src="dom-utils.js?v=20260909a"></script>
+    <script src="student-view.js?v=20260909a"></script>
+    <script src="live-session.js?v=20260909a"></script>
+    <script src="learning-records.js?v=20260909a"></script>
+    <script src="course-progression.js?v=20260909a"></script>
+    <script src="lesson-plan.js?v=20260909a"></script>
+    <script src="stage-transition.js?v=20260909a"></script>
+    <script src="practice-observer.js?v=20260909a"></script>
+    <script src="session-diagnostics.js?v=20260909a"></script>
+    <script src="lesson-ending.js?v=20260909a"></script>
+    <script src="openai-realtime.js?v=20260909a"></script>
+    <script src="app.js?v=20260909a"></script>
 </body></html>

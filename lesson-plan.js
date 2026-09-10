@@ -786,23 +786,30 @@
         (letters || []).forEach((entry, letterIndex) => {
             const letter = text(entry.letter);
             const sound = text(entry.sound);
+            const soundNote = text(entry.soundNote);
             (entry.words || []).forEach((word, wordIndex) => {
                 const english = text(word.english);
                 const chinese = text(word.chinese);
                 const first = wordIndex === 0;
+                // 第一張帶字母與它的音。用例字當錨（apple 開頭的那個音），
+                // 例字錨不住的字母（X）才另外說明。
+                const anchor = soundNote || `就是「${english}」開頭的那個音`;
                 const lead = first
-                    ? `畫面上是字母卡。先清楚地唸字母「${letter}」，` +
-                      `再唸它的音（中文聽起來像「${sound}」），再唸例字「${english}」（${chinese}），`
+                    ? `畫面上是字母卡。先清楚地唸字母的名字「${letter}」，` +
+                      `再用英文發出這個字母最常見的那個音 ${sound}（${anchor}），` +
+                      `再唸例字「${english}」（${chinese}），`
                     : `同一個字母「${letter}」的第二張卡。唸例字「${english}」（${chinese}），`;
                 items.push(makeItem({
                     id: `${idPrefix}-${letterIndex + 1}-${wordIndex + 1}`,
                     type: "letter_say",
                     letter,
                     sound,
+                    soundNote,
                     target: english,
-                    // 畫面：卡面上已經有英文與中文了，這裡改秀字母與它的唸法
+                    // 畫面：卡面上已經有英文與中文，這裡只再大大地秀一次字母。
+                    // 發音不印在畫面上（使用者定案：不標注音）——音是用聽的。
                     display: letter,
-                    meaning: sound,
+                    meaning: "",
                     example: chinese,
                     image: text(word.image),
                     first,
@@ -1030,7 +1037,7 @@
             const name = label[item.type] || item.type;
             let detail = "";
             if (item.type === "letter_say") {
-                detail = `${item.letter}${item.first ? `（唸作 ${item.sound}）` : ""}　` +
+                detail = `${item.letter}${item.first && item.sound ? ` ${item.sound}` : ""}　` +
                     `${item.target}（${item.example}）` + (item.image ? "" : "　⚠️ 沒有卡");
             } else if (/^word_/.test(item.type)) {
                 detail = `${item.display}（${item.meaning}）` +
@@ -1197,7 +1204,13 @@
         } else if (item.type === "letter_say") {
             bits.push(` 字母卡上是「${item.letter}」和例字「${item.target}」` +
                 (item.example ? `（${item.example}）` : "") + "。");
-            if (item.first && item.sound) bits.push(` 這個字母的音，中文聽起來像「${item.sound}」。`);
+            // 音要用英文發出來。第一版寫成注音（ㄚ、ㄅ），模型直接把注音當台詞唸，
+            // 孩子聽到的是中文的ㄚ而不是 /æ/。
+            if (item.first && item.sound) {
+                bits.push(` 這個字母最常見的音是 ${item.sound}` +
+                    (item.soundNote ? `（${item.soundNote}）` : "") +
+                    "。用英文把這個音發出來給他聽，不要用中文或注音代替，也不要把音標唸出來。");
+            }
             // 使用者定案：這一項只是帶著唸，不評分也不稱讚。
             // 模型天生會補一句「你唸得很棒」，所以要正面講清楚它該做什麼、只做什麼。
             bits.push(" 你只做兩件事：清楚地唸給他聽、請他跟著唸一次；他唸完就回報 correct 往下一張。" +

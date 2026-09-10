@@ -12,7 +12,7 @@
 
 輸出：
     images/letters/A_apple.webp ...        （52 張）
-    letters.json                           （字母、唸法提示、兩個例字）
+    letters.json                           （字母、常見的音、兩個例字）
 """
 
 import argparse
@@ -29,16 +29,27 @@ GOGO = os.path.join(os.path.dirname(HERE), "Gogo English", "教材資料", "gogo
 OUT_DIR = os.path.join(HERE, "images", "letters")
 OUT_JSON = os.path.join(HERE, "letters.json")
 
-# 每個字母「唸起來像什麼」的中文提示。給模型用的，讓它能用孩子聽得懂的方式帶著唸
-# （模型自己發的是真正的英文音，這裡只是要它怎麼用中文解釋）。
-# 使用者的例子：A 唸「阿」、B 唸「ㄅ」。
+# 每個字母最常見的那個音（自然發音法的短音）。
+#
+# 2026-09-10 使用者定案：**不要標注音**。第一版寫成「ㄚ（阿）」「ㄅ」，
+# 那是要模型「用中文解釋」，但模型會直接把注音當成台詞唸出來，孩子聽到的
+# 就變成中文的ㄚ而不是英文的 /æ/。改成給音標，讓模型用英文把音發出來，
+# 畫面上也不再印任何發音標記。
+#
+# 例字本身就是最好的錨點（apple 開頭的那個音），所以指令會用當張卡的例字。
 SOUNDS = {
-    "A": "ㄚ（阿）", "B": "ㄅ", "C": "ㄎ", "D": "ㄉ", "E": "ㄝ",
-    "F": "ㄈ", "G": "ㄍ", "H": "ㄏ", "I": "ㄧ", "J": "ㄐ（就）",
-    "K": "ㄎ", "L": "ㄌ", "M": "ㄇ", "N": "ㄋ", "O": "ㄛ",
-    "P": "ㄆ", "Q": "ㄎㄨ", "R": "ㄖ", "S": "ㄙ", "T": "ㄊ",
-    "U": "ㄜ", "V": "ㄈㄨ（咬下嘴唇）", "W": "ㄨ", "X": "ㄎㄙ",
-    "Y": "ㄧ（一）", "Z": "ㄗ",
+    "A": "/æ/", "B": "/b/", "C": "/k/", "D": "/d/", "E": "/ɛ/",
+    "F": "/f/", "G": "/g/", "H": "/h/", "I": "/ɪ/", "J": "/dʒ/",
+    "K": "/k/", "L": "/l/", "M": "/m/", "N": "/n/", "O": "/ɑ/",
+    "P": "/p/", "Q": "/kw/", "R": "/r/", "S": "/s/", "T": "/t/",
+    "U": "/ʌ/", "V": "/v/", "W": "/w/", "X": "/ks/",
+    "Y": "/j/", "Z": "/z/",
+}
+
+# 例字錨不住那個音的字母，另外給一個說法。
+# X 的兩個例字（x-ray／exercise）開頭都是字母名 /ɛks/，不是 /ks/ 這個音。
+SOUND_NOTES = {
+    "X": "這個音在字尾，像 box、fox 最後的那個音",
 }
 
 
@@ -85,7 +96,8 @@ def main():
     out = OrderedDict()
     out["_說明"] = ("字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。"
                    "image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，"
-                   "前端整張顯示即可。sound 是給模型用的中文唸法提示。")
+                   "前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，"
+                   "不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。")
     rows = []
     done = skipped = 0
     for name, words in letters.items():
@@ -93,6 +105,7 @@ def main():
         entry = OrderedDict([
             ("letter", name),
             ("sound", SOUNDS.get(head, "")),
+            ("soundNote", SOUND_NOTES.get(head, "")),
             ("words", []),
         ])
         for english, chinese in words:
@@ -129,7 +142,7 @@ def main():
           % (len(rows), sum(len(r["words"]) for r in rows)))
     missing = [r["letter"] for r in rows if not r["sound"]]
     if missing:
-        print("⚠️ 這些字母沒有中文唸法提示：", missing)
+        print("⚠️ 這些字母沒有發音資料：", missing)
 
 
 if __name__ == "__main__":

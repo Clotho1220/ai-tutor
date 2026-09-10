@@ -243,7 +243,7 @@
             patterns: [], words: [], scenes: [],
             letters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(head => ({
                 letter: head + head.toLowerCase(),
-                sound: head === "A" ? "ㄚ（阿）" : "ㄅ",
+                sound: head === "A" ? "/æ/" : "/b/",
                 words: [
                     { english: head.toLowerCase() + "1", chinese: "一", image: `letters/${head}_1.webp` },
                     { english: head.toLowerCase() + "2", chinese: "二", image: `letters/${head}_2.webp` }
@@ -277,21 +277,29 @@
         check("only the first card of a letter introduces the sound", (function () {
             const cards = letterDays[0].items.filter(item => item.letter === "Aa");
             return cards.length === 2 && cards[0].first && !cards[1].first &&
-                LP.itemDirective(cards[0], { index: 1, total: 14, attempts: 0 }).indexOf("ㄚ（阿）") >= 0 &&
-                LP.itemDirective(cards[1], { index: 2, total: 14, attempts: 0 }).indexOf("ㄚ（阿）") < 0;
+                LP.itemDirective(cards[0], { index: 1, total: 14, attempts: 0 }).indexOf("/æ/") >= 0 &&
+                LP.itemDirective(cards[1], { index: 2, total: 14, attempts: 0 }).indexOf("/æ/") < 0;
         })());
         // 使用者定案：這一項只是帶著唸，不判對錯也不稱讚
+        check("the sound is voiced in English, never read out as a symbol", (function () {
+            const card = letterDays[0].items.find(item => item.letter === "Aa" && item.first);
+            const directive = LP.itemDirective(card, { index: 1, total: 14, attempts: 0 });
+            return directive.indexOf("不要用中文或注音代替") >= 0 &&
+                directive.indexOf("不要把音標唸出來") >= 0 &&
+                !/[ㄅ-ㄩ]/.test(directive);
+        })());
         check("letter items ask for no judging and no praise", (function () {
             const card = letterDays[0].items.find(item => item.type === "letter_say");
             const directive = LP.itemDirective(card, { index: 1, total: 14, attempts: 0 });
             return card.maxAttempts === 1 && !card.tap &&
                 directive.indexOf("不要糾正") >= 0 && directive.indexOf("很棒") >= 0;
         })());
-        check("letter cards are shown whole, with the letter and its sound beside them", (function () {
+        // 發音不印在畫面上（使用者定案：不標注音）——音是用聽的
+        check("letter cards are shown whole, with only the letter beside them", (function () {
             const card = letterDays[0].items.find(item => item.type === "letter_say");
             const reveal = LP.revealFor(card, 0);
             return reveal.image && reveal.picture.indexOf("letters/") === 0 &&
-                reveal.word === card.letter && reveal.meaning === card.sound;
+                reveal.word === card.letter && reveal.meaning === "";
         })());
         // 字母卡是老師自己挑的獨立練習，Book 3 上完不該自動接到它
         check("the letters book stays out of the main course order", (function () {

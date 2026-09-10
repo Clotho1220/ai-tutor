@@ -1,9 +1,10 @@
 {
- "_說明": "字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，前端整張顯示即可。sound 是給模型用的中文唸法提示。",
+ "_說明": "字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。",
  "letters": [
   {
    "letter": "Aa",
-   "sound": "ㄚ（阿）",
+   "sound": "/æ/",
+   "soundNote": "",
    "words": [
     {
      "english": "apple",
@@ -19,7 +20,8 @@
   },
   {
    "letter": "Bb",
-   "sound": "ㄅ",
+   "sound": "/b/",
+   "soundNote": "",
    "words": [
     {
      "english": "banana",
@@ -35,7 +37,8 @@
   },
   {
    "letter": "Cc",
-   "sound": "ㄎ",
+   "sound": "/k/",
+   "soundNote": "",
    "words": [
     {
      "english": "cat",
@@ -51,7 +54,8 @@
   },
   {
    "letter": "Dd",
-   "sound": "ㄉ",
+   "sound": "/d/",
+   "soundNote": "",
    "words": [
     {
      "english": "dog",
@@ -67,7 +71,8 @@
   },
   {
    "letter": "Ee",
-   "sound": "ㄝ",
+   "sound": "/ɛ/",
+   "soundNote": "",
    "words": [
     {
      "english": "elephant",
@@ -83,7 +88,8 @@
   },
   {
    "letter": "Ff",
-   "sound": "ㄈ",
+   "sound": "/f/",
+   "soundNote": "",
    "words": [
     {
      "english": "fish",
@@ -99,7 +105,8 @@
   },
   {
    "letter": "Gg",
-   "sound": "ㄍ",
+   "sound": "/g/",
+   "soundNote": "",
    "words": [
     {
      "english": "goat",
@@ -115,7 +122,8 @@
   },
   {
    "letter": "Hh",
-   "sound": "ㄏ",
+   "sound": "/h/",
+   "soundNote": "",
    "words": [
     {
      "english": "hippo",
@@ -131,7 +139,8 @@
   },
   {
    "letter": "Ii",
-   "sound": "ㄧ",
+   "sound": "/ɪ/",
+   "soundNote": "",
    "words": [
     {
      "english": "iguana",
@@ -147,7 +156,8 @@
   },
   {
    "letter": "Jj",
-   "sound": "ㄐ（就）",
+   "sound": "/dʒ/",
+   "soundNote": "",
    "words": [
     {
      "english": "juice",
@@ -163,7 +173,8 @@
   },
   {
    "letter": "Kk",
-   "sound": "ㄎ",
+   "sound": "/k/",
+   "soundNote": "",
    "words": [
     {
      "english": "kangaroo",
@@ -179,7 +190,8 @@
   },
   {
    "letter": "Ll",
-   "sound": "ㄌ",
+   "sound": "/l/",
+   "soundNote": "",
    "words": [
     {
      "english": "lion",
@@ -195,7 +207,8 @@
   },
   {
    "letter": "Mm",
-   "sound": "ㄇ",
+   "sound": "/m/",
+   "soundNote": "",
    "words": [
     {
      "english": "monkey",
@@ -211,7 +224,8 @@
   },
   {
    "letter": "Nn",
-   "sound": "ㄋ",
+   "sound": "/n/",
+   "soundNote": "",
    "words": [
     {
      "english": "noodles",
@@ -227,7 +241,8 @@
   },
   {
    "letter": "Oo",
-   "sound": "ㄛ",
+   "sound": "/ɑ/",
+   "soundNote": "",
    "words": [
     {
      "english": "octopus",
@@ -243,7 +258,8 @@
   },
   {
    "letter": "Pp",
-   "sound": "ㄆ",
+   "sound": "/p/",
+   "soundNote": "",
    "words": [
     {
      "english": "panda",
@@ -259,7 +275,8 @@
   },
   {
    "letter": "Qq",
-   "sound": "ㄎㄨ",
+   "sound": "/kw/",
+   "soundNote": "",
    "words": [
     {
      "english": "queen",
@@ -275,7 +292,8 @@
   },
   {
    "letter": "Rr",
-   "sound": "ㄖ",
+   "sound": "/r/",
+   "soundNote": "",
    "words": [
     {
      "english": "rabbit",
@@ -291,7 +309,8 @@
   },
   {
    "letter": "Ss",
-   "sound": "ㄙ",
+   "sound": "/s/",
+   "soundNote": "",
    "words": [
     {
      "english": "sun",
@@ -307,7 +326,8 @@
   },
   {
    "letter": "Tt",
-   "sound": "ㄊ",
+   "sound": "/t/",
+   "soundNote": "",
    "words": [
     {
      "english": "tiger",
@@ -323,7 +343,8 @@
   },
   {
    "letter": "Uu",
-   "sound": "ㄜ",
+   "sound": "/ʌ/",
+   "soundNote": "",
    "words": [
     {
      "english": "umbrella",
@@ -339,7 +360,8 @@
   },
   {
    "letter": "Vv",
-   "sound": "ㄈㄨ（咬下嘴唇）",
+   "sound": "/v/",
+   "soundNote": "",
    "words": [
     {
      "english": "violin",
@@ -355,7 +377,8 @@
   },
   {
    "letter": "Ww",
-   "sound": "ㄨ",
+   "sound": "/w/",
+   "soundNote": "",
    "words": [
     {
      "english": "watch",
@@ -371,7 +394,8 @@
   },
   {
    "letter": "Xx",
-   "sound": "ㄎㄙ",
+   "sound": "/ks/",
+   "soundNote": "這個音在字尾，像 box、fox 最後的那個音",
    "words": [
     {
      "english": "x-ray",
@@ -387,7 +411,8 @@
   },
   {
    "letter": "Yy",
-   "sound": "ㄧ（一）",
+   "sound": "/j/",
+   "soundNote": "",
    "words": [
     {
      "english": "yo-yo",
@@ -403,7 +428,8 @@
   },
   {
    "letter": "Zz",
-   "sound": "ㄗ",
+   "sound": "/z/",
+   "soundNote": "",
    "words": [
     {
      "english": "zebra",

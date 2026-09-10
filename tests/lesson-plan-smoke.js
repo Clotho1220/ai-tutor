@@ -237,6 +237,77 @@
             return directive.indexOf("report_item_result") >= 0 && directive.indexOf("點") >= 0;
         })());
 
+        // ---- 字母單元（認識 A–Z，跟著唸就好，不判對錯） ----
+        const lettersUnit = {
+            book: "字母 ABC", num: 1, title: "認識字母 A–Z", type: "letters",
+            patterns: [], words: [], scenes: [],
+            letters: "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(head => ({
+                letter: head + head.toLowerCase(),
+                sound: head === "A" ? "ㄚ（阿）" : "ㄅ",
+                words: [
+                    { english: head.toLowerCase() + "1", chinese: "一", image: `letters/${head}_1.webp` },
+                    { english: head.toLowerCase() + "2", chinese: "二", image: `letters/${head}_2.webp` }
+                ]
+            }))
+        };
+        const letterDays = [1, 2, 3, 4, 5].map(day =>
+            LP.build({ person: "Rex", day, unit: lettersUnit, reviewUnits: [], learnedWords: [] }));
+        check("a letters unit drills letters instead of patterns and vocabulary",
+            letterDays[0].items.every(item =>
+                ["opening", "closing", "letter_say"].indexOf(item.type) >= 0) &&
+            letterDays[0].items.some(item => item.type === "letter_say"));
+        check("all 26 letters are covered across the week exactly once", (function () {
+            const seen = letterDays.flatMap(plan =>
+                plan.items.filter(item => item.type === "letter_say").map(item => item.letter));
+            return seen.length === 52 && new Set(seen).size === 26;
+        })());
+        check("a letter's two cards never split across days",
+            letterDays.every(plan => {
+                const letters = plan.items.filter(item => item.type === "letter_say")
+                    .map(item => item.letter);
+                return [...new Set(letters)].every(one =>
+                    letters.filter(other => other === one).length === 2);
+            }));
+        check("the days are evenly sized, never 6/6/6/6/2", (function () {
+            const sizes = letterDays.map(plan =>
+                new Set(plan.items.filter(item => item.type === "letter_say")
+                    .map(item => item.letter)).size);
+            return Math.max(...sizes) - Math.min(...sizes) <= 1;
+        })());
+        check("only the first card of a letter introduces the sound", (function () {
+            const cards = letterDays[0].items.filter(item => item.letter === "Aa");
+            return cards.length === 2 && cards[0].first && !cards[1].first &&
+                LP.itemDirective(cards[0], { index: 1, total: 14, attempts: 0 }).indexOf("ㄚ（阿）") >= 0 &&
+                LP.itemDirective(cards[1], { index: 2, total: 14, attempts: 0 }).indexOf("ㄚ（阿）") < 0;
+        })());
+        // 使用者定案：這一項只是帶著唸，不判對錯也不稱讚
+        check("letter items ask for no judging and no praise", (function () {
+            const card = letterDays[0].items.find(item => item.type === "letter_say");
+            const directive = LP.itemDirective(card, { index: 1, total: 14, attempts: 0 });
+            return card.maxAttempts === 1 && !card.tap &&
+                directive.indexOf("不要糾正") >= 0 && directive.indexOf("很棒") >= 0;
+        })());
+        check("letter cards are shown whole, with the letter and its sound beside them", (function () {
+            const card = letterDays[0].items.find(item => item.type === "letter_say");
+            const reveal = LP.revealFor(card, 0);
+            return reveal.image && reveal.picture.indexOf("letters/") === 0 &&
+                reveal.word === card.letter && reveal.meaning === card.sound;
+        })());
+        // 字母卡是老師自己挑的獨立練習，Book 3 上完不該自動接到它
+        check("the letters book stays out of the main course order", (function () {
+            const books = [
+                { name: "Book 3", units: [{ book: "Book 3", num: 12, type: "review" }] },
+                { name: "字母 ABC", standalone: true, units: [
+                    { book: "字母 ABC", num: 1, type: "letters" },
+                    { book: "字母 ABC", num: 2, type: "letters" }
+                ] }
+            ];
+            const after3 = CP.nextUnit(books, { book: "Book 3", num: 12 });
+            const after1 = CP.nextUnit(books, { book: "字母 ABC", num: 1 });
+            const after2 = CP.nextUnit(books, { book: "字母 ABC", num: 2 });
+            return after3 === null && after1 && after1.num === 2 && after2 === null;
+        })());
+
         // ---- 提示階梯 ----
         const wordItem = dayPlans[0].items.find(item => item.type === "word_zh2en");
         check("zh2en items start with picture+Chinese and only then reveal English",
@@ -429,7 +500,7 @@
         check("stale reports for another item never advance the plan",
             /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
         check("report_item_result kinds match the new item types",
-            appSource.indexOf('"word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond"') >= 0);
+            appSource.indexOf('"word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond", "letter_say"') >= 0);
         // 點選題只有孩子的手指能推進。模型看不到他點了什麼，讓模型判分等於憑空給分；
         // 「一輪問答結束就兜底推進」則會在他還沒碰到螢幕之前把題目換掉。
         check("a tap item never advances on the model's word",

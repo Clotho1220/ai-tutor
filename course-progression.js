@@ -1,9 +1,12 @@
 (function (global) {
     "use strict";
 
+    // standalone 的書（字母 ABC）不排進主課程的順序：Book 3 上完不該自動接到字母卡。
+    // 那種書是老師在選單裡自己挑的，它自己的單元之間仍然照順序接下去。
     function orderedUnits(books) {
         const ordered = [];
         (books || []).forEach(book => {
+            if (book && book.standalone) return;
             (book.units || []).forEach(unit => {
                 if (unit && unit.book != null && unit.num != null) ordered.push(unit);
             });
@@ -11,13 +14,26 @@
         return ordered;
     }
 
+    function sameUnit(unit, current) {
+        return String(unit && unit.book) === String(current && current.book) &&
+            Number(unit && unit.num) === Number(current && current.num);
+    }
+
     function indexOfUnit(ordered, current) {
-        return ordered.findIndex(unit =>
-            String(unit.book) === String(current && current.book) &&
-            Number(unit.num) === Number(current && current.num));
+        return ordered.findIndex(unit => sameUnit(unit, current));
+    }
+
+    function bookOf(books, current) {
+        return (books || []).find(book => (book.units || []).some(unit => sameUnit(unit, current)));
     }
 
     function nextUnit(books, current) {
+        const book = bookOf(books, current);
+        if (book && book.standalone) {
+            const units = book.units || [];
+            const index = indexOfUnit(units, current);
+            return index >= 0 && index + 1 < units.length ? units[index + 1] : null;
+        }
         const ordered = orderedUnits(books);
         const index = indexOfUnit(ordered, current);
         return index >= 0 && index + 1 < ordered.length ? ordered[index + 1] : null;

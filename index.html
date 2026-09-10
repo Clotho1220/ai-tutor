@@ -75,6 +75,9 @@
         #svImageWrap { position:relative; display:inline-block; line-height:0; }
         /* 對話漫畫比單字卡大：兩個角色＋兩個泡泡，太小看不清楚 */
         #svImageWrap.dialogue #svImage { max-width:min(88vw,460px); max-height:40vh; }
+        /* 字母卡是直式的（卡面上就有字母、單字與中文），要給它高一點 */
+        body.letter-mode #svImage { max-width:min(72vw,330px); max-height:52vh; }
+        body.letter-mode #svWord { font-size:56px; }
         body.tap-mode #svImage { max-height:20vh; }
         body.tap-mode #svImageWrap.dialogue #svImage { max-height:26vh; }
         .sv-bubble { position:absolute; top:6.5%; width:27%; max-height:18%; display:none;
@@ -201,7 +204,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.40</div>
+            <div id="appVersion">AI Tutor Studio v3.41</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -395,16 +398,16 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="dom-utils.js?v=20260909a"></script>
-    <script src="student-view.js?v=20260909a"></script>
-    <script src="live-session.js?v=20260909a"></script>
-    <script src="learning-records.js?v=20260909a"></script>
-    <script src="course-progression.js?v=20260909a"></script>
-    <script src="lesson-plan.js?v=20260909a"></script>
-    <script src="stage-transition.js?v=20260909a"></script>
-    <script src="practice-observer.js?v=20260909a"></script>
-    <script src="session-diagnostics.js?v=20260909a"></script>
-    <script src="lesson-ending.js?v=20260909a"></script>
-    <script src="openai-realtime.js?v=20260909a"></script>
-    <script src="app.js?v=20260909a"></script>
+    <script src="dom-utils.js?v=20260910a"></script>
+    <script src="student-view.js?v=20260910a"></script>
+    <script src="live-session.js?v=20260910a"></script>
+    <script src="learning-records.js?v=20260910a"></script>
+    <script src="course-progression.js?v=20260910a"></script>
+    <script src="lesson-plan.js?v=20260910a"></script>
+    <script src="stage-transition.js?v=20260910a"></script>
+    <script src="practice-observer.js?v=20260910a"></script>
+    <script src="session-diagnostics.js?v=20260910a"></script>
+    <script src="lesson-ending.js?v=20260910a"></script>
+    <script src="openai-realtime.js?v=20260910a"></script>
+    <script src="app.js?v=20260910a"></script>
 </body></html>

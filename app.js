@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.40";
+const APP_VERSION = "3.41";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -880,6 +880,14 @@ async function readSelectedUnit() {
         if (u.desc) {
             preview.appendChild(document.createTextNode(u.desc));
             preview.appendChild(document.createElement('br'));
+        }
+        if (u.type === "letters") {
+            const cards = (u.letters || []).reduce((n, one) => n + (one.words || []).length, 0);
+            preview.appendChild(makeElement('span', {
+                text: `${(u.letters || []).length} 個字母、${cards} 張圖卡`, color: '#4daafc'
+            }));
+            appendText(preview, ' → 分成 5 天，跟著唸就好，不判對錯');
+            return;
         }
         preview.appendChild(makeElement('span', {
             text: `${u.patterns.length} 個句型、${u.words.length} 個單字`, color: '#4daafc'
@@ -2316,7 +2324,7 @@ function tutorToolDeclarations() {
                 attempt: { type: "integer", description: "1 for the first try, 2 for the retry after your correction." },
                 kind: {
                     type: "string",
-                    enum: ["word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond", "free"],
+                    enum: ["word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond", "letter_say", "free"],
                     description: "Which kind of practice item this was."
                 },
                 issue: { type: "string", description: "Optional short note on what was off, e.g. missing verb, wrong word order, sounded unsure." }
@@ -2644,6 +2652,7 @@ function applyPlanReveal(item, attempts) {
         meaning: reveal.chinese ? reveal.meaning : "",
         tap: reveal.tap,
         tapState: { picked: [] },
+        kind: item.type === "letter_say" ? "letter" : "",
         icon: item.type === "pattern_substitute" ? "💬" : "🎧"
     });
 }

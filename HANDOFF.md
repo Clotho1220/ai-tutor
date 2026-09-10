@@ -1,6 +1,6 @@
 # 交接說明（新對話視窗請先讀這份）
 
-最後更新：2026-09-09　目前版本：v3.40
+最後更新：2026-09-10　目前版本：v3.41
 
 這份文件記錄「**使用者定義的教學需求**」與「**目前做到哪、還沒做什麼**」。
 技術細節與版本歷史在 [`PROJECT-STATUS.md`](PROJECT-STATUS.md)，兩份一起看。
@@ -109,6 +109,7 @@ AI 用英文問（Can you fly?），學員要會答（No, I can't.）。
 | **句子練習的對話漫畫圖（239 張）** | ✅ v3.38 全部完成 | 圖已生成並轉進 `images/`（766 張）；`dialogueFor()` 掛圖、`bubblesFor()` 決定泡泡壓什麼字 |
 | 每日單字互動式點選介面 | ✅ v3.40 | day2 唸完點中文、day3 點選再唸、day4 點字母、day5 排字母、對答點答案；對錯由程式判定 |
 | B2U7/B3U7 單複數、家具槽位、多空格句型 | ✅ v3.39 | `wordPlurals`／`wordSlots` + 槽位相符的 `fillSlot()` |
+| 字母單元（認識 A–Z 與發音） | ✅ v3.41 | 「字母 ABC」兩個單元（順序／隨機），52 張字母卡；帶著唸、不判對錯 |
 | **開場三種回應處理** | ❌ 未實作 | 目前只有一段 opening 指令 |
 | **學員弱點累積與運用** | ❌ 未實作 | 需要先累積 `report_item_result` 資料 |
 | **結束時完整匯出到試算表** | ⚠️ 部分 | 項目層級結果尚未寫入 |
@@ -191,6 +192,9 @@ python -m http.server 8000 --bind 127.0.0.1
 - 更新教材：先改「Gogo English」專案的 `教材資料/gogo{1,2,3}.json`，
   再回本專案執行 `python build-units-from-gogo.py`
 - 更新圖庫：母版重生成後執行 `python build-images.py`（只轉新增的，`--force` 全部重轉）
+- 更新字母卡：`python build-letters.py`（讀「Gogo English」專案的 `圖片提示詞/圖卡/字母卡`，
+  轉成 `images/letters/` 並寫出 `letters.json`；之後要再跑一次 `build-units-from-gogo.py`
+  才會把「字母 ABC」那本書寫進 units.json）
 - 一頁跑完全部測試：`tests/run-all.html`
 
 ---

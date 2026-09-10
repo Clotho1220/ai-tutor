@@ -1,0 +1,421 @@
+{
+ "_說明": "字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，前端整張顯示即可。sound 是給模型用的中文唸法提示。",
+ "letters": [
+  {
+   "letter": "Aa",
+   "sound": "ㄚ（阿）",
+   "words": [
+    {
+     "english": "apple",
+     "chinese": "蘋果",
+     "image": "letters/A_apple.webp"
+    },
+    {
+     "english": "ant",
+     "chinese": "螞蟻",
+     "image": "letters/A_ant.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Bb",
+   "sound": "ㄅ",
+   "words": [
+    {
+     "english": "banana",
+     "chinese": "香蕉",
+     "image": "letters/B_banana.webp"
+    },
+    {
+     "english": "bear",
+     "chinese": "熊",
+     "image": "letters/B_bear.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Cc",
+   "sound": "ㄎ",
+   "words": [
+    {
+     "english": "cat",
+     "chinese": "貓",
+     "image": "letters/C_cat.webp"
+    },
+    {
+     "english": "carrot",
+     "chinese": "紅蘿蔔",
+     "image": "letters/C_carrot.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Dd",
+   "sound": "ㄉ",
+   "words": [
+    {
+     "english": "dog",
+     "chinese": "狗",
+     "image": "letters/D_dog.webp"
+    },
+    {
+     "english": "duck",
+     "chinese": "鴨子",
+     "image": "letters/D_duck.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Ee",
+   "sound": "ㄝ",
+   "words": [
+    {
+     "english": "elephant",
+     "chinese": "大象",
+     "image": "letters/E_elephant.webp"
+    },
+    {
+     "english": "egg",
+     "chinese": "蛋",
+     "image": "letters/E_egg.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Ff",
+   "sound": "ㄈ",
+   "words": [
+    {
+     "english": "fish",
+     "chinese": "魚",
+     "image": "letters/F_fish.webp"
+    },
+    {
+     "english": "fox",
+     "chinese": "狐狸",
+     "image": "letters/F_fox.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Gg",
+   "sound": "ㄍ",
+   "words": [
+    {
+     "english": "goat",
+     "chinese": "山羊",
+     "image": "letters/G_goat.webp"
+    },
+    {
+     "english": "girl",
+     "chinese": "女孩",
+     "image": "letters/G_girl.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Hh",
+   "sound": "ㄏ",
+   "words": [
+    {
+     "english": "hippo",
+     "chinese": "河馬",
+     "image": "letters/H_hippo.webp"
+    },
+    {
+     "english": "hat",
+     "chinese": "帽子",
+     "image": "letters/H_hat.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Ii",
+   "sound": "ㄧ",
+   "words": [
+    {
+     "english": "iguana",
+     "chinese": "鬣蜥",
+     "image": "letters/I_iguana.webp"
+    },
+    {
+     "english": "igloo",
+     "chinese": "冰屋",
+     "image": "letters/I_igloo.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Jj",
+   "sound": "ㄐ（就）",
+   "words": [
+    {
+     "english": "juice",
+     "chinese": "果汁",
+     "image": "letters/J_juice.webp"
+    },
+    {
+     "english": "jellyfish",
+     "chinese": "水母",
+     "image": "letters/J_jellyfish.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Kk",
+   "sound": "ㄎ",
+   "words": [
+    {
+     "english": "kangaroo",
+     "chinese": "袋鼠",
+     "image": "letters/K_kangaroo.webp"
+    },
+    {
+     "english": "kite",
+     "chinese": "風箏",
+     "image": "letters/K_kite.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Ll",
+   "sound": "ㄌ",
+   "words": [
+    {
+     "english": "lion",
+     "chinese": "獅子",
+     "image": "letters/L_lion.webp"
+    },
+    {
+     "english": "lemon",
+     "chinese": "檸檬",
+     "image": "letters/L_lemon.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Mm",
+   "sound": "ㄇ",
+   "words": [
+    {
+     "english": "monkey",
+     "chinese": "猴子",
+     "image": "letters/M_monkey.webp"
+    },
+    {
+     "english": "melon",
+     "chinese": "甜瓜",
+     "image": "letters/M_melon.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Nn",
+   "sound": "ㄋ",
+   "words": [
+    {
+     "english": "noodles",
+     "chinese": "麵",
+     "image": "letters/N_noodles.webp"
+    },
+    {
+     "english": "nose",
+     "chinese": "鼻子",
+     "image": "letters/N_nose.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Oo",
+   "sound": "ㄛ",
+   "words": [
+    {
+     "english": "octopus",
+     "chinese": "章魚",
+     "image": "letters/O_octopus.webp"
+    },
+    {
+     "english": "ox",
+     "chinese": "公牛",
+     "image": "letters/O_ox.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Pp",
+   "sound": "ㄆ",
+   "words": [
+    {
+     "english": "panda",
+     "chinese": "熊貓",
+     "image": "letters/P_panda.webp"
+    },
+    {
+     "english": "piano",
+     "chinese": "鋼琴",
+     "image": "letters/P_piano.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Qq",
+   "sound": "ㄎㄨ",
+   "words": [
+    {
+     "english": "queen",
+     "chinese": "皇后",
+     "image": "letters/Q_queen.webp"
+    },
+    {
+     "english": "question",
+     "chinese": "問題",
+     "image": "letters/Q_question.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Rr",
+   "sound": "ㄖ",
+   "words": [
+    {
+     "english": "rabbit",
+     "chinese": "兔子",
+     "image": "letters/R_rabbit.webp"
+    },
+    {
+     "english": "rice",
+     "chinese": "米飯",
+     "image": "letters/R_rice.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Ss",
+   "sound": "ㄙ",
+   "words": [
+    {
+     "english": "sun",
+     "chinese": "太陽",
+     "image": "letters/S_sun.webp"
+    },
+    {
+     "english": "soccer",
+     "chinese": "足球",
+     "image": "letters/S_soccer.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Tt",
+   "sound": "ㄊ",
+   "words": [
+    {
+     "english": "tiger",
+     "chinese": "老虎",
+     "image": "letters/T_tiger.webp"
+    },
+    {
+     "english": "TV",
+     "chinese": "電視",
+     "image": "letters/T_TV.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Uu",
+   "sound": "ㄜ",
+   "words": [
+    {
+     "english": "umbrella",
+     "chinese": "雨傘",
+     "image": "letters/U_umbrella.webp"
+    },
+    {
+     "english": "unhappy",
+     "chinese": "不開心的",
+     "image": "letters/U_unhappy.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Vv",
+   "sound": "ㄈㄨ（咬下嘴唇）",
+   "words": [
+    {
+     "english": "violin",
+     "chinese": "小提琴",
+     "image": "letters/V_violin.webp"
+    },
+    {
+     "english": "volleyball",
+     "chinese": "排球",
+     "image": "letters/V_volleyball.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Ww",
+   "sound": "ㄨ",
+   "words": [
+    {
+     "english": "watch",
+     "chinese": "手錶",
+     "image": "letters/W_watch.webp"
+    },
+    {
+     "english": "witch",
+     "chinese": "女巫",
+     "image": "letters/W_witch.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Xx",
+   "sound": "ㄎㄙ",
+   "words": [
+    {
+     "english": "x-ray",
+     "chinese": "X光",
+     "image": "letters/X_x-ray.webp"
+    },
+    {
+     "english": "exercise",
+     "chinese": "運動",
+     "image": "letters/X_exercise.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Yy",
+   "sound": "ㄧ（一）",
+   "words": [
+    {
+     "english": "yo-yo",
+     "chinese": "溜溜球",
+     "image": "letters/Y_yo-yo.webp"
+    },
+    {
+     "english": "yogurt",
+     "chinese": "優格",
+     "image": "letters/Y_yogurt.webp"
+    }
+   ]
+  },
+  {
+   "letter": "Zz",
+   "sound": "ㄗ",
+   "words": [
+    {
+     "english": "zebra",
+     "chinese": "斑馬",
+     "image": "letters/Z_zebra.webp"
+    },
+    {
+     "english": "zoo",
+     "chinese": "動物園",
+     "image": "letters/Z_zoo.webp"
+    }
+   ]
+  }
+ ]
+}

@@ -289,6 +289,56 @@ def build_book(book_num, gogo, overlay, images, scenes, report):
     return {"name": "Book %d" % book_num, "units": units}
 
 
+# 隨機那一個單元的字母順序。固定不變（不用 random），這樣每次產生的課表都一樣，
+# 診斷檔對得起來，孩子重上同一天看到的也是同一批。只要不是 A–Z 就達到目的。
+SHUFFLED_LETTERS = [
+    "Mm", "Cc", "Tt", "Ff", "Zz", "Ii", "Rr", "Bb", "Yy", "Oo", "Ll", "Ee", "Ww",
+    "Aa", "Ss", "Gg", "Nn", "Xx", "Dd", "Uu", "Kk", "Pp", "Hh", "Vv", "Jj", "Qq",
+]
+
+
+def build_letters_book(letters_path, report):
+    """字母卡單元：認識 A–Z 與它的發音，一個字母兩個例字。
+
+    課本沒有這一段（第 1 冊的 phonics 只是每個單元附兩個字），這是使用者要的
+    獨立練習。兩個單元同樣的 52 張卡，差別只有順序：
+      Unit 1 照 A–Z，Unit 2 打散。照週曆制上完第一個單元就會換到第二個，
+      剛好就是使用者說的「5 天後改成隨機排列」。
+    """
+    if not os.path.isfile(letters_path):
+        return None
+    data = load_json(letters_path)
+    rows = data.get("letters") or []
+    if not rows:
+        return None
+    by_name = {row["letter"]: row for row in rows}
+    shuffled = ([by_name[name] for name in SHUFFLED_LETTERS if name in by_name]
+                + [row for row in rows if row["letter"] not in SHUFFLED_LETTERS])
+    if len(shuffled) != len(rows):
+        report.append("⚠️ 字母卡的隨機順序表與 letters.json 對不起來，隨機單元會退回 A–Z")
+        shuffled = rows
+
+    def unit(num, title, desc, letters):
+        return {
+            "book": "字母 ABC", "num": num, "type": "letters", "title": title,
+            "pages": "", "function": "認識字母與發音", "desc": desc,
+            "theme": "Children meet each letter, its sound, and two words that start with it."
+                     "（認識每個字母、它的發音，以及兩個開頭是這個字母的單字。）",
+            "patterns": [], "words": [], "scenes": [], "grammar": [], "expressions": [],
+            "notes": "跟著唸就好，不判對錯、不給評語（使用者定案 2026-09-10）。",
+            "letters": letters,
+        }
+
+    # standalone：不排進主課程的順序。Book 3 上完不該自動接到字母卡，
+    # 這兩個單元是老師在選單裡自己挑的。
+    return {"name": "字母 ABC", "standalone": True, "units": [
+        unit(1, "認識字母 A–Z", "照 A 到 Z 的順序，一個字母配兩張圖卡，帶著孩子唸字母、"
+                               "唸它的音、再唸兩個例字。", rows),
+        unit(2, "字母大挑戰（隨機）", "同樣 26 個字母，但順序打散——不照 A–Z 也認得出來，"
+                                    "才是真的認識了。", shuffled),
+    ]}
+
+
 def main():
     # Windows 主控台預設是 cp950，訊息裡的中文與符號會炸掉
     for stream in (sys.stdout, sys.stderr):
@@ -320,6 +370,10 @@ def main():
     books = [build_book(n, load_json(os.path.join(gogo_dir, "gogo%d.json" % n)),
                         overlay, images, scenes, report)
              for n in BOOKS]
+
+    letters_book = build_letters_book(os.path.join(here, "letters.json"), report)
+    if letters_book:
+        books.append(letters_book)
 
     out_path = os.path.join(here, args.out)
     with open(out_path, "w", encoding="utf-8") as handle:

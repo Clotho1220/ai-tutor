@@ -267,6 +267,8 @@
             hideTopics();
             // 換卡片就換題目：上一題的選項一定要收掉
             showTap(data.tap || null, data.tapState || null);
+            // 字母卡是直式的，版面要換一套（CSS 的 body.letter-mode）
+            if (doc.body) doc.body.classList.toggle('letter-mode', data.kind === 'letter');
             state.contentVersion += 1;
             state.wordKey = normalize(data.word || "");
             if (elements.word) elements.word.textContent = data.word || "";

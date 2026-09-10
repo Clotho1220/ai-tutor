@@ -759,6 +759,104 @@
         })];
     }
 
+    // ---------------- 字母單元（認識 A–Z 與它的發音） ----------------
+    // 2026-09-10 使用者定案。跟其他項目最大的不同是**不判對錯、不給評語**：
+    // 這是「帶著唸」，不是考試。孩子跟著唸完就往下一張，AI 不要說「你唸得很棒」。
+    //
+    // 一個字母兩張卡（apple／ant）。第一張帶字母與它的音，第二張只帶例字——
+    // 同一個字母的兩張一定排在同一天，不會被切開。
+    // 卡面上已經印了字母、英文與中文，所以前端整張顯示就好。
+
+    // 26 個字母分成 5 天，每天連續的一段，天數之間最多差一個
+    // （chunkInOrder 會切成 6/6/6/6/2，最後一天只剩兩個字母）。
+    function splitEvenly(list, parts) {
+        const items = (list || []).filter(Boolean);
+        const buckets = [];
+        let start = 0;
+        for (let i = 0; i < parts; i++) {
+            const size = Math.ceil((items.length - start) / (parts - i));
+            buckets.push(items.slice(start, start + size));
+            start += size;
+        }
+        return buckets;
+    }
+
+    function letterItems(letters, idPrefix) {
+        const items = [];
+        (letters || []).forEach((entry, letterIndex) => {
+            const letter = text(entry.letter);
+            const sound = text(entry.sound);
+            (entry.words || []).forEach((word, wordIndex) => {
+                const english = text(word.english);
+                const chinese = text(word.chinese);
+                const first = wordIndex === 0;
+                const lead = first
+                    ? `畫面上是字母卡。先清楚地唸字母「${letter}」，` +
+                      `再唸它的音（中文聽起來像「${sound}」），再唸例字「${english}」（${chinese}），`
+                    : `同一個字母「${letter}」的第二張卡。唸例字「${english}」（${chinese}），`;
+                items.push(makeItem({
+                    id: `${idPrefix}-${letterIndex + 1}-${wordIndex + 1}`,
+                    type: "letter_say",
+                    letter,
+                    sound,
+                    target: english,
+                    // 畫面：卡面上已經有英文與中文了，這裡改秀字母與它的唸法
+                    display: letter,
+                    meaning: sound,
+                    example: chinese,
+                    image: text(word.image),
+                    first,
+                    maxAttempts: 1,
+                    ladder: [{
+                        reveal: { image: true, english: true, chinese: true },
+                        // 「不評分、不稱讚」那條規則寫在 itemDirective 裡，這裡只講這一步要做什麼
+                        instruction: lead + "然後請他跟著唸一次，結束回合等他唸。"
+                    }]
+                }));
+            });
+        });
+        return items;
+    }
+
+    function buildLetterPlan(config, unit, day) {
+        const blocks = splitEvenly(unit.letters || [], WEEK_DAYS);
+        const today = blocks[day - 1] || [];
+        const items = [makeItem({
+            id: "opening",
+            type: "opening",
+            maxAttempts: 1,
+            ladder: [{ reveal: {},
+                instruction: "開場白：告訴孩子今天要認識哪幾個字母" +
+                    (today.length ? `（${today.map(one => text(one.letter)).join("、")}）` : "") +
+                    "，說我們會看圖卡、一起唸字母和它的音。" +
+                    "最後用英文問「Are you ready?」，然後結束回合等待回答。" +
+                    "孩子不管回答什麼都算開場完成，立刻回報。" }]
+        })];
+        items.push(...letterItems(today, "lt"));
+        items.push(makeItem({
+            id: "closing",
+            type: "closing",
+            maxAttempts: 1,
+            ladder: [{ reveal: {},
+                instruction: "結尾：說今天認識了哪幾個字母，" +
+                    "然後說「我們下次再見囉, bye bye!」道別。" }]
+        }));
+        const counts = items.reduce((acc, item) => {
+            acc[item.type] = (acc[item.type] || 0) + 1;
+            return acc;
+        }, {});
+        return {
+            version: 2,
+            person: text(config.person),
+            day,
+            unitLabel: `${text(unit.book)} Unit ${unit.num}: ${text(unit.title)}`.trim(),
+            reviewUnitLabels: [],
+            items,
+            counts,
+            practiceItemCount: items.filter(item => item.target).length
+        };
+    }
+
     // ---------------- 組裝今天的計畫 ----------------
 
     function build(context) {
@@ -770,6 +868,8 @@
         const unitScenes = unit.scenes || [];
         const unitDialogues = config.dialogues || [];
         const unitLabel = `${text(unit.book)} Unit ${unit.num}: ${text(unit.title)}`.trim();
+        // 字母單元走自己的一套：沒有句型、沒有代換，也不判對錯
+        if (text(unit.type) === "letters") return buildLetterPlan(config, unit, day);
         const isReviewUnit = text(unit.type) === "review";
         const isFinalDay = day === WEEK_DAYS;
 
@@ -923,12 +1023,16 @@
             opening: "開場", closing: "結尾",
             word_image: "看圖說英文", word_read: "看字說意思", word_spell: "拼單字",
             word_zh2en: "中翻英", word_choice: "三選一", word_gap: "填字母",
-            pattern_substitute: "句型代換", pattern_respond: "聽問題答句"
+            pattern_substitute: "句型代換", pattern_respond: "聽問題答句",
+            letter_say: "字母跟讀"
         };
         return plan.items.map((item, index) => {
             const name = label[item.type] || item.type;
             let detail = "";
-            if (/^word_/.test(item.type)) {
+            if (item.type === "letter_say") {
+                detail = `${item.letter}${item.first ? `（唸作 ${item.sound}）` : ""}　` +
+                    `${item.target}（${item.example}）` + (item.image ? "" : "　⚠️ 沒有卡");
+            } else if (/^word_/.test(item.type)) {
                 detail = `${item.display}（${item.meaning}）` +
                     (item.image ? "" : "　⚠️ 沒有圖");
             } else if (item.type === "pattern_substitute") {
@@ -1089,6 +1193,16 @@
                 bits.push(" 在孩子自己說出缺少的字母之前，絕對不要說出這個字、任何字母或答案；" +
                     "他說完你再判斷對不對。");
             }
+            bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
+        } else if (item.type === "letter_say") {
+            bits.push(` 字母卡上是「${item.letter}」和例字「${item.target}」` +
+                (item.example ? `（${item.example}）` : "") + "。");
+            if (item.first && item.sound) bits.push(` 這個字母的音，中文聽起來像「${item.sound}」。`);
+            // 使用者定案：這一項只是帶著唸，不評分也不稱讚。
+            // 模型天生會補一句「你唸得很棒」，所以要正面講清楚它該做什麼、只做什麼。
+            bits.push(" 你只做兩件事：清楚地唸給他聽、請他跟著唸一次；他唸完就回報 correct 往下一張。" +
+                "**不要判斷唸得對不對，不要糾正，不要說「很棒」「你唸得很正確」這類稱讚或評語**，" +
+                "也不要造句或多問問題。這一項是帶著唸，不是考試。");
             bits.push(" 圖片與文字由前端控制顯示，你不用呼叫 show_image。");
         } else if (item.type === "word_image" || item.type === "word_read" || item.type === "word_zh2en") {
             bits.push(` 目標單字：「${item.display || item.target}」`);

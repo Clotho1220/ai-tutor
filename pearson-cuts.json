@@ -1,0 +1,317 @@
+{
+ "_說明": "培生教材 Alphabet 軌的切點（秒）。由 Scribe 逐字時間戳照位置算出來；聽了哪張不對就改 start/end 兩個數字。",
+ "cuts": {
+  "A_apple": {
+   "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+   "start": 10.86,
+   "end": 16.04,
+   "heard": "A, ah, ah, apple."
+  },
+  "A_ant": {
+   "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+   "start": 19.92,
+   "end": 25.1,
+   "heard": "A, ah, ah, ant."
+  },
+  "B_banana": {
+   "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+   "start": 28.98,
+   "end": 34.38,
+   "heard": "B, buh, buh, banana."
+  },
+  "B_bear": {
+   "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+   "start": 38.36,
+   "end": 43.4,
+   "heard": "B, buh, buh, bear."
+  },
+  "C_cat": {
+   "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+   "start": 47.6,
+   "end": 51.86,
+   "heard": "C, cuh, cuh, cat."
+  },
+  "C_carrot": {
+   "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+   "start": 56.1,
+   "end": 60.4,
+   "heard": "C, cuh, cuh, carrot."
+  },
+  "D_dog": {
+   "file": "letters/pearson/gogo_sb1_21_def.mp3",
+   "start": 10.9,
+   "end": 16.18,
+   "heard": "D. D, d, dog."
+  },
+  "D_duck": {
+   "file": "letters/pearson/gogo_sb1_21_def.mp3",
+   "start": 20.2,
+   "end": 25.36,
+   "heard": "D. D, d, duck."
+  },
+  "E_elephant": {
+   "file": "letters/pearson/gogo_sb1_21_def.mp3",
+   "start": 29.48,
+   "end": 34.74,
+   "heard": "E. E, e, elephant."
+  },
+  "E_egg": {
+   "file": "letters/pearson/gogo_sb1_21_def.mp3",
+   "start": 38.68,
+   "end": 43.74,
+   "heard": "E. E, e, egg."
+  },
+  "F_fish": {
+   "file": "letters/pearson/gogo_sb1_21_def.mp3",
+   "start": 48.14,
+   "end": 52.62,
+   "heard": "F. F, f, fish."
+  },
+  "F_fox": {
+   "file": "letters/pearson/gogo_sb1_21_def.mp3",
+   "start": 56.82,
+   "end": 61.26,
+   "heard": "F. F, f, fox"
+  },
+  "G_goat": {
+   "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+   "start": 11.16,
+   "end": 16.48,
+   "heard": "G. Guh, guh. Goat."
+  },
+  "G_girl": {
+   "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+   "start": 20.44,
+   "end": 25.84,
+   "heard": "G. Guh, guh. Girl."
+  },
+  "H_hippo": {
+   "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+   "start": 30.14,
+   "end": 35.14,
+   "heard": "H. Huh, huh. Hippo."
+  },
+  "H_hat": {
+   "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+   "start": 39.34,
+   "end": 44.0,
+   "heard": "H. Huh, huh. Hat."
+  },
+  "I_iguana": {
+   "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+   "start": 48.24,
+   "end": 53.36,
+   "heard": "I. Ih, ih. Iguana."
+  },
+  "I_igloo": {
+   "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+   "start": 57.44,
+   "end": 62.34,
+   "heard": "I. Ih, ih. Igloo"
+  },
+  "J_juice": {
+   "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+   "start": 10.6,
+   "end": 16.12,
+   "heard": "J. Juh. Juh. Juice."
+  },
+  "J_jellyfish": {
+   "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+   "start": 20.12,
+   "end": 25.26,
+   "heard": "J. Juh. Juh. Jellyfish."
+  },
+  "K_kangaroo": {
+   "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+   "start": 29.22,
+   "end": 34.24,
+   "heard": "K. Kuh. Kuh. Kangaroo."
+  },
+  "K_kite": {
+   "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+   "start": 38.04,
+   "end": 42.68,
+   "heard": "K. Kuh. Kuh. Kite."
+  },
+  "L_lion": {
+   "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+   "start": 46.86,
+   "end": 51.58,
+   "heard": "L. Luh. Luh. Lion."
+  },
+  "L_lemon": {
+   "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+   "start": 55.74,
+   "end": 60.04,
+   "heard": "L. Luh. Luh. Lemon."
+  },
+  "M_monkey": {
+   "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+   "start": 10.5,
+   "end": 16.16,
+   "heard": "M. Mm, mm. Monkey."
+  },
+  "M_melon": {
+   "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+   "start": 20.3,
+   "end": 25.84,
+   "heard": "M. Mm, mm. Melon."
+  },
+  "N_noodles": {
+   "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+   "start": 29.92,
+   "end": 37.82,
+   "heard": "N. Nn, nn. Noodles."
+  },
+  "N_nose": {
+   "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+   "start": 39.76,
+   "end": 46.9,
+   "heard": "N. Nn, nn. Nose."
+  },
+  "O_octopus": {
+   "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+   "start": 48.94,
+   "end": 54.4,
+   "heard": "O. Ah, ah. Octopus."
+  },
+  "O_ox": {
+   "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+   "start": 58.46,
+   "end": 63.86,
+   "heard": "O. Ah, ah. Ox."
+  },
+  "P_panda": {
+   "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+   "start": 10.76,
+   "end": 16.22,
+   "heard": "P. Puh, puh. Panda."
+  },
+  "P_piano": {
+   "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+   "start": 20.1,
+   "end": 24.84,
+   "heard": "P. Puh, puh. Piano."
+  },
+  "Q_queen": {
+   "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+   "start": 28.9,
+   "end": 33.64,
+   "heard": "Q. Kuh, kuh. Queen."
+  },
+  "Q_question": {
+   "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+   "start": 37.86,
+   "end": 42.76,
+   "heard": "Q. Kuh, kuh. Question."
+  },
+  "R_rabbit": {
+   "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+   "start": 47.06,
+   "end": 52.22,
+   "heard": "R. Ruh, ruh. Rabbit."
+  },
+  "R_rice": {
+   "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+   "start": 56.16,
+   "end": 60.94,
+   "heard": "R. Ruh, ruh. Rice."
+  },
+  "S_sun": {
+   "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+   "start": 10.82,
+   "end": 16.1,
+   "heard": "S. S. S. Sun."
+  },
+  "S_soccer": {
+   "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+   "start": 20.18,
+   "end": 25.9,
+   "heard": "S. S. S. Soccer."
+  },
+  "T_tiger": {
+   "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+   "start": 29.7,
+   "end": 35.14,
+   "heard": "T. T. T. Tiger."
+  },
+  "T_TV": {
+   "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+   "start": 38.94,
+   "end": 43.7,
+   "heard": "T. T. T. TV."
+  },
+  "U_umbrella": {
+   "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+   "start": 47.94,
+   "end": 52.98,
+   "heard": "U. Uh. Uh. Umbrella."
+  },
+  "U_unhappy": {
+   "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+   "start": 57.16,
+   "end": 62.76,
+   "heard": "U. Uh. Uh. Unhappy."
+  },
+  "V_violin": {
+   "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+   "start": 11.12,
+   "end": 16.58,
+   "heard": "V. Vuh. Vuh. Violin."
+  },
+  "V_volleyball": {
+   "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+   "start": 20.66,
+   "end": 26.72,
+   "heard": "V. Vuh. Vuh. Volleyball."
+  },
+  "W_watch": {
+   "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+   "start": 30.68,
+   "end": 35.86,
+   "heard": "W. Wuh. Wuh. Watch."
+  },
+  "W_witch": {
+   "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+   "start": 40.14,
+   "end": 45.2,
+   "heard": "W. Wuh. Wuh. Witch."
+  },
+  "X_x-ray": {
+   "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+   "start": 49.72,
+   "end": 55.06,
+   "heard": "X. Ks. Ks. X-ray."
+  },
+  "X_exercise": {
+   "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+   "start": 59.36,
+   "end": 64.6,
+   "heard": "X. Ks. Ks. Exercise."
+  },
+  "Y_yo-yo": {
+   "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+   "start": 10.34,
+   "end": 15.6,
+   "heard": "Y. Yuh, yuh, yo-yo."
+  },
+  "Y_yogurt": {
+   "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+   "start": 19.36,
+   "end": 24.04,
+   "heard": "Y. Yuh, yuh, yogurt."
+  },
+  "Z_zebra": {
+   "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+   "start": 28.2,
+   "end": 32.88,
+   "heard": "Z. Zuh, zuh, zebra."
+  },
+  "Z_zoo": {
+   "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+   "start": 36.78,
+   "end": 41.72,
+   "heard": "Z. Zuh, zuh, zoo."
+  }
+ }
+}

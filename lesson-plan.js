@@ -816,6 +816,10 @@
                     // 沒帶出來：item.audio 是 undefined，播放器每張卡都靜靜跳到 2.6 秒的安靜。
                     // audio 是三段小檔的清單（字母名／音／單字），原樣帶出來給播放器接
                     audio: Array.isArray(word.audio) ? word.audio.map(text) : text(word.audio),
+                    // 教材整軌裡的一段（真人錄音）：{file, start, end}，播放器優先用它
+                    clip: word.clip && word.clip.file ? {
+                        file: text(word.clip.file), start: Number(word.clip.start) || 0, end: Number(word.clip.end) || 0
+                    } : null,
                     say: text(word.say),
                     first,
                     maxAttempts: 1,

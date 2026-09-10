@@ -12,6 +12,11 @@
      "image": "letters/A_apple.webp",
      "say": "A ... a ... apple.",
      "expect": "A apple",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+      "start": 10.86,
+      "end": 16.04
+     },
      "audio": [
       "letters/seg/A_name.mp3",
       "letters/seg/A_sound.mp3",
@@ -47,6 +52,11 @@
      "image": "letters/A_ant.webp",
      "say": "A ... a ... ant.",
      "expect": "A ant",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+      "start": 19.92,
+      "end": 25.1
+     },
      "audio": [
       "letters/seg/A_name.mp3",
       "letters/seg/A_sound.mp3",
@@ -89,6 +99,11 @@
      "image": "letters/B_banana.webp",
      "say": "B ... b ... banana.",
      "expect": "B banana",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+      "start": 28.98,
+      "end": 34.38
+     },
      "audio": [
       "letters/seg/B_name.mp3",
       "letters/seg/B_sound.mp3",
@@ -124,6 +139,11 @@
      "image": "letters/B_bear.webp",
      "say": "B ... b ... bear.",
      "expect": "B bear",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+      "start": 38.36,
+      "end": 43.4
+     },
      "audio": [
       "letters/seg/B_name.mp3",
       "letters/seg/B_sound.mp3",
@@ -166,6 +186,11 @@
      "image": "letters/C_cat.webp",
      "say": "C ... c ... cat.",
      "expect": "C cat",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+      "start": 47.6,
+      "end": 51.86
+     },
      "audio": [
       "letters/seg/C_name.mp3",
       "letters/seg/C_sound.mp3",
@@ -201,6 +226,11 @@
      "image": "letters/C_carrot.webp",
      "say": "C ... c ... carrot.",
      "expect": "C carrot",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_12_abc.mp3",
+      "start": 56.1,
+      "end": 60.4
+     },
      "audio": [
       "letters/seg/C_name.mp3",
       "letters/seg/C_sound.mp3",
@@ -243,6 +273,11 @@
      "image": "letters/D_dog.webp",
      "say": "D ... d ... dog.",
      "expect": "D dog",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_21_def.mp3",
+      "start": 10.9,
+      "end": 16.18
+     },
      "audio": [
       "letters/seg/D_name.mp3",
       "letters/seg/D_sound.mp3",
@@ -278,6 +313,11 @@
      "image": "letters/D_duck.webp",
      "say": "D ... d ... duck.",
      "expect": "D duck",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_21_def.mp3",
+      "start": 20.2,
+      "end": 25.36
+     },
      "audio": [
       "letters/seg/D_name.mp3",
       "letters/seg/D_sound.mp3",
@@ -320,6 +360,11 @@
      "image": "letters/E_elephant.webp",
      "say": "E ... e ... elephant.",
      "expect": "E elephant",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_21_def.mp3",
+      "start": 29.48,
+      "end": 34.74
+     },
      "audio": [
       "letters/seg/E_name.mp3",
       "letters/seg/E_sound.mp3",
@@ -355,6 +400,11 @@
      "image": "letters/E_egg.webp",
      "say": "E ... e ... egg.",
      "expect": "E egg",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_21_def.mp3",
+      "start": 38.68,
+      "end": 43.74
+     },
      "audio": [
       "letters/seg/E_name.mp3",
       "letters/seg/E_sound.mp3",
@@ -397,6 +447,11 @@
      "image": "letters/F_fish.webp",
      "say": "F ... f ... fish.",
      "expect": "F fish",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_21_def.mp3",
+      "start": 48.14,
+      "end": 52.62
+     },
      "audio": [
       "letters/seg/F_name.mp3",
       "letters/seg/F_sound.mp3",
@@ -432,6 +487,11 @@
      "image": "letters/F_fox.webp",
      "say": "F ... f ... fox.",
      "expect": "F fox",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_21_def.mp3",
+      "start": 56.82,
+      "end": 61.26
+     },
      "audio": [
       "letters/seg/F_name.mp3",
       "letters/seg/F_sound.mp3",
@@ -474,6 +534,11 @@
      "image": "letters/G_goat.webp",
      "say": "G ... g ... goat.",
      "expect": "G goat",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+      "start": 11.16,
+      "end": 16.48
+     },
      "audio": [
       "letters/seg/G_name.mp3",
       "letters/seg/G_sound.mp3",
@@ -509,6 +574,11 @@
      "image": "letters/G_girl.webp",
      "say": "G ... g ... girl.",
      "expect": "G girl",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+      "start": 20.44,
+      "end": 25.84
+     },
      "audio": [
       "letters/seg/G_name.mp3",
       "letters/seg/G_sound.mp3",
@@ -551,6 +621,11 @@
      "image": "letters/H_hippo.webp",
      "say": "H ... h ... hippo.",
      "expect": "H hippo",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+      "start": 30.14,
+      "end": 35.14
+     },
      "audio": [
       "letters/seg/H_name.mp3",
       "letters/seg/H_sound.mp3",
@@ -586,6 +661,11 @@
      "image": "letters/H_hat.webp",
      "say": "H ... h ... hat.",
      "expect": "H hat",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+      "start": 39.34,
+      "end": 44.0
+     },
      "audio": [
       "letters/seg/H_name.mp3",
       "letters/seg/H_sound.mp3",
@@ -628,6 +708,11 @@
      "image": "letters/I_iguana.webp",
      "say": "I ... i ... iguana.",
      "expect": "I iguana",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+      "start": 48.24,
+      "end": 53.36
+     },
      "audio": [
       "letters/seg/I_name.mp3",
       "letters/seg/I_sound.mp3",
@@ -663,6 +748,11 @@
      "image": "letters/I_igloo.webp",
      "say": "I ... i ... igloo.",
      "expect": "I igloo",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
+      "start": 57.44,
+      "end": 62.34
+     },
      "audio": [
       "letters/seg/I_name.mp3",
       "letters/seg/I_sound.mp3",
@@ -705,6 +795,11 @@
      "image": "letters/J_juice.webp",
      "say": "J ... j ... juice.",
      "expect": "J juice",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+      "start": 10.6,
+      "end": 16.12
+     },
      "audio": [
       "letters/seg/J_name.mp3",
       "letters/seg/J_sound.mp3",
@@ -740,6 +835,11 @@
      "image": "letters/J_jellyfish.webp",
      "say": "J ... j ... jellyfish.",
      "expect": "J jellyfish",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+      "start": 20.12,
+      "end": 25.26
+     },
      "audio": [
       "letters/seg/J_name.mp3",
       "letters/seg/J_sound.mp3",
@@ -782,6 +882,11 @@
      "image": "letters/K_kangaroo.webp",
      "say": "K ... k ... kangaroo.",
      "expect": "K kangaroo",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+      "start": 29.22,
+      "end": 34.24
+     },
      "audio": [
       "letters/seg/K_name.mp3",
       "letters/seg/K_sound.mp3",
@@ -817,6 +922,11 @@
      "image": "letters/K_kite.webp",
      "say": "K ... k ... kite.",
      "expect": "K kite",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+      "start": 38.04,
+      "end": 42.68
+     },
      "audio": [
       "letters/seg/K_name.mp3",
       "letters/seg/K_sound.mp3",
@@ -859,6 +969,11 @@
      "image": "letters/L_lion.webp",
      "say": "L ... l ... lion.",
      "expect": "L lion",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+      "start": 46.86,
+      "end": 51.58
+     },
      "audio": [
       "letters/seg/L_name.mp3",
       "letters/seg/L_sound.mp3",
@@ -894,6 +1009,11 @@
      "image": "letters/L_lemon.webp",
      "say": "L ... l ... lemon.",
      "expect": "L lemon",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
+      "start": 55.74,
+      "end": 60.04
+     },
      "audio": [
       "letters/seg/L_name.mp3",
       "letters/seg/L_sound.mp3",
@@ -936,6 +1056,11 @@
      "image": "letters/M_monkey.webp",
      "say": "M ... m ... monkey.",
      "expect": "M monkey",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+      "start": 10.5,
+      "end": 16.16
+     },
      "audio": [
       "letters/seg/M_name.mp3",
       "letters/seg/M_sound.mp3",
@@ -971,6 +1096,11 @@
      "image": "letters/M_melon.webp",
      "say": "M ... m ... melon.",
      "expect": "M melon",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+      "start": 20.3,
+      "end": 25.84
+     },
      "audio": [
       "letters/seg/M_name.mp3",
       "letters/seg/M_sound.mp3",
@@ -1013,6 +1143,11 @@
      "image": "letters/N_noodles.webp",
      "say": "N ... n ... noodles.",
      "expect": "N noodles",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+      "start": 29.92,
+      "end": 37.82
+     },
      "audio": [
       "letters/seg/N_name.mp3",
       "letters/seg/N_sound.mp3",
@@ -1048,6 +1183,11 @@
      "image": "letters/N_nose.webp",
      "say": "N ... n ... nose.",
      "expect": "N nose",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+      "start": 39.76,
+      "end": 46.9
+     },
      "audio": [
       "letters/seg/N_name.mp3",
       "letters/seg/N_sound.mp3",
@@ -1090,6 +1230,11 @@
      "image": "letters/O_octopus.webp",
      "say": "O ... o ... octopus.",
      "expect": "O octopus",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+      "start": 48.94,
+      "end": 54.4
+     },
      "audio": [
       "letters/seg/O_name.mp3",
       "letters/seg/O_sound.mp3",
@@ -1125,6 +1270,11 @@
      "image": "letters/O_ox.webp",
      "say": "O ... o ... ox.",
      "expect": "O ox",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_49_mno.mp3",
+      "start": 58.46,
+      "end": 63.86
+     },
      "audio": [
       "letters/seg/O_name.mp3",
       "letters/seg/O_sound.mp3",
@@ -1167,6 +1317,11 @@
      "image": "letters/P_panda.webp",
      "say": "P ... p ... panda.",
      "expect": "P panda",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+      "start": 10.76,
+      "end": 16.22
+     },
      "audio": [
       "letters/seg/P_name.mp3",
       "letters/seg/P_sound.mp3",
@@ -1202,6 +1357,11 @@
      "image": "letters/P_piano.webp",
      "say": "P ... p ... piano.",
      "expect": "P piano",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+      "start": 20.1,
+      "end": 24.84
+     },
      "audio": [
       "letters/seg/P_name.mp3",
       "letters/seg/P_sound.mp3",
@@ -1244,6 +1404,11 @@
      "image": "letters/Q_queen.webp",
      "say": "Q ... q ... queen.",
      "expect": "Q queen",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+      "start": 28.9,
+      "end": 33.64
+     },
      "audio": [
       "letters/seg/Q_name.mp3",
       "letters/seg/Q_sound.mp3",
@@ -1279,6 +1444,11 @@
      "image": "letters/Q_question.webp",
      "say": "Q ... q ... question.",
      "expect": "Q question",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+      "start": 37.86,
+      "end": 42.76
+     },
      "audio": [
       "letters/seg/Q_name.mp3",
       "letters/seg/Q_sound.mp3",
@@ -1321,6 +1491,11 @@
      "image": "letters/R_rabbit.webp",
      "say": "R ... r ... rabbit.",
      "expect": "R rabbit",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+      "start": 47.06,
+      "end": 52.22
+     },
      "audio": [
       "letters/seg/R_name.mp3",
       "letters/seg/R_sound.mp3",
@@ -1356,6 +1531,11 @@
      "image": "letters/R_rice.webp",
      "say": "R ... r ... rice.",
      "expect": "R rice",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
+      "start": 56.16,
+      "end": 60.94
+     },
      "audio": [
       "letters/seg/R_name.mp3",
       "letters/seg/R_sound.mp3",
@@ -1398,6 +1578,11 @@
      "image": "letters/S_sun.webp",
      "say": "S ... s ... sun.",
      "expect": "S sun",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+      "start": 10.82,
+      "end": 16.1
+     },
      "audio": [
       "letters/seg/S_name.mp3",
       "letters/seg/S_sound.mp3",
@@ -1433,6 +1618,11 @@
      "image": "letters/S_soccer.webp",
      "say": "S ... s ... soccer.",
      "expect": "S soccer",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+      "start": 20.18,
+      "end": 25.9
+     },
      "audio": [
       "letters/seg/S_name.mp3",
       "letters/seg/S_sound.mp3",
@@ -1475,6 +1665,11 @@
      "image": "letters/T_tiger.webp",
      "say": "T ... t ... tiger.",
      "expect": "T tiger",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+      "start": 29.7,
+      "end": 35.14
+     },
      "audio": [
       "letters/seg/T_name.mp3",
       "letters/seg/T_sound.mp3",
@@ -1510,6 +1705,11 @@
      "image": "letters/T_TV.webp",
      "say": "T ... t ... TV.",
      "expect": "T TV",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+      "start": 38.94,
+      "end": 43.7
+     },
      "audio": [
       "letters/seg/T_name.mp3",
       "letters/seg/T_sound.mp3",
@@ -1552,6 +1752,11 @@
      "image": "letters/U_umbrella.webp",
      "say": "U ... u ... umbrella.",
      "expect": "U umbrella",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+      "start": 47.94,
+      "end": 52.98
+     },
      "audio": [
       "letters/seg/U_name.mp3",
       "letters/seg/U_sound.mp3",
@@ -1587,6 +1792,11 @@
      "image": "letters/U_unhappy.webp",
      "say": "U ... u ... unhappy.",
      "expect": "U unhappy",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_69_stu.mp3",
+      "start": 57.16,
+      "end": 62.76
+     },
      "audio": [
       "letters/seg/U_name.mp3",
       "letters/seg/U_sound.mp3",
@@ -1629,6 +1839,11 @@
      "image": "letters/V_violin.webp",
      "say": "V ... v ... violin.",
      "expect": "V violin",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+      "start": 11.12,
+      "end": 16.58
+     },
      "audio": [
       "letters/seg/V_name.mp3",
       "letters/seg/V_sound.mp3",
@@ -1664,6 +1879,11 @@
      "image": "letters/V_volleyball.webp",
      "say": "V ... v ... volleyball.",
      "expect": "V volleyball",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+      "start": 20.66,
+      "end": 26.72
+     },
      "audio": [
       "letters/seg/V_name.mp3",
       "letters/seg/V_sound.mp3",
@@ -1706,6 +1926,11 @@
      "image": "letters/W_watch.webp",
      "say": "W ... w ... watch.",
      "expect": "W watch",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+      "start": 30.68,
+      "end": 35.86
+     },
      "audio": [
       "letters/seg/W_name.mp3",
       "letters/seg/W_sound.mp3",
@@ -1741,6 +1966,11 @@
      "image": "letters/W_witch.webp",
      "say": "W ... w ... witch.",
      "expect": "W witch",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+      "start": 40.14,
+      "end": 45.2
+     },
      "audio": [
       "letters/seg/W_name.mp3",
       "letters/seg/W_sound.mp3",
@@ -1783,6 +2013,11 @@
      "image": "letters/X_x-ray.webp",
      "say": "X ... x ... x-ray.",
      "expect": "X x-ray",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+      "start": 49.72,
+      "end": 55.06
+     },
      "audio": [
       "letters/seg/X_name.mp3",
       "letters/seg/X_sound.mp3",
@@ -1818,6 +2053,11 @@
      "image": "letters/X_exercise.webp",
      "say": "X ... x ... exercise.",
      "expect": "X exercise",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
+      "start": 59.36,
+      "end": 64.6
+     },
      "audio": [
       "letters/seg/X_name.mp3",
       "letters/seg/X_sound.mp3",
@@ -1860,6 +2100,11 @@
      "image": "letters/Y_yo-yo.webp",
      "say": "Y ... y ... yo-yo.",
      "expect": "Y yo-yo",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+      "start": 10.34,
+      "end": 15.6
+     },
      "audio": [
       "letters/seg/Y_name.mp3",
       "letters/seg/Y_sound.mp3",
@@ -1895,6 +2140,11 @@
      "image": "letters/Y_yogurt.webp",
      "say": "Y ... y ... yogurt.",
      "expect": "Y yogurt",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+      "start": 19.36,
+      "end": 24.04
+     },
      "audio": [
       "letters/seg/Y_name.mp3",
       "letters/seg/Y_sound.mp3",
@@ -1937,6 +2187,11 @@
      "image": "letters/Z_zebra.webp",
      "say": "Z ... z ... zebra.",
      "expect": "Z zebra",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+      "start": 28.2,
+      "end": 32.88
+     },
      "audio": [
       "letters/seg/Z_name.mp3",
       "letters/seg/Z_sound.mp3",
@@ -1972,6 +2227,11 @@
      "image": "letters/Z_zoo.webp",
      "say": "Z ... z ... zoo.",
      "expect": "Z zoo",
+     "clip": {
+      "file": "letters/pearson/gogo_sb1_85_yz.mp3",
+      "start": 36.78,
+      "end": 41.72
+     },
      "audio": [
       "letters/seg/Z_name.mp3",
       "letters/seg/Z_sound.mp3",

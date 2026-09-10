@@ -28,6 +28,9 @@ CARDS = os.path.join(os.path.dirname(HERE), "Gogo English", "圖片提示詞", "
 GOGO = os.path.join(os.path.dirname(HERE), "Gogo English", "教材資料", "gogo1.json")
 OUT_DIR = os.path.join(HERE, "images", "letters")
 OUT_JSON = os.path.join(HERE, "letters.json")
+# 教材（培生 New Gogo Loves English 1）的 Alphabet 軌切點：每張卡在整軌裡的第幾秒到第幾秒。
+# 真人錄的字母名與音，TTS 怎麼調都比不上——2026-09-10 使用者提議改用這個。
+CUTS_JSON = os.path.join(HERE, "pearson-cuts.json")
 
 # 每個字母最常見的那個音（自然發音法的短音）。
 #
@@ -165,6 +168,10 @@ def main():
 
     letters = read_pairs()
     os.makedirs(OUT_DIR, exist_ok=True)
+    cuts = {}
+    if os.path.isfile(CUTS_JSON):
+        with io.open(CUTS_JSON, encoding="utf-8") as handle:
+            cuts = json.load(handle).get("cuts", {})
 
     out = OrderedDict()
     out["_說明"] = ("字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。"
@@ -199,12 +206,16 @@ def main():
             else:
                 skipped += 1
             segs = segments_for(head, english)
+            cut = cuts.get("%s_%s" % (head, english))
             entry["words"].append(OrderedDict([
                 ("english", english),
                 ("chinese", chinese),
                 ("image", "letters/" + webp_name),
                 ("say", say_plain(name, head, english)),
                 ("expect", "%s %s" % (head, english)),
+                # 首選：教材整軌裡的一段（真人）。播放器先看這個，沒有才用三段 TTS。
+                ("clip", OrderedDict([("file", cut["file"]), ("start", cut["start"]), ("end", cut["end"])])
+                 if cut else None),
                 # 三段獨立小檔，播放時接起來（順序就是唸的順序）
                 ("audio", [file for _role, _model, _text, file, _speed in segs]),
                 ("segments", [OrderedDict([("role", role), ("model", model), ("text", text),
@@ -221,8 +232,9 @@ def main():
                 for f in os.listdir(OUT_DIR) if f.endswith(".webp"))
     print("✅ images/letters/：新轉 %d、沿用 %d，合計 %.1f MB"
           % (done, skipped, total / 1024 / 1024))
-    print("✅ letters.json：%d 個字母、%d 張卡"
-          % (len(rows), sum(len(r["words"]) for r in rows)))
+    with_clip = sum(1 for r in rows for w in r["words"] if w.get("clip"))
+    print("✅ letters.json：%d 個字母、%d 張卡（其中 %d 張有教材真人音的切點）"
+          % (len(rows), sum(len(r["words"]) for r in rows), with_clip))
     missing = [r["letter"] for r in rows if not r["sound"]]
     if missing:
         print("⚠️ 這些字母沒有發音資料：", missing)

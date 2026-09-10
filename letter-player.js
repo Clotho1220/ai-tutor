@@ -79,6 +79,35 @@
             return buffer;
         }
 
+        // 教材整軌的一段：解一次整軌（快取），source.start(0, offset, duration) 直接播那一段。
+        // 不切檔、取樣精準、沒有接縫；使用者聽了哪張不對，改 start/end 兩個數字就好。
+        function playClip(clip) {
+            const url = config.audioBase + clip.file;
+            return new Promise((resolve, reject) => {
+                decode(url).then(buffer => {
+                    if (!state.running) { resolve(0); return; }
+                    const start = Math.max(0, Number(clip.start) || 0);
+                    const end = Math.min(buffer.duration, Number(clip.end) || buffer.duration);
+                    if (end <= start) { reject(new Error("bad clip range")); return; }
+                    const source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(outputNode ? outputNode() : audioContext.destination);
+                    state.source = source;
+                    const began = Date.now();
+                    source.onended = () => {
+                        if (state.source === source) state.source = null;
+                        resolve(Date.now() - began);
+                    };
+                    source.start(0, start, end - start);
+                }, reject);
+            });
+        }
+
+        function clipOf(item) {
+            const clip = item && item.clip;
+            return clip && clip.file && audioContext && fetchFn ? clip : null;
+        }
+
         // item.audio 可以是一個檔，或三段小檔（字母名／音／單字）的清單
         function filesOf(item) {
             const audio = item && item.audio;
@@ -91,7 +120,8 @@
             if (!audioContext || !fetchFn) return 0;
             let ok = 0;
             for (const item of items || []) {
-                const urls = filesOf(item);
+                const clip = clipOf(item);
+                const urls = clip ? [config.audioBase + clip.file] : filesOf(item);
                 if (!urls.length) continue;
                 try {
                     for (const url of urls) await decode(url);
@@ -143,6 +173,19 @@
         // 回傳這段聲音大概播了多久，用來決定要留多長的安靜給孩子。
         let audioWarned = false;
         function speakCard(item) {
+            const clip = clipOf(item);
+            if (clip) {
+                // 真人錄音優先；壞了就退回三段 TTS
+                return playClip(clip).catch(error => {
+                    if (!audioWarned) {
+                        audioWarned = true;
+                        const why = String(error && (error.name || error.message) || "unknown");
+                        log("🔇 教材音軌播不出來（" + why + "），改用 TTS 旁白。");
+                        record("letter_audio_blocked", { url: clip.file, path: "clip", reason: why });
+                    }
+                    return speakCard(Object.assign({}, item, { clip: null }));
+                });
+            }
             const urls = filesOf(item);
             const url = urls[0] || "";
             if (url && audioContext && fetchFn) {
@@ -237,6 +280,7 @@
             state.total = cards.length;
             record("letter_player_started", {
                 cards: cards.length,
+                clips: cards.filter(clipOf).length,
                 path: audioContext && fetchFn ? "webaudio" : (shared || AudioCtor ? "element" : "speech"),
                 contextState: audioContext ? audioContext.state : ""
             });

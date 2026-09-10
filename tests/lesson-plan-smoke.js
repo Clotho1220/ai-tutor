@@ -308,6 +308,14 @@
             return reveal.image && reveal.picture.indexOf("letters/") === 0 &&
                 reveal.word === card.letter && reveal.meaning === "";
         })());
+        check("letter items pass the textbook clip through when the data has one",
+            LP.build({ person: "Rex", day: 1, unit: Object.assign({}, lettersUnit, {
+                letters: [{ letter: "Aa", sound: "/æ/", words: [
+                    { english: "apple", chinese: "蘋果", image: "letters/A_apple.webp",
+                      audio: ["x.mp3"], say: "A", clip: { file: "letters/pearson/t.mp3", start: 1.5, end: 6 } }] }]
+            }) }).items.some(item => item.type === "letter_say" && item.clip &&
+                item.clip.file === "letters/pearson/t.mp3" && item.clip.start === 1.5 && item.clip.end === 6));
+
         // 播放模式靠這兩個欄位出聲。2026-09-10 三輪「完全沒聲音」就是它們沒被帶出來
         // 旁白是三段小檔（字母名／音／單字）的清單，播放時接起來
         check("letter items carry the three narration segments and a script",

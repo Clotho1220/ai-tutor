@@ -179,6 +179,37 @@
         check("preloading decodes each clip once and playback reuses it",
             fetched.length === 3);
 
+        // ---- 教材整軌的一段（真人錄音）：clip 優先於三段 TTS ----
+        const clipSources = [];
+        const clipContext = {
+            state: "running", destination: { id: "dest" },
+            decodeAudioData: bytes => Promise.resolve({ bytes, duration: 60 }),
+            createBufferSource() {
+                const source = { starts: [], onended: null, connect() {},
+                    start(when, offset, duration) { this.starts.push([when, offset, duration]); setTimeoutFn(() => this.onended && this.onended(), 1); },
+                    stop() {} };
+                clipSources.push(source);
+                return source;
+            }
+        };
+        const clipFetched = [];
+        const player8 = LP.create({
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
+            audioContext: clipContext, outputNode: () => output,
+            fetchFn: url => { clipFetched.push(url); return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(4)) }); },
+            setTimeoutFn, clearTimeoutFn
+        });
+        const clipCards = cards(2).map((card, i) => Object.assign({}, card, {
+            clip: { file: "letters/pearson/gogo_sb1_12_abc.mp3", start: 10.86 + i * 9, end: 16.04 + i * 9 }
+        }));
+        const run8 = player8.play(clipCards);
+        await runTimers();
+        await run8;
+        check("a card with a textbook clip plays that slice of the whole track",
+            clipSources.length === 2 &&
+            clipSources[0].starts[0][1] === 10.86 && Math.abs(clipSources[0].starts[0][2] - 5.18) < 0.001 &&
+            clipFetched.length === 1);   // 整軌只抓一次
+
         // ---- 播不出來要講出來，不要默默沒聲音 ----
         const blockedSpeech = [];
         const logs = [];

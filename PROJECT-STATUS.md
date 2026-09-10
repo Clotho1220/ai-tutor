@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
 最後更新：2026-09-10  
-目前版本：v3.47  
+目前版本：v3.48  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -77,11 +77,31 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.47`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.48`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - GPT 診斷現在也包含單元名稱、預定時間與課程階段。
 
 ## 3. 最近完成的重要修正
+
+### v3.48
+
+2026-09-11：字母卡改播**教材的真人錄音**，TTS 三段退為備援。
+
+- 使用者提議用教材附的音檔。培生 New Gogo Loves English 1 的數位資源頁
+  （`digital-resource.pearson.com.hk/new-gogo-loves-english-sb1-u01-04/` 等三頁）
+  直接給 mp3、不用登入；每個單元一軌「Alphabet: a, b, c」（軌 12、21、30、41、49、57、69、77、85），
+  內容就是「A、/æ/、/æ/、apple」再留空給孩子唸——跟使用者要的教法一模一樣。
+- **不切檔**：9 軌原樣放在 `audio/letters/pearson/`，每張卡記 `clip: {file, start, end}`，
+  播放器整軌解一次、`source.start(0, offset, duration)` 直接播那一段。
+  切點由 Scribe 逐字時間戳照位置算（每軌開頭 9 個字的說明，之後每張卡 4 個字），
+  寫在 `pearson-cuts.json`；52 張全部對得上。**聽了哪張不對，改那兩個數字再跑
+  `build-letters.py` → `build-units-from-gogo.py`**。開頭的「Page eight…」不在任何切點裡，不會播。
+- 培生沒開 CORS、本專案 CSP 也擋外站媒體，所以「上課時直接從培生播」走不通；
+  音檔進 repo 等於在公開站台上轉載出版社的檔——**使用者 2026-09-11 決定放（選項 A）**。
+- 播不出來（檔缺、解碼失敗）退回三段 TTS，System Log 講一次、診斷檔記 `letter_audio_blocked`。
+
+`tests/letter-player-smoke.js` 加 clip 播放（整軌只抓一次、offset/duration 正確），
+`lesson-plan-smoke.js` 加 clip 帶出。run-all 12 組全過。
 
 ### v3.47
 

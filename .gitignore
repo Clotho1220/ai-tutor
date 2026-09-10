@@ -8,6 +8,4 @@ Lesson data.xlsx
 # Codex 遠端附件暫存（不需版控）
 .codex-remote-attachments/
 
-# 培生教材的 Alphabet 音軌：出版社的檔，不進公開的 repo（是否公開由使用者決定）
-audio/letters/pearson/*.mp3
 __pycache__/

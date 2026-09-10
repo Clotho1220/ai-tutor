@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.41";
+const APP_VERSION = "3.42";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1076,6 +1076,14 @@ function buildSystemInstruction(lesson) {
           "report, then END your turn and wait in silence for the next note. " +
           "Never add bonus drills the note did not ask for — no extra example sentences, no 'You can say ...', no 'Try it!' invitations. " +
           "Those extras stall the lesson: the next note cannot arrive until you finish your turn. " +
+          // 2026-09-10 實測：21 個項目全部以一句閒聊問句收尾（What do you usually put on a table? /
+          // Do you like to sing? / Have you ever seen a real goat?），孩子被迫一直接話，
+          // 課程節奏整個被拖住。合約原本只禁「額外例句」，沒禁「追問」。
+          "ONCE THE LEARNER HAS ANSWERED, your entire turn is at most ONE short sentence of feedback, and then you stop talking. " +
+          "Do NOT end your turn with a question of any kind. No conversation questions " +
+          "('What do you usually put on a table?', 'Do you like to sing?', 'Have you ever seen a real goat?'), " +
+          "no 'Can you think of ...?', no 'What else ...?'. The item is finished the moment you have given that one sentence — " +
+          "chatting on keeps the learner talking and holds up every item behind it. " +
           "The screen (picture, English word, Chinese meaning) is controlled by the lesson system, not by you: " +
           "do NOT call show_image during plan items, and never read out loud anything the note says is still hidden from the learner — " +
           "the hint ladder only works if each hint appears exactly when the note says so. "
@@ -1477,6 +1485,10 @@ function logSystem(msg) {
 // ---------------- 連線控制 ----------------
 
 actionBtn.addEventListener('click', async () => {
+    // 字母單元走播放模式：不連線，也就不需要 API Key 或同步網址
+    if (letterPlayerActive) { finishLetterPlayer(); return; }
+    await loadUnitsData();
+    if (lettersUnitSelected()) { await startLetterPlayerSession(); return; }
     if (selectedProvider() === 'openai') {
         if (!syncConfigured()) { alert("GPT 測試需要先在設定中填入 Apps Script 同步網址。"); return; }
         if (!openaiSessionActive) await startOpenAISession();
@@ -1728,6 +1740,107 @@ async function startOpenAISession() {
         alert("GPT 連線失敗：" + err.message + "\n\n你可以先切回 Gemini 繼續使用。");
         stopSession("openai_startup_error");
     }
+}
+
+// ---------------- 字母單元：播放模式（2026-09-10 使用者定案） ----------------
+// 卡片＋預錄旁白，照順序播下去，像看影片。孩子不用按任何鍵，也不判他唸得標不標準，
+// 但每張卡唸完會留一段安靜讓他跟著唸。
+//
+// 這個模式**完全不連線**：沒有 Gemini、沒有 GPT。實測那一堂（2026-09-10）
+// 即時模型每張卡都自己加話（"Okay, let's look here"、"Can you repeat that?"），
+// 還會慢半拍講到已經過掉的卡——字母單元本來就不需要模型判斷任何事。
+let letterPlayer = null;
+let letterPlayerActive = false;
+
+function lettersUnitSelected() {
+    const selection = currentPerson().unit;
+    if (!selection || !selection.book || !UNITS_DATA) return null;
+    const unit = findUnit(selection.book, selection.num);
+    return unit && unit.type === "letters" ? unit : null;
+}
+
+// 播放模式自己記進度：跟一般課程同一把鑰匙，才接得上「第幾天」
+function letterDayFor(unit) {
+    const key = weekProgressKey(`${unit.book} Unit ${unit.num}: ${unit.title}`);
+    const today = learningRecords.today();
+    const week = window.CourseProgression.weekAnchor(today);
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(key)); } catch (e) {}
+    if (saved && saved.week && saved.week !== week) saved = null;
+    let day = 1;
+    if (saved && saved.day) day = saved.done ? Math.min(saved.day + 1, 5) : saved.day;
+    const daySelect = document.getElementById('daySelect');
+    if (daySelect && daySelect.value !== 'auto') day = Number(daySelect.value) || day;
+    localStorage.setItem(key, JSON.stringify({ date: today, day, week, done: false }));
+    return { day, key };
+}
+
+function markLetterDayDone(key) {
+    try {
+        const saved = JSON.parse(localStorage.getItem(key)) || {};
+        saved.done = true;
+        localStorage.setItem(key, JSON.stringify(saved));
+        if (typeof scheduleSync === 'function') scheduleSync();
+    } catch (e) {}
+}
+
+async function startLetterPlayerSession() {
+    await loadUnitsData();
+    const unit = lettersUnitSelected();
+    if (!unit) return false;
+
+    sessionDiagnostics.start({
+        appVersion: `v${APP_VERSION}`,
+        person: currentPersonName(),
+        learnerType: currentPerson().adult ? "adult" : "child",
+        mode: "letters",
+        model: "（播放模式：不連線）",
+        userAgent: navigator.userAgent
+    });
+    refreshDiagnosticsStatus();
+
+    const { day, key } = letterDayFor(unit);
+    const plan = window.LessonPlan.build({ person: currentPersonName(), day, unit });
+    const cards = plan.items.filter(item => item.type === "letter_say");
+    const label = `${unit.book} Unit ${unit.num}: ${unit.title}`;
+    sessionDiagnostics.updateMetadata({ unit: `${label} — Day ${day}`, planItems: cards.length });
+    logSystem(`🔤 播放模式：${label} 第 ${day} 天，共 ${cards.length} 張卡（不連線）。`);
+    cards.forEach(item => { new Image().src = "images/" + item.image; });
+
+    studentView.reset();
+    letterPlayerActive = true;
+    document.body.classList.add('student-mode');
+    document.body.classList.add('player-mode');
+    refreshStudentReturnButton();
+    statusBadge.textContent = '播放中'; statusBadge.style.background = '#2d7d46'; statusBadge.style.color = '#fff';
+    actionBtn.textContent = '結束播放'; actionBtn.disabled = false;
+
+    letterPlayer = window.LetterPlayer.create({
+        studentView,
+        imageBase: "images/",
+        audioBase: "audio/",
+        onLog: logSystem,
+        onEvent: (type, detail) => sessionDiagnostics.record(type, detail)
+    });
+    const result = await letterPlayer.play(cards);
+    if (!result.stopped) {
+        markLetterDayDone(key);
+        logSystem(`✅ ${label} 第 ${day} 天播完了（${result.played} 張）。`);
+    }
+    finishLetterPlayer();
+    return true;
+}
+
+function finishLetterPlayer() {
+    if (letterPlayer) letterPlayer.stop();
+    letterPlayer = null;
+    letterPlayerActive = false;
+    document.body.classList.remove('student-mode');
+    document.body.classList.remove('player-mode');
+    refreshStudentReturnButton();
+    statusBadge.textContent = '未連線'; statusBadge.style.background = '#5c4d0c'; statusBadge.style.color = '#ffcc00';
+    actionBtn.textContent = '開始連線'; actionBtn.disabled = false;
+    sessionDiagnostics.finish("player_done");
 }
 
 async function startSession() {

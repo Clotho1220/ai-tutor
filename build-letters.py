@@ -52,6 +52,32 @@ SOUND_NOTES = {
     "X": "這個音在字尾，像 box、fox 最後的那個音",
 }
 
+# 唸給 TTS 聽的拼法。音標（/æ/）餵進 TTS 會被逐字唸成符號，所以另外寫一份
+# 自然發音法教材慣用的「音的拼法」：能延長的子音就拉長（fff、mmm），
+# 塞音只能帶一個很輕的 uh（buh、kuh）——這是 TTS 的限制，人聲錄音不會這樣。
+#
+# **這張表是拿來調的**：錄完聽過覺得哪個音怪，改這裡再跑一次 build-letter-audio.py 就好。
+SOUND_SAY = {
+    "A": "aa", "B": "buh", "C": "kuh", "D": "duh", "E": "eh",
+    "F": "fff", "G": "guh", "H": "huh", "I": "ih", "J": "juh",
+    "K": "kuh", "L": "lll", "M": "mmm", "N": "nnn", "O": "ah",
+    "P": "puh", "Q": "kwuh", "R": "rrr", "S": "sss", "T": "tuh",
+    "U": "uh", "V": "vvv", "W": "wuh", "X": "ks",
+    "Y": "yuh", "Z": "zzz",
+}
+
+
+def say_line(letter, head, english, first):
+    """這張卡要唸的一句話。第一張帶字母的名字，兩張都帶那個音。
+
+    使用者定案的教法：字母 → 音 → 單字（A、aa、apple）。
+    唸完之後由程式留一段安靜讓孩子跟著唸，旁白不再多說一個字。
+    """
+    sound = SOUND_SAY.get(head, "")
+    word = english[0].upper() + english[1:] if english else english
+    parts = ([letter[0] + ", " + letter[1]] if first else []) + [sound, word]
+    return ". ".join(part for part in parts if part) + "."
+
 
 def read_pairs():
     """從教材資料讀出 26 個字母各自的兩個例字。"""
@@ -97,7 +123,8 @@ def main():
     out["_說明"] = ("字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。"
                    "image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，"
                    "前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，"
-                   "不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。")
+                   "不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。"
+                   "say 是旁白要唸的那一句（字母→音→單字），audio 是 build-letter-audio.py 產出的檔名。")
     rows = []
     done = skipped = 0
     for name, words in letters.items():
@@ -127,6 +154,8 @@ def main():
                 ("english", english),
                 ("chinese", chinese),
                 ("image", "letters/" + webp_name),
+                ("say", say_line(name, head, english, not entry["words"])),
+                ("audio", "letters/%s_%s.mp3" % (head, english)),
             ]))
         rows.append(entry)
     out["letters"] = rows

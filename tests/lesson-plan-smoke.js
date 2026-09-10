@@ -518,6 +518,17 @@
         check("a tap is judged by the program and recorded",
             /LessonPlan\.checkTap/.test(appSource) && /plan_tap/.test(appSource) &&
             /advancePlan\(verdict\.correct \? "correct" : "incorrect", "tap"\)/.test(appSource));
+        // 2026-09-10 實測：21 個項目全部以一句閒聊問句收尾（What do you usually put on
+        // a table? / Do you like to sing?），孩子被迫一直接話，課程節奏被拖住
+        check("the contract forbids ending a turn with a chat question",
+            /Do NOT end your turn with a question of any kind/.test(appSource) &&
+            /ONE short sentence of feedback, and then you stop talking/.test(appSource));
+        // 純口說的項目（點選題有自己的一套規則，判分本來就不歸模型）
+        check("spoken word directives forbid asking the learner anything back",
+            [dayPlans[0].items.find(one => one.type === "word_zh2en"),
+             day2.items.find(one => one.type === "word_image")].filter(Boolean).every(item =>
+                LP.itemDirective(item, { index: 1, total: 9, attempts: 0 })
+                    .indexOf("不要反問他任何問題") >= 0));
         check("news mode keeps the original flow",
             /時事討論不使用計畫驅動/.test(appSource));
 

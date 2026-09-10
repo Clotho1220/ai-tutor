@@ -23,6 +23,7 @@
             sayBox: doc.getElementById('svSayBox'),
             say: doc.getElementById('svSay'),
             transcript: doc.getElementById('svTranscript'),
+            speakCue: doc.getElementById('svSpeakCue'),
             tapArea: doc.getElementById('svTapArea'),
             tapHint: doc.getElementById('svTapHint'),
             tapPicked: doc.getElementById('svTapPicked'),
@@ -141,6 +142,11 @@
                 }
                 elements.tapOptions.appendChild(button);
             });
+        }
+
+        // 字母單元：旁白唸完之後亮「換你唸」，那段安靜是留給孩子的
+        function showSpeakCue(on) {
+            if (elements.speakCue) elements.speakCue.hidden = !on;
         }
 
         function labelOf(tap, id) {
@@ -269,6 +275,7 @@
             showTap(data.tap || null, data.tapState || null);
             // 字母卡是直式的，版面要換一套（CSS 的 body.letter-mode）
             if (doc.body) doc.body.classList.toggle('letter-mode', data.kind === 'letter');
+            if (data.kind !== 'letter') showSpeakCue(false);
             state.contentVersion += 1;
             state.wordKey = normalize(data.word || "");
             if (elements.word) elements.word.textContent = data.word || "";
@@ -412,6 +419,7 @@
             state.contentVersion += 1;
             state.wordKey = "";
             showTap(null, null);
+            showSpeakCue(false);
             invalidateImage('🎈', "");
             if (elements.topics) {
                 elements.topics.replaceChildren();
@@ -440,6 +448,7 @@
             showWord,
             showCard,
             showTap,
+            showSpeakCue,
             showImage,
             beginTranscriptTurn,
             appendTranscript,

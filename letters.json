@@ -1,5 +1,5 @@
 {
- "_說明": "字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。",
+ "_說明": "字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。say 是旁白要唸的那一句（字母→音→單字），audio 是 build-letter-audio.py 產出的檔名。",
  "letters": [
   {
    "letter": "Aa",
@@ -9,12 +9,16 @@
     {
      "english": "apple",
      "chinese": "蘋果",
-     "image": "letters/A_apple.webp"
+     "image": "letters/A_apple.webp",
+     "say": "A, a. aa. Apple.",
+     "audio": "letters/A_apple.mp3"
     },
     {
      "english": "ant",
      "chinese": "螞蟻",
-     "image": "letters/A_ant.webp"
+     "image": "letters/A_ant.webp",
+     "say": "aa. Ant.",
+     "audio": "letters/A_ant.mp3"
     }
    ]
   },
@@ -26,12 +30,16 @@
     {
      "english": "banana",
      "chinese": "香蕉",
-     "image": "letters/B_banana.webp"
+     "image": "letters/B_banana.webp",
+     "say": "B, b. buh. Banana.",
+     "audio": "letters/B_banana.mp3"
     },
     {
      "english": "bear",
      "chinese": "熊",
-     "image": "letters/B_bear.webp"
+     "image": "letters/B_bear.webp",
+     "say": "buh. Bear.",
+     "audio": "letters/B_bear.mp3"
     }
    ]
   },
@@ -43,12 +51,16 @@
     {
      "english": "cat",
      "chinese": "貓",
-     "image": "letters/C_cat.webp"
+     "image": "letters/C_cat.webp",
+     "say": "C, c. kuh. Cat.",
+     "audio": "letters/C_cat.mp3"
     },
     {
      "english": "carrot",
      "chinese": "紅蘿蔔",
-     "image": "letters/C_carrot.webp"
+     "image": "letters/C_carrot.webp",
+     "say": "kuh. Carrot.",
+     "audio": "letters/C_carrot.mp3"
     }
    ]
   },
@@ -60,12 +72,16 @@
     {
      "english": "dog",
      "chinese": "狗",
-     "image": "letters/D_dog.webp"
+     "image": "letters/D_dog.webp",
+     "say": "D, d. duh. Dog.",
+     "audio": "letters/D_dog.mp3"
     },
     {
      "english": "duck",
      "chinese": "鴨子",
-     "image": "letters/D_duck.webp"
+     "image": "letters/D_duck.webp",
+     "say": "duh. Duck.",
+     "audio": "letters/D_duck.mp3"
     }
    ]
   },
@@ -77,12 +93,16 @@
     {
      "english": "elephant",
      "chinese": "大象",
-     "image": "letters/E_elephant.webp"
+     "image": "letters/E_elephant.webp",
+     "say": "E, e. eh. Elephant.",
+     "audio": "letters/E_elephant.mp3"
     },
     {
      "english": "egg",
      "chinese": "蛋",
-     "image": "letters/E_egg.webp"
+     "image": "letters/E_egg.webp",
+     "say": "eh. Egg.",
+     "audio": "letters/E_egg.mp3"
     }
    ]
   },
@@ -94,12 +114,16 @@
     {
      "english": "fish",
      "chinese": "魚",
-     "image": "letters/F_fish.webp"
+     "image": "letters/F_fish.webp",
+     "say": "F, f. fff. Fish.",
+     "audio": "letters/F_fish.mp3"
     },
     {
      "english": "fox",
      "chinese": "狐狸",
-     "image": "letters/F_fox.webp"
+     "image": "letters/F_fox.webp",
+     "say": "fff. Fox.",
+     "audio": "letters/F_fox.mp3"
     }
    ]
   },
@@ -111,12 +135,16 @@
     {
      "english": "goat",
      "chinese": "山羊",
-     "image": "letters/G_goat.webp"
+     "image": "letters/G_goat.webp",
+     "say": "G, g. guh. Goat.",
+     "audio": "letters/G_goat.mp3"
     },
     {
      "english": "girl",
      "chinese": "女孩",
-     "image": "letters/G_girl.webp"
+     "image": "letters/G_girl.webp",
+     "say": "guh. Girl.",
+     "audio": "letters/G_girl.mp3"
     }
    ]
   },
@@ -128,12 +156,16 @@
     {
      "english": "hippo",
      "chinese": "河馬",
-     "image": "letters/H_hippo.webp"
+     "image": "letters/H_hippo.webp",
+     "say": "H, h. huh. Hippo.",
+     "audio": "letters/H_hippo.mp3"
     },
     {
      "english": "hat",
      "chinese": "帽子",
-     "image": "letters/H_hat.webp"
+     "image": "letters/H_hat.webp",
+     "say": "huh. Hat.",
+     "audio": "letters/H_hat.mp3"
     }
    ]
   },
@@ -145,12 +177,16 @@
     {
      "english": "iguana",
      "chinese": "鬣蜥",
-     "image": "letters/I_iguana.webp"
+     "image": "letters/I_iguana.webp",
+     "say": "I, i. ih. Iguana.",
+     "audio": "letters/I_iguana.mp3"
     },
     {
      "english": "igloo",
      "chinese": "冰屋",
-     "image": "letters/I_igloo.webp"
+     "image": "letters/I_igloo.webp",
+     "say": "ih. Igloo.",
+     "audio": "letters/I_igloo.mp3"
     }
    ]
   },
@@ -162,12 +198,16 @@
     {
      "english": "juice",
      "chinese": "果汁",
-     "image": "letters/J_juice.webp"
+     "image": "letters/J_juice.webp",
+     "say": "J, j. juh. Juice.",
+     "audio": "letters/J_juice.mp3"
     },
     {
      "english": "jellyfish",
      "chinese": "水母",
-     "image": "letters/J_jellyfish.webp"
+     "image": "letters/J_jellyfish.webp",
+     "say": "juh. Jellyfish.",
+     "audio": "letters/J_jellyfish.mp3"
     }
    ]
   },
@@ -179,12 +219,16 @@
     {
      "english": "kangaroo",
      "chinese": "袋鼠",
-     "image": "letters/K_kangaroo.webp"
+     "image": "letters/K_kangaroo.webp",
+     "say": "K, k. kuh. Kangaroo.",
+     "audio": "letters/K_kangaroo.mp3"
     },
     {
      "english": "kite",
      "chinese": "風箏",
-     "image": "letters/K_kite.webp"
+     "image": "letters/K_kite.webp",
+     "say": "kuh. Kite.",
+     "audio": "letters/K_kite.mp3"
     }
    ]
   },
@@ -196,12 +240,16 @@
     {
      "english": "lion",
      "chinese": "獅子",
-     "image": "letters/L_lion.webp"
+     "image": "letters/L_lion.webp",
+     "say": "L, l. lll. Lion.",
+     "audio": "letters/L_lion.mp3"
     },
     {
      "english": "lemon",
      "chinese": "檸檬",
-     "image": "letters/L_lemon.webp"
+     "image": "letters/L_lemon.webp",
+     "say": "lll. Lemon.",
+     "audio": "letters/L_lemon.mp3"
     }
    ]
   },
@@ -213,12 +261,16 @@
     {
      "english": "monkey",
      "chinese": "猴子",
-     "image": "letters/M_monkey.webp"
+     "image": "letters/M_monkey.webp",
+     "say": "M, m. mmm. Monkey.",
+     "audio": "letters/M_monkey.mp3"
     },
     {
      "english": "melon",
      "chinese": "甜瓜",
-     "image": "letters/M_melon.webp"
+     "image": "letters/M_melon.webp",
+     "say": "mmm. Melon.",
+     "audio": "letters/M_melon.mp3"
     }
    ]
   },
@@ -230,12 +282,16 @@
     {
      "english": "noodles",
      "chinese": "麵",
-     "image": "letters/N_noodles.webp"
+     "image": "letters/N_noodles.webp",
+     "say": "N, n. nnn. Noodles.",
+     "audio": "letters/N_noodles.mp3"
     },
     {
      "english": "nose",
      "chinese": "鼻子",
-     "image": "letters/N_nose.webp"
+     "image": "letters/N_nose.webp",
+     "say": "nnn. Nose.",
+     "audio": "letters/N_nose.mp3"
     }
    ]
   },
@@ -247,12 +303,16 @@
     {
      "english": "octopus",
      "chinese": "章魚",
-     "image": "letters/O_octopus.webp"
+     "image": "letters/O_octopus.webp",
+     "say": "O, o. ah. Octopus.",
+     "audio": "letters/O_octopus.mp3"
     },
     {
      "english": "ox",
      "chinese": "公牛",
-     "image": "letters/O_ox.webp"
+     "image": "letters/O_ox.webp",
+     "say": "ah. Ox.",
+     "audio": "letters/O_ox.mp3"
     }
    ]
   },
@@ -264,12 +324,16 @@
     {
      "english": "panda",
      "chinese": "熊貓",
-     "image": "letters/P_panda.webp"
+     "image": "letters/P_panda.webp",
+     "say": "P, p. puh. Panda.",
+     "audio": "letters/P_panda.mp3"
     },
     {
      "english": "piano",
      "chinese": "鋼琴",
-     "image": "letters/P_piano.webp"
+     "image": "letters/P_piano.webp",
+     "say": "puh. Piano.",
+     "audio": "letters/P_piano.mp3"
     }
    ]
   },
@@ -281,12 +345,16 @@
     {
      "english": "queen",
      "chinese": "皇后",
-     "image": "letters/Q_queen.webp"
+     "image": "letters/Q_queen.webp",
+     "say": "Q, q. kwuh. Queen.",
+     "audio": "letters/Q_queen.mp3"
     },
     {
      "english": "question",
      "chinese": "問題",
-     "image": "letters/Q_question.webp"
+     "image": "letters/Q_question.webp",
+     "say": "kwuh. Question.",
+     "audio": "letters/Q_question.mp3"
     }
    ]
   },
@@ -298,12 +366,16 @@
     {
      "english": "rabbit",
      "chinese": "兔子",
-     "image": "letters/R_rabbit.webp"
+     "image": "letters/R_rabbit.webp",
+     "say": "R, r. rrr. Rabbit.",
+     "audio": "letters/R_rabbit.mp3"
     },
     {
      "english": "rice",
      "chinese": "米飯",
-     "image": "letters/R_rice.webp"
+     "image": "letters/R_rice.webp",
+     "say": "rrr. Rice.",
+     "audio": "letters/R_rice.mp3"
     }
    ]
   },
@@ -315,12 +387,16 @@
     {
      "english": "sun",
      "chinese": "太陽",
-     "image": "letters/S_sun.webp"
+     "image": "letters/S_sun.webp",
+     "say": "S, s. sss. Sun.",
+     "audio": "letters/S_sun.mp3"
     },
     {
      "english": "soccer",
      "chinese": "足球",
-     "image": "letters/S_soccer.webp"
+     "image": "letters/S_soccer.webp",
+     "say": "sss. Soccer.",
+     "audio": "letters/S_soccer.mp3"
     }
    ]
   },
@@ -332,12 +408,16 @@
     {
      "english": "tiger",
      "chinese": "老虎",
-     "image": "letters/T_tiger.webp"
+     "image": "letters/T_tiger.webp",
+     "say": "T, t. tuh. Tiger.",
+     "audio": "letters/T_tiger.mp3"
     },
     {
      "english": "TV",
      "chinese": "電視",
-     "image": "letters/T_TV.webp"
+     "image": "letters/T_TV.webp",
+     "say": "tuh. TV.",
+     "audio": "letters/T_TV.mp3"
     }
    ]
   },
@@ -349,12 +429,16 @@
     {
      "english": "umbrella",
      "chinese": "雨傘",
-     "image": "letters/U_umbrella.webp"
+     "image": "letters/U_umbrella.webp",
+     "say": "U, u. uh. Umbrella.",
+     "audio": "letters/U_umbrella.mp3"
     },
     {
      "english": "unhappy",
      "chinese": "不開心的",
-     "image": "letters/U_unhappy.webp"
+     "image": "letters/U_unhappy.webp",
+     "say": "uh. Unhappy.",
+     "audio": "letters/U_unhappy.mp3"
     }
    ]
   },
@@ -366,12 +450,16 @@
     {
      "english": "violin",
      "chinese": "小提琴",
-     "image": "letters/V_violin.webp"
+     "image": "letters/V_violin.webp",
+     "say": "V, v. vvv. Violin.",
+     "audio": "letters/V_violin.mp3"
     },
     {
      "english": "volleyball",
      "chinese": "排球",
-     "image": "letters/V_volleyball.webp"
+     "image": "letters/V_volleyball.webp",
+     "say": "vvv. Volleyball.",
+     "audio": "letters/V_volleyball.mp3"
     }
    ]
   },
@@ -383,12 +471,16 @@
     {
      "english": "watch",
      "chinese": "手錶",
-     "image": "letters/W_watch.webp"
+     "image": "letters/W_watch.webp",
+     "say": "W, w. wuh. Watch.",
+     "audio": "letters/W_watch.mp3"
     },
     {
      "english": "witch",
      "chinese": "女巫",
-     "image": "letters/W_witch.webp"
+     "image": "letters/W_witch.webp",
+     "say": "wuh. Witch.",
+     "audio": "letters/W_witch.mp3"
     }
    ]
   },
@@ -400,12 +492,16 @@
     {
      "english": "x-ray",
      "chinese": "X光",
-     "image": "letters/X_x-ray.webp"
+     "image": "letters/X_x-ray.webp",
+     "say": "X, x. ks. X-ray.",
+     "audio": "letters/X_x-ray.mp3"
     },
     {
      "english": "exercise",
      "chinese": "運動",
-     "image": "letters/X_exercise.webp"
+     "image": "letters/X_exercise.webp",
+     "say": "ks. Exercise.",
+     "audio": "letters/X_exercise.mp3"
     }
    ]
   },
@@ -417,12 +513,16 @@
     {
      "english": "yo-yo",
      "chinese": "溜溜球",
-     "image": "letters/Y_yo-yo.webp"
+     "image": "letters/Y_yo-yo.webp",
+     "say": "Y, y. yuh. Yo-yo.",
+     "audio": "letters/Y_yo-yo.mp3"
     },
     {
      "english": "yogurt",
      "chinese": "優格",
-     "image": "letters/Y_yogurt.webp"
+     "image": "letters/Y_yogurt.webp",
+     "say": "yuh. Yogurt.",
+     "audio": "letters/Y_yogurt.mp3"
     }
    ]
   },
@@ -434,12 +534,16 @@
     {
      "english": "zebra",
      "chinese": "斑馬",
-     "image": "letters/Z_zebra.webp"
+     "image": "letters/Z_zebra.webp",
+     "say": "Z, z. zzz. Zebra.",
+     "audio": "letters/Z_zebra.mp3"
     },
     {
      "english": "zoo",
      "chinese": "動物園",
-     "image": "letters/Z_zoo.webp"
+     "image": "letters/Z_zoo.webp",
+     "say": "zzz. Zoo.",
+     "audio": "letters/Z_zoo.mp3"
     }
    ]
   }

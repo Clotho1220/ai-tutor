@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.42";
+const APP_VERSION = "3.43";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1485,8 +1485,10 @@ function logSystem(msg) {
 // ---------------- 連線控制 ----------------
 
 actionBtn.addEventListener('click', async () => {
-    // 字母單元走播放模式：不連線，也就不需要 API Key 或同步網址
+    // 字母單元走播放模式：不連線，也就不需要 API Key 或同步網址。
+    // 解鎖聲音一定要在 await 之前——手勢一旦結束，瀏覽器就不讓我們播了。
     if (letterPlayerActive) { finishLetterPlayer(); return; }
+    primeLetterAudio();
     await loadUnitsData();
     if (lettersUnitSelected()) { await startLetterPlayerSession(); return; }
     if (selectedProvider() === 'openai') {
@@ -1751,6 +1753,31 @@ async function startOpenAISession() {
 // 還會慢半拍講到已經過掉的卡——字母單元本來就不需要模型判斷任何事。
 let letterPlayer = null;
 let letterPlayerActive = false;
+let letterAudioElement = null;
+
+// 手機與桌機 Chrome 只允許「使用者那一下」直接觸發的播放。播放器是在
+// 好幾個 await 之後才要放第一段旁白，那時已經不算使用者手勢，整堂課會一點聲音都沒有。
+// 所以在點擊當下就先建立並解鎖一個 <audio>，之後每段旁白都換這個元素的 src。
+function primeLetterAudio() {
+    if (!letterAudioElement) {
+        letterAudioElement = new Audio();
+        letterAudioElement.preload = "auto";
+    }
+    try {
+        // 靜音播一段真的檔案再馬上暫停：目的只是在手勢裡「播過一次」把元素解鎖。
+        // 不用 data: URI——本專案的 CSP 是 media-src 'self' blob:，data: 會被擋掉。
+        letterAudioElement.muted = true;
+        letterAudioElement.src = "audio/letters/A_apple.mp3";
+        const attempt = letterAudioElement.play();
+        if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
+        // 同步收尾，不要用 then()：第一張卡剛好就是 A_apple，
+        // 非同步的 pause 會晚一步把真正在播的那一段停掉
+        letterAudioElement.pause();
+        try { letterAudioElement.currentTime = 0; } catch (e) {}
+        letterAudioElement.muted = false;
+    } catch (e) {}
+    return letterAudioElement;
+}
 
 function lettersUnitSelected() {
     const selection = currentPerson().unit;
@@ -1819,6 +1846,7 @@ async function startLetterPlayerSession() {
         studentView,
         imageBase: "images/",
         audioBase: "audio/",
+        audioElement: primeLetterAudio(),
         onLog: logSystem,
         onEvent: (type, detail) => sessionDiagnostics.record(type, detail)
     });

@@ -2,7 +2,14 @@
     "use strict";
 
     const checks = [];
-    function check(name, pass) { checks.push({ name, pass: !!pass }); }
+    // 邊跑邊寫進畫面：非同步測試卡住的時候，看得出來是停在哪一條
+    function render(title) {
+        const box = document.getElementById("results");
+        if (!box) return;
+        box.textContent = title + "\n" +
+            checks.map(c => (c.pass ? "OK - " : "NOT OK - ") + c.name).join("\n");
+    }
+    function check(name, pass) { checks.push({ name, pass: !!pass }); render("RUNNING"); }
 
     // 假的計時器：不真的等 2.6 秒，直接把時間快轉掉
     const timers = new Map();
@@ -13,6 +20,7 @@
         return id;
     }
     function clearTimeoutFn(id) { timers.delete(id); }
+
     // 讓出幾輪 microtask，播放器的 await 才有機會往下走、排出下一個計時器。
     // 用 microtask 而不是真的 setTimeout：整份測試才不會真的等上好幾秒。
     async function settle() {
@@ -43,7 +51,7 @@
             type: "letter_say",
             letter: "Aa", target: "apple" + i,
             image: "letters/A_apple.webp", audio: "letters/A_apple.mp3",
-            say: "A, a. aa. Apple."
+            say: "A ... aa ... Apple."
         }));
     }
 
@@ -51,15 +59,19 @@
         const LP = window.LetterPlayer;
         check("the player module loads", !!LP && typeof LP.create === "function");
 
-        // ---- 有預錄的 mp3 就播 mp3 ----
+        // ---- 每張卡播一次，照順序 ----
         const played = [];
         function FakeAudio(url) {
             played.push(url);
             const handlers = {};
             return {
                 addEventListener: (name, fn) => { handlers[name] = fn; },
+                removeEventListener: name => { delete handlers[name]; },
                 pause: () => {},
-                play: () => { setTimeoutFn(() => handlers.ended && handlers.ended(), 1); return Promise.resolve(); }
+                play: () => {
+                    setTimeoutFn(() => handlers.ended && handlers.ended(), 1);
+                    return Promise.resolve();
+                }
             };
         }
 
@@ -91,12 +103,69 @@
             events.some(e => e.type === "letter_player_started") &&
             events.some(e => e.type === "letter_player_finished" && e.detail.played === 3));
 
+        // ---- 共用那個「在點擊當下解鎖」的 <audio> ----
+        // 手機與桌機 Chrome 只讓使用者手勢直接觸發的播放出聲。播放器必須重複用
+        // 同一個已解鎖的元素、只換 src，不能每張卡都 new 一個（2026-09-10 實測完全沒聲音）。
+        const shared = (function () {
+            const handlers = {};
+            return {
+                srcs: [], plays: 0, currentTime: 0,
+                set src(value) { this.srcs.push(value); },
+                get src() { return this.srcs[this.srcs.length - 1] || ""; },
+                addEventListener: (name, fn) => { handlers[name] = fn; },
+                removeEventListener: name => { delete handlers[name]; },
+                pause: () => {},
+                play() {
+                    this.plays += 1;
+                    setTimeoutFn(() => handlers.ended && handlers.ended(), 1);
+                    return Promise.resolve();
+                }
+            };
+        })();
+        const player5 = LP.create({
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
+            audioElement: shared, AudioCtor: null, speechSynthesis: null,
+            setTimeoutFn, clearTimeoutFn
+        });
+        const run5 = player5.play(cards(3));
+        await runTimers();
+        await run5;
+        check("every clip reuses the one unlocked audio element",
+            shared.plays === 3 && shared.srcs.length === 3 &&
+            shared.srcs[0] === "audio/letters/A_apple.mp3");
+
+        // ---- 播不出來要講出來，不要默默沒聲音 ----
+        const blockedSpeech = [];
+        const logs = [];
+        const blocked = {
+            src: "", currentTime: 0,
+            addEventListener: () => {}, removeEventListener: () => {}, pause: () => {},
+            play: () => Promise.reject(Object.assign(new Error("blocked"), { name: "NotAllowedError" }))
+        };
+        const player6 = LP.create({
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
+            audioElement: blocked, AudioCtor: null,
+            speechSynthesis: {
+                speak: u => { blockedSpeech.push(u.text); setTimeoutFn(() => u.onend && u.onend(), 1); },
+                cancel: () => {}
+            },
+            setTimeoutFn, clearTimeoutFn, onLog: message => logs.push(message)
+        });
+        const run6 = player6.play(cards(2));
+        await runTimers();
+        await run6;
+        check("blocked audio is reported once and falls back to speech",
+            logs.filter(m => m.indexOf("播不出來") >= 0).length === 1 &&
+            blockedSpeech.length === 2);
+
         // ---- 沒有預錄檔就退回瀏覽器語音 ----
         const spoken = [];
-        const speech = { speak: u => { spoken.push(u.text); setTimeoutFn(() => u.onend && u.onend(), 1); }, cancel: () => {} };
-        const view2 = fakeView();
+        const speech = {
+            speak: u => { spoken.push(u.text); setTimeoutFn(() => u.onend && u.onend(), 1); },
+            cancel: () => {}
+        };
         const player2 = LP.create({
-            studentView: view2, imageBase: "images/", audioBase: "audio/",
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
             AudioCtor: null, speechSynthesis: speech,
             setTimeoutFn, clearTimeoutFn
         });
@@ -105,12 +174,11 @@
         await runTimers();
         await run2;
         check("cards with no recording fall back to browser speech",
-            spoken.length === 2 && spoken[0] === "A, a. aa. Apple.");
+            spoken.length === 2 && spoken[0] === "A ... aa ... Apple.");
 
         // ---- 老師中途按結束 ----
-        const view3 = fakeView();
         const player3 = LP.create({
-            studentView: view3, imageBase: "images/", audioBase: "audio/",
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
             AudioCtor: FakeAudio, speechSynthesis: null,
             setTimeoutFn, clearTimeoutFn
         });
@@ -134,8 +202,7 @@
         // ---- 字母單元不連線（app.js 的路由） ----
         const appSource = await fetch("../app.js?letter-player-test=" + Date.now()).then(r => r.text());
         check("a letters unit starts the player instead of a live session",
-            /if \(lettersUnitSelected\(\)\) \{ await startLetterPlayerSession\(\); return; \}/.test(appSource) &&
-            /lettersUnitSelected/.test(appSource));
+            /if \(lettersUnitSelected\(\)\) \{ await startLetterPlayerSession\(\); return; \}/.test(appSource));
         check("the player never opens a model connection",
             /startLetterPlayerSession/.test(appSource) &&
             appSource.split("async function startLetterPlayerSession")[1]
@@ -143,11 +210,13 @@
                 .indexOf("liveSession.start") < 0);
         check("finishing a day advances the week progress",
             /markLetterDayDone\(key\)/.test(appSource));
+        // 解鎖一定要在 await 之前跑：手勢一結束，瀏覽器就不讓我們播了
+        check("audio is unlocked inside the click, before any await",
+            /primeLetterAudio\(\);\s*\n\s*await loadUnitsData\(\);/.test(appSource) &&
+            /audioElement: primeLetterAudio\(\)/.test(appSource));
 
-        const box = document.getElementById("results");
         const failed = checks.filter(c => !c.pass);
         document.title = (failed.length ? "FAIL" : "PASS") + " - letter player smoke test";
-        box.textContent = (failed.length ? "FAIL" : "PASS") + "\n" +
-            checks.map(c => (c.pass ? "OK - " : "NOT OK - ") + c.name).join("\n");
+        render(failed.length ? "FAIL" : "PASS");
     })();
 })();

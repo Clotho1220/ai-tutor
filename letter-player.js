@@ -26,6 +26,11 @@
         const log = typeof config.onLog === 'function' ? config.onLog : function () {};
         const record = typeof config.onEvent === 'function' ? config.onEvent : function () {};
         const AudioCtor = config.AudioCtor || global.Audio;
+        // 手機（與桌機 Chrome 的自動播放政策）只允許「使用者那一下」直接觸發的播放。
+        // 播放器是在好幾個 await 之後才建立第一個 Audio 的，那時已經不算使用者手勢了，
+        // 結果整堂課一點聲音都沒有（2026-09-10 實測）。
+        // 解法是共用同一個已經在點擊當下解鎖過的 <audio>，之後只換 src。
+        const shared = config.audioElement || null;
         const speech = config.speechSynthesis !== undefined
             ? config.speechSynthesis : global.speechSynthesis;
 
@@ -53,23 +58,52 @@
 
         // 有預錄的 mp3 就用，沒有就退回瀏覽器內建語音。
         // 回傳這段聲音大概播了多久，用來決定要留多長的安靜給孩子。
+        let audioWarned = false;
         function speakCard(item) {
             const url = item.audio ? config.audioBase + item.audio : "";
-            if (url && AudioCtor) {
-                return playFile(url).catch(() => speakText(item.say));
+            if (url && (shared || AudioCtor)) {
+                return playFile(url).catch(error => {
+                    // 一堂課只講一次，但一定要講——不然「完全沒聲音」只能用猜的
+                    if (!audioWarned) {
+                        audioWarned = true;
+                        log(`🔇 預錄旁白播不出來（${error && error.name ? error.name : "error"}），改用瀏覽器內建語音。`);
+                        record("letter_audio_blocked", {
+                            url, reason: error && (error.name || error.message) || "unknown"
+                        });
+                    }
+                    return speakText(item.say);
+                });
             }
             return speakText(item.say);
         }
 
         function playFile(url) {
             return new Promise((resolve, reject) => {
-                const audio = new AudioCtor(url);
+                const audio = shared || new AudioCtor(url);
                 state.audio = audio;
                 const started = Date.now();
-                audio.addEventListener('ended', () => resolve(Date.now() - started));
-                audio.addEventListener('error', () => reject(new Error('audio failed')));
+                let settled = false;
+
+                function cleanup() {
+                    audio.removeEventListener('ended', ended);
+                    audio.removeEventListener('error', failed);
+                }
+                function ended() {
+                    if (settled) return;
+                    settled = true; cleanup(); resolve(Date.now() - started);
+                }
+                function failed(error) {
+                    if (settled) return;
+                    settled = true; cleanup();
+                    reject(error instanceof Error ? error : new Error('audio failed'));
+                }
+
+                audio.addEventListener('ended', ended);
+                audio.addEventListener('error', failed);
+                // 共用的那個元素是點擊當下解鎖的，之後只換 src
+                if (shared) { shared.src = url; try { shared.currentTime = 0; } catch (e) {} }
                 const attempt = audio.play();
-                if (attempt && typeof attempt.catch === 'function') attempt.catch(reject);
+                if (attempt && typeof attempt.catch === 'function') attempt.catch(failed);
             });
         }
 

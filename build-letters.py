@@ -68,15 +68,18 @@ SOUND_SAY = {
 
 
 def say_line(letter, head, english, first):
-    """這張卡要唸的一句話。第一張帶字母的名字，兩張都帶那個音。
+    """這張卡要唸的一句話：字母 → 音 → 單字（使用者定案的教法）。
 
-    使用者定案的教法：字母 → 音 → 單字（A、aa、apple）。
-    唸完之後由程式留一段安靜讓孩子跟著唸，旁白不再多說一個字。
+    兩張卡都是同一個結構。第一版第一張唸「A, a」（大小寫各唸一次，聽起來像結巴）、
+    第二張整個不唸字母，2026-09-10 使用者實聽的回饋就是這兩件事——
+    現在每張卡都把字母唸一次、只唸一次。
+
+    段落之間用 ... 隔開，讓旁白慢下來、每一段之間有停頓，
+    孩子才跟得上（唸完之後程式還會再留一段安靜給他跟著唸）。
     """
     sound = SOUND_SAY.get(head, "")
     word = english[0].upper() + english[1:] if english else english
-    parts = ([letter[0] + ", " + letter[1]] if first else []) + [sound, word]
-    return ". ".join(part for part in parts if part) + "."
+    return " ... ".join(part for part in [head, sound, word] if part) + "."
 
 
 def read_pairs():

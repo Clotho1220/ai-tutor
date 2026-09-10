@@ -6,8 +6,8 @@
 而且不會像即時模型那樣自己加話（2026-09-10 實測就是被這件事拖垮的）。
 
 要唸的那一句寫在 letters.json 的 `say`（由 build-letters.py 產生）：
-    A, a. aa. Apple.        ← 第一張卡：字母 → 音 → 單字
-    aa. Ant.                ← 第二張卡：音 → 單字
+    A ... aa ... Apple.     ← 每張卡都一樣：字母 → 音 → 單字
+    A ... aa ... Ant.
 
 用法（金鑰只留在你自己的環境變數裡，不要寫進檔案）：
 
@@ -20,7 +20,7 @@
 
 錄完直接重新整理網頁就會用預錄的聲音；沒有 mp3 的卡片會退回瀏覽器內建語音。
 覺得哪個音唸得怪，改 build-letters.py 的 SOUND_SAY、重跑 build-letters.py，
-再用 --only 把那幾個字母補錄就好。
+再用 --only 把那幾個字母補錄就好（語速在 speak() 的 voice_settings.speed）。
 """
 
 import argparse
@@ -47,7 +47,8 @@ def speak(text, voice, model, key):
         "text": text,
         "model_id": model,
         # stability 高一點：同一個音每次唸出來要一樣，不要有情緒起伏
-        "voice_settings": {"stability": 0.75, "similarity_boost": 0.75, "speed": 0.9},
+        # speed 0.8：使用者實聽第一版覺得太快。這是給小小孩跟著唸的，寧可慢。
+        "voice_settings": {"stability": 0.75, "similarity_boost": 0.75, "speed": 0.8},
     }).encode("utf-8")
     request = urllib.request.Request(
         API % voice, data=body,

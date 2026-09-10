@@ -215,6 +215,14 @@
             /primeLetterAudio\(\);\s*\n\s*await loadUnitsData\(\);/.test(appSource) &&
             /audioElement: primeLetterAudio\(\)/.test(appSource));
 
+        // 第一段旁白要在 ▶ 開始那一下裡直接播，不能隔著 await
+        check("the first clip is played from inside the start tap", (function () {
+            const at = appSource.indexOf("studentView.showStartButton(() => {");
+            const body = at >= 0 ? appSource.slice(at, at + 200) : "";
+            return body.indexOf("letterPlayer.play(cards)") > 0 &&
+                body.slice(0, body.indexOf("letterPlayer.play(cards)")).indexOf("await") < 0;
+        })());
+
         const failed = checks.filter(c => !c.pass);
         document.title = (failed.length ? "FAIL" : "PASS") + " - letter player smoke test";
         render(failed.length ? "FAIL" : "PASS");

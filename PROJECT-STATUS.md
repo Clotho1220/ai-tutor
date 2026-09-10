@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
 最後更新：2026-09-10  
-目前版本：v3.43  
+目前版本：v3.44  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -77,11 +77,34 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.43`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.44`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - GPT 診斷現在也包含單元名稱、預定時間與課程階段。
 
 ## 3. 最近完成的重要修正
+
+### v3.44
+
+2026-09-10 深夜。字母單元第二輪實聽：還是沒聲音；A、E 的字母名被唸成它的音。
+
+- **還是沒聲音**：v3.43 靠「開始連線」那一下解鎖，但那一下離第一段旁白隔了好幾個 await，
+  手機上不算數。改成學生畫面先出一顆 **▶ 開始**，第一段旁白在那顆按鈕的 click 裡
+  **同步**呼叫 `play()`——`play()` 到第一次 `audio.play()` 之間刻意沒有任何 await，
+  所以第一段就是手勢直接觸發的；之後同一個元素接著播都被允許。這是瀏覽器唯一保證的路徑。
+  等 ▶ 開始的期間老師按「結束播放」也能正常收掉（`letterPlayerWaiting`）。
+- **字母名被唸成它的音**：`A ... aa ... Apple` 這種寫法，TTS 看到後面的 aa 就把前面的 A
+  也猜成 /æ/。改用 ElevenLabs 的 **phoneme 標籤**（CMU Arpabet）把字母名釘死，
+  只有 `eleven_flash_v2` 支援，模型跟著換；段落之間改用 `<break time="0.7s"/>`。
+  母音 A/E/I/O/U 的「音」也釘死（aa／eh／ih 這種拼法本來就跟字母名長得太像）。
+  子音的字母名**維持純文字**：phoneme 套上去反而壞掉（H→A、N→and、S→say、Y→we）。
+  例字 igloo 也釘住（跟母音的音接在一起兩輪都糊成 blue）。
+- **終於有 review 了**：`review-letter-audio.py` 把 52 段用 ElevenLabs Scribe 轉回文字，
+  對「字母名有沒有、例字有沒有、有沒有多唸」，報告寫在 `audio/letters/review.json`。
+  它抓得到少唸、多唸、唸錯；抓不到同一個字母的「名」跟「音」（轉文字都寫 A），
+  那部分靠 phoneme 釘死。這一輪 52/52 通過。之前只看檔案長度那不叫 review，記取教訓。
+
+流程變成：`build-letters.py` → `build-letter-audio.py` → `review-letter-audio.py`。
+`tests/letter-player-smoke.js` 16 條。
 
 ### v3.43
 

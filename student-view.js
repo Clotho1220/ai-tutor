@@ -24,6 +24,7 @@
             say: doc.getElementById('svSay'),
             transcript: doc.getElementById('svTranscript'),
             speakCue: doc.getElementById('svSpeakCue'),
+            startBtn: doc.getElementById('svStartBtn'),
             tapArea: doc.getElementById('svTapArea'),
             tapHint: doc.getElementById('svTapHint'),
             tapPicked: doc.getElementById('svTapPicked'),
@@ -142,6 +143,31 @@
                 }
                 elements.tapOptions.appendChild(button);
             });
+        }
+
+        // 字母單元的「▶ 開始」：瀏覽器只讓使用者手勢直接觸發的播放出聲，
+        // 所以第一段旁白要在這顆按鈕的 click 裡直接播（呼叫端在 onStart 裡同步呼叫 play）。
+        // 按下去就收起來；換題、reset 也一併收掉。
+        let startHandler = null;
+        function showStartButton(onStart) {
+            const button = elements.startBtn;
+            if (!button) { if (typeof onStart === 'function') onStart(); return; }
+            if (startHandler) button.removeEventListener('click', startHandler);
+            startHandler = () => {
+                button.hidden = true;
+                button.removeEventListener('click', startHandler);
+                startHandler = null;
+                if (typeof onStart === 'function') onStart();
+            };
+            button.addEventListener('click', startHandler);
+            button.hidden = false;
+        }
+        function hideStartButton() {
+            const button = elements.startBtn;
+            if (!button) return;
+            if (startHandler) button.removeEventListener('click', startHandler);
+            startHandler = null;
+            button.hidden = true;
         }
 
         // 字母單元：旁白唸完之後亮「換你唸」，那段安靜是留給孩子的
@@ -420,6 +446,7 @@
             state.wordKey = "";
             showTap(null, null);
             showSpeakCue(false);
+            hideStartButton();
             invalidateImage('🎈', "");
             if (elements.topics) {
                 elements.topics.replaceChildren();
@@ -449,6 +476,8 @@
             showCard,
             showTap,
             showSpeakCue,
+            showStartButton,
+            hideStartButton,
             showImage,
             beginTranscriptTurn,
             appendTranscript,

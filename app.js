@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.43";
+const APP_VERSION = "3.44";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1753,6 +1753,8 @@ async function startOpenAISession() {
 // 還會慢半拍講到已經過掉的卡——字母單元本來就不需要模型判斷任何事。
 let letterPlayer = null;
 let letterPlayerActive = false;
+let letterPlayerStarted = false;      // 孩子按了 ▶ 開始沒有
+let letterPlayerWaiting = null;       // 還在等 ▶ 開始時，老師按結束要能放掉那個 await
 let letterAudioElement = null;
 
 // 手機與桌機 Chrome 只允許「使用者那一下」直接觸發的播放。播放器是在
@@ -1850,7 +1852,20 @@ async function startLetterPlayerSession() {
         onLog: logSystem,
         onEvent: (type, detail) => sessionDiagnostics.record(type, detail)
     });
-    const result = await letterPlayer.play(cards);
+    // 第一段旁白一定要在孩子（或老師）親手按的那一下裡直接播：
+    // play() 到第一次 audio.play() 之前沒有任何 await，所以在 click handler 裡
+    // 同步呼叫它，第一段就是手勢觸發的；之後同一個元素接著播就都被允許。
+    // 「開始連線」那一下離這裡隔了好幾個 await，2026-09-10 實測手機上整堂無聲。
+    studentView.showCard({ imageUrl: cards[0] ? "images/" + cards[0].image : "",
+                           word: cards[0] ? cards[0].letter : "", meaning: "", kind: "letter", icon: "🔤" });
+    const result = await new Promise(resolve => {
+        studentView.showStartButton(() => {
+            letterPlayerStarted = true;
+            letterPlayer.play(cards).then(resolve);
+        });
+        letterPlayerWaiting = resolve;
+    });
+    letterPlayerWaiting = null;
     if (!result.stopped) {
         markLetterDayDone(key);
         logSystem(`✅ ${label} 第 ${day} 天播完了（${result.played} 張）。`);
@@ -1861,8 +1876,11 @@ async function startLetterPlayerSession() {
 
 function finishLetterPlayer() {
     if (letterPlayer) letterPlayer.stop();
+    if (letterPlayerWaiting) { const release = letterPlayerWaiting; letterPlayerWaiting = null; release({ played: 0, stopped: true }); }
+    studentView.hideStartButton();
     letterPlayer = null;
     letterPlayerActive = false;
+    letterPlayerStarted = false;
     document.body.classList.remove('student-mode');
     document.body.classList.remove('player-mode');
     refreshStudentReturnButton();

@@ -90,6 +90,10 @@
                       background:#fff; border-radius:22px; box-shadow:0 3px 12px rgba(0,0,0,0.10);
                       animation:speakPulse 1.1s ease-in-out infinite; }
         @keyframes speakPulse { 0%,100% { transform:scale(1); } 50% { transform:scale(1.06); } }
+        /* ▶ 開始：整堂課唯一要按的一下，要大到小孩一眼看到 */
+        #svStartBtn { font-size:30px; font-weight:800; padding:18px 48px; border-radius:40px;
+                      background:#2d7d46; color:#fff; box-shadow:0 6px 18px rgba(45,125,70,0.35);
+                      -webkit-tap-highlight-color:transparent; touch-action:manipulation; }
         /* 播放模式不需要說話按鈕：孩子不用按任何鍵 */
         body.player-mode #talkBtn { display:none !important; }
         /* 點選作答：按鈕要夠大，六到八歲的手指按得準 */
@@ -211,7 +215,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.43</div>
+            <div id="appVersion">AI Tutor Studio v3.44</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -386,6 +390,8 @@
             <div id="svImageStatus" role="status" aria-live="polite"></div>
             <div id="svWord"></div>
             <div id="svMeaning"></div>
+            <!-- 字母單元：瀏覽器只讓使用者手勢直接觸發的播放出聲，第一段旁白要在這一下裡直接播 -->
+            <button id="svStartBtn" type="button" hidden>▶ 開始</button>
             <!-- 字母單元：旁白唸完之後亮出來，告訴孩子現在換他唸（不用按任何鍵） -->
             <div id="svSpeakCue" hidden>🎤 換你唸</div>
             <!-- 點選作答（第 2〜5 天的單字與對答題）。對錯由程式判定，點完直接換下一題 -->
@@ -407,17 +413,17 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="dom-utils.js?v=20260910d"></script>
-    <script src="student-view.js?v=20260910d"></script>
-    <script src="letter-player.js?v=20260910d"></script>
-    <script src="live-session.js?v=20260910d"></script>
-    <script src="learning-records.js?v=20260910d"></script>
-    <script src="course-progression.js?v=20260910d"></script>
-    <script src="lesson-plan.js?v=20260910d"></script>
-    <script src="stage-transition.js?v=20260910d"></script>
-    <script src="practice-observer.js?v=20260910d"></script>
-    <script src="session-diagnostics.js?v=20260910d"></script>
-    <script src="lesson-ending.js?v=20260910d"></script>
-    <script src="openai-realtime.js?v=20260910d"></script>
-    <script src="app.js?v=20260910d"></script>
+    <script src="dom-utils.js?v=20260910e"></script>
+    <script src="student-view.js?v=20260910e"></script>
+    <script src="letter-player.js?v=20260910e"></script>
+    <script src="live-session.js?v=20260910e"></script>
+    <script src="learning-records.js?v=20260910e"></script>
+    <script src="course-progression.js?v=20260910e"></script>
+    <script src="lesson-plan.js?v=20260910e"></script>
+    <script src="stage-transition.js?v=20260910e"></script>
+    <script src="practice-observer.js?v=20260910e"></script>
+    <script src="session-diagnostics.js?v=20260910e"></script>
+    <script src="lesson-ending.js?v=20260910e"></script>
+    <script src="openai-realtime.js?v=20260910e"></script>
+    <script src="app.js?v=20260910e"></script>
 </body></html>

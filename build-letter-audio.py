@@ -6,8 +6,10 @@
 而且不會像即時模型那樣自己加話（2026-09-10 實測就是被這件事拖垮的）。
 
 要唸的那一句寫在 letters.json 的 `say`（由 build-letters.py 產生）：
-    A ... aa ... Apple.     ← 每張卡都一樣：字母 → 音 → 單字
-    A ... aa ... Ant.
+    <phoneme ...ph="EY1">A</phoneme> <break/> <phoneme ...ph="AE1">a</phoneme> <break/> Apple.
+    每張卡都一樣：字母名 → 音 → 單字。字母名與母音的音用 phoneme 標籤釘死，
+    不再讓 TTS 猜（2026-09-10 第二輪實聽：A、E 的字母名被唸成了它的音）。
+    錄完用 review-letter-audio.py 把每一段轉回文字對一次。
 
 用法（金鑰只留在你自己的環境變數裡，不要寫進檔案）：
 
@@ -39,7 +41,8 @@ API = "https://api.elevenlabs.io/v1/text-to-speech/%s"
 
 # ElevenLabs 內建的英文聲音。清楚、語速穩，適合帶著小小孩唸。
 DEFAULT_VOICE = "21m00Tcm4TlvDq8ikWAM"          # Rachel
-DEFAULT_MODEL = "eleven_multilingual_v2"
+# 只有 flash_v2 支援 phoneme 標籤（字母名靠它才不會被猜成別的音）
+DEFAULT_MODEL = "eleven_flash_v2"
 
 
 def speak(text, voice, model, key):

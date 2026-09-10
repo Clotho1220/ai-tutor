@@ -1,0 +1,26 @@
+[
+ {
+  "file": "letters/I_iguana.mp3",
+  "expect": "I iguana",
+  "heard": "I-i-i-iguana",
+  "problems": []
+ },
+ {
+  "file": "letters/I_igloo.mp3",
+  "expect": "I igloo",
+  "heard": "I... Igloo",
+  "problems": []
+ },
+ {
+  "file": "letters/J_juice.mp3",
+  "expect": "J juice",
+  "heard": "J- J- Juice",
+  "problems": []
+ },
+ {
+  "file": "letters/J_jellyfish.mp3",
+  "expect": "J jellyfish",
+  "heard": "J-j-j-jellyfish",
+  "problems": []
+ }
+]

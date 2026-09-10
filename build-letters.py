@@ -52,34 +52,74 @@ SOUND_NOTES = {
     "X": "這個音在字尾，像 box、fox 最後的那個音",
 }
 
-# 唸給 TTS 聽的拼法。音標（/æ/）餵進 TTS 會被逐字唸成符號，所以另外寫一份
-# 自然發音法教材慣用的「音的拼法」：能延長的子音就拉長（fff、mmm），
-# 塞音只能帶一個很輕的 uh（buh、kuh）——這是 TTS 的限制，人聲錄音不會這樣。
+# ---- 旁白要怎麼唸 ----
 #
-# **這張表是拿來調的**：錄完聽過覺得哪個音怪，改這裡再跑一次 build-letter-audio.py 就好。
-SOUND_SAY = {
-    "A": "aa", "B": "buh", "C": "kuh", "D": "duh", "E": "eh",
-    "F": "fff", "G": "guh", "H": "huh", "I": "ih", "J": "juh",
-    "K": "kuh", "L": "lll", "M": "mmm", "N": "nnn", "O": "ah",
-    "P": "puh", "Q": "kwuh", "R": "rrr", "S": "sss", "T": "tuh",
-    "U": "uh", "V": "vvv", "W": "wuh", "X": "ks",
-    "Y": "yuh", "Z": "zzz",
+# 2026-09-10 實聽兩輪的教訓：
+#   第 1 輪  「A, a. aa. Apple.」 → 有些卡字母唸兩次、有些不唸；整體太快
+#   第 2 輪  「A ... aa ... Apple.」→ A、E 這種母音字母，字母名被唸成了它的音
+#           （TTS 看到後面接著 aa 就把前面的 A 也猜成 /æ/）
+#
+# 所以字母名不能再靠 TTS 猜，改用 ElevenLabs 的 phoneme 標籤直接指定音標
+# （CMU Arpabet；只有 eleven_flash_v2 支援）。母音的「音」也一樣指定，
+# 因為 aa／eh／ih 這種拼法本身就跟字母名長得太像。
+# 子音的音維持文字拼法（fff、mmm、buh）——那幾個實聽沒被抱怨，
+# 而且單獨一個子音音素丟給 TTS 常常短到聽不見。
+#
+# 段落之間用 <break> 留停頓（v2 模型支援，最多 3 秒），不再用 ...。
+
+# 26 個字母的「名字」（Arpabet）。這是這一版真正要修的東西。
+LETTER_NAME = {
+    "A": "EY1", "B": "B IY1", "C": "S IY1", "D": "D IY1", "E": "IY1",
+    "F": "EH1 F", "G": "JH IY1", "H": "EY1 CH", "I": "AY1", "J": "JH EY1",
+    "K": "K EY1", "L": "EH1 L", "M": "EH1 M", "N": "EH1 N", "O": "OW1",
+    "P": "P IY1", "Q": "K Y UW1", "R": "AA1 R", "S": "EH1 S", "T": "T IY1",
+    "U": "Y UW1", "V": "V IY1", "W": "D AH1 B AH0 L Y UW0", "X": "EH1 K S",
+    "Y": "W AY1", "Z": "Z IY1",
 }
+
+# 母音字母的「音」也用 Arpabet 指定（apple 的 /æ/、egg 的 /ɛ/ ...）
+VOWEL_SOUND = {"A": "AE1", "E": "EH1", "I": "IH1", "O": "AA1", "U": "AH1"}
+
+# 子音的「音」用自然發音法教材慣用的拼法。能延長的就拉長（fff、mmm），
+# 塞音只能帶一個很輕的 uh（buh、kuh）——這是 TTS 的限制，人聲錄音不會這樣。
+# **這張表是拿來調的**：錄完聽過覺得哪個音怪，改這裡再用 --only 補錄就好。
+SOUND_SAY = {
+    "B": "buh", "C": "kuh", "D": "duh", "F": "fff", "G": "guh", "H": "huh",
+    "J": "juh", "K": "kuh", "L": "lll", "M": "mmm", "N": "nnn", "P": "puh",
+    "Q": "kwuh", "R": "rrr", "S": "sss", "T": "tuh", "V": "vvv", "W": "wuh",
+    "X": "ks", "Y": "yuh", "Z": "zzz",
+}
+
+PAUSE = '<break time="0.7s" />'
+
+# 例字本身被 TTS 唸歪的，也用 phoneme 釘住。
+# igloo：第 2、3 輪轉回文字都是「I... Blue」，跟母音的音接在一起就糊掉。
+WORD_SAY = {"igloo": "IH1 G L UW0"}
+
+
+def phoneme(word, arpabet):
+    return '<phoneme alphabet="cmu-arpabet" ph="%s">%s</phoneme>' % (arpabet, word)
 
 
 def say_line(letter, head, english, first):
-    """這張卡要唸的一句話：字母 → 音 → 單字（使用者定案的教法）。
+    """這張卡要唸的一句話：字母名 → 音 → 單字（使用者定案的教法），每張卡都一樣。
 
-    兩張卡都是同一個結構。第一版第一張唸「A, a」（大小寫各唸一次，聽起來像結巴）、
-    第二張整個不唸字母，2026-09-10 使用者實聽的回饋就是這兩件事——
-    現在每張卡都把字母唸一次、只唸一次。
-
-    段落之間用 ... 隔開，讓旁白慢下來、每一段之間有停頓，
-    孩子才跟得上（唸完之後程式還會再留一段安靜給他跟著唸）。
+    第 3 輪（Scribe 轉回文字對過）：phoneme 標籤把母音的字母名修好了，
+    但套在子音上反而壞掉——H 唸成 A、N 唸成 and、S 唸成 say、Y 唸成 we。
+    子音的字母名純文字 TTS 本來就唸得對，所以只有母音走 phoneme。
     """
-    sound = SOUND_SAY.get(head, "")
+    name = phoneme(head, LETTER_NAME[head]) if head in VOWEL_SOUND else head
+    sound = (phoneme(head.lower(), VOWEL_SOUND[head]) if head in VOWEL_SOUND
+             else SOUND_SAY.get(head, ""))
     word = english[0].upper() + english[1:] if english else english
-    return " ... ".join(part for part in [head, sound, word] if part) + "."
+    if english.lower() in WORD_SAY:
+        word = phoneme(word, WORD_SAY[english.lower()])
+    return (" " + PAUSE + " ").join(part for part in [name, sound, word] if part) + "."
+
+
+def say_plain(letter, head, english):
+    """同一句的純文字版（給檢查用：預期聽到的字）。"""
+    return "%s %s" % (head, english)
 
 
 def read_pairs():
@@ -158,6 +198,7 @@ def main():
                 ("chinese", chinese),
                 ("image", "letters/" + webp_name),
                 ("say", say_line(name, head, english, not entry["words"])),
+                ("expect", say_plain(name, head, english)),
                 ("audio", "letters/%s_%s.mp3" % (head, english)),
             ]))
         rows.append(entry)

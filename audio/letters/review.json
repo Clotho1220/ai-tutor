@@ -1,35 +1,120 @@
 [
  {
+  "file": "letters/B_banana.mp3",
+  "expect": "B banana",
+  "heard": "B. B- banana",
+  "problems": []
+ },
+ {
+  "file": "letters/B_bear.mp3",
+  "expect": "B bear",
+  "heard": "B, buh, bear",
+  "problems": []
+ },
+ {
+  "file": "letters/C_cat.mp3",
+  "expect": "C cat",
+  "heard": "C, c, cat",
+  "problems": []
+ },
+ {
+  "file": "letters/C_carrot.mp3",
+  "expect": "C carrot",
+  "heard": "C, cu, carrot",
+  "problems": []
+ },
+ {
+  "file": "letters/D_dog.mp3",
+  "expect": "D dog",
+  "heard": "D, d, dog",
+  "problems": []
+ },
+ {
+  "file": "letters/D_duck.mp3",
+  "expect": "D duck",
+  "heard": "D, d, duck",
+  "problems": []
+ },
+ {
+  "file": "letters/F_fish.mp3",
+  "expect": "F fish",
+  "heard": "F. Fuh. Fish",
+  "problems": []
+ },
+ {
+  "file": "letters/F_fox.mp3",
+  "expect": "F fox",
+  "heard": "F, F, fox",
+  "problems": []
+ },
+ {
+  "file": "letters/G_goat.mp3",
+  "expect": "G goat",
+  "heard": "G, g, goat",
+  "problems": []
+ },
+ {
+  "file": "letters/G_girl.mp3",
+  "expect": "G girl",
+  "heard": "G, g, girl",
+  "problems": []
+ },
+ {
+  "file": "letters/H_hippo.mp3",
+  "expect": "H hippo",
+  "heard": "H. H. Hippo",
+  "problems": []
+ },
+ {
+  "file": "letters/H_hat.mp3",
+  "expect": "H hat",
+  "heard": "H. It",
+  "problems": [
+   "沒聽到例字「hat」"
+  ]
+ },
+ {
   "file": "letters/I_iguana.mp3",
   "expect": "I iguana",
-  "heard": "I, I, iguana",
+  "heard": "I, uh, iguana",
   "problems": []
  },
  {
   "file": "letters/I_igloo.mp3",
   "expect": "I igloo",
-  "heard": "T. T. Blue",
+  "heard": "Iiiigloo?",
   "problems": [
-   "沒聽到例字「igloo」",
    "沒聽到字母名「I」"
   ]
  },
  {
   "file": "letters/J_juice.mp3",
   "expect": "J juice",
-  "heard": "J, ju, juice",
+  "heard": "J, j, juice",
   "problems": []
  },
  {
   "file": "letters/J_jellyfish.mp3",
   "expect": "J jellyfish",
-  "heard": "J. J. Jellyfish",
+  "heard": "J, j, jellyfish",
+  "problems": []
+ },
+ {
+  "file": "letters/K_kangaroo.mp3",
+  "expect": "K kangaroo",
+  "heard": "K, ka, kangaroo",
+  "problems": []
+ },
+ {
+  "file": "letters/K_kite.mp3",
+  "expect": "K kite",
+  "heard": "K, k, kite",
   "problems": []
  },
  {
   "file": "letters/L_lion.mp3",
   "expect": "L lion",
-  "heard": "L. Lyon",
+  "heard": "L, La, Leon",
   "problems": [
    "沒聽到例字「lion」"
   ]
@@ -37,7 +122,115 @@
  {
   "file": "letters/L_lemon.mp3",
   "expect": "L lemon",
-  "heard": "L, the lemon",
+  "heard": "El, la, lemon",
+  "problems": []
+ },
+ {
+  "file": "letters/M_monkey.mp3",
+  "expect": "M monkey",
+  "heard": "M. Muh. Monkey",
+  "problems": []
+ },
+ {
+  "file": "letters/M_melon.mp3",
+  "expect": "M melon",
+  "heard": "M, m, melon",
+  "problems": []
+ },
+ {
+  "file": "letters/N_noodles.mp3",
+  "expect": "N noodles",
+  "heard": "N, n, noodles",
+  "problems": []
+ },
+ {
+  "file": "letters/N_nose.mp3",
+  "expect": "N nose",
+  "heard": "N, nose",
+  "problems": []
+ },
+ {
+  "file": "letters/O_octopus.mp3",
+  "expect": "O octopus",
+  "heard": "Oh, uh, octopus",
+  "problems": []
+ },
+ {
+  "file": "letters/O_ox.mp3",
+  "expect": "O ox",
+  "heard": "O, uh, ox",
+  "problems": []
+ },
+ {
+  "file": "letters/P_panda.mp3",
+  "expect": "P panda",
+  "heard": "P-P-P-Panda",
+  "problems": []
+ },
+ {
+  "file": "letters/P_piano.mp3",
+  "expect": "P piano",
+  "heard": "P, P, piano",
+  "problems": []
+ },
+ {
+  "file": "letters/Q_queen.mp3",
+  "expect": "Q queen",
+  "heard": "Q, qu, queen",
+  "problems": []
+ },
+ {
+  "file": "letters/Q_question.mp3",
+  "expect": "Q question",
+  "heard": "Q, qua, question",
+  "problems": []
+ },
+ {
+  "file": "letters/T_tiger.mp3",
+  "expect": "T tiger",
+  "heard": "T, tuh, tiger",
+  "problems": []
+ },
+ {
+  "file": "letters/T_TV.mp3",
+  "expect": "T TV",
+  "heard": "T, t, TV",
+  "problems": []
+ },
+ {
+  "file": "letters/V_violin.mp3",
+  "expect": "V violin",
+  "heard": "V, v, violin",
+  "problems": []
+ },
+ {
+  "file": "letters/V_volleyball.mp3",
+  "expect": "V volleyball",
+  "heard": "V, va, volleyball",
+  "problems": []
+ },
+ {
+  "file": "letters/W_watch.mp3",
+  "expect": "W watch",
+  "heard": "W. Wuh. Watch",
+  "problems": []
+ },
+ {
+  "file": "letters/W_witch.mp3",
+  "expect": "W witch",
+  "heard": "W, w, witch",
+  "problems": []
+ },
+ {
+  "file": "letters/Y_yo-yo.mp3",
+  "expect": "Y yo-yo",
+  "heard": "Y. Yuh. Yo-yo",
+  "problems": []
+ },
+ {
+  "file": "letters/Y_yogurt.mp3",
+  "expect": "Y yogurt",
+  "heard": "Y, Y, yogurt",
   "problems": []
  }
 ]

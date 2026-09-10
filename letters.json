@@ -33,7 +33,7 @@
      "english": "banana",
      "chinese": "香蕉",
      "image": "letters/B_banana.webp",
-     "say": "B <break time=\"0.7s\" /> buh <break time=\"0.7s\" /> Banana.",
+     "say": "B <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"B AH0\">b</phoneme> <break time=\"0.7s\" /> Banana.",
      "expect": "B banana",
      "audio": "letters/B_banana.mp3"
     },
@@ -41,7 +41,7 @@
      "english": "bear",
      "chinese": "熊",
      "image": "letters/B_bear.webp",
-     "say": "B <break time=\"0.7s\" /> buh <break time=\"0.7s\" /> Bear.",
+     "say": "B <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"B AH0\">b</phoneme> <break time=\"0.7s\" /> Bear.",
      "expect": "B bear",
      "audio": "letters/B_bear.mp3"
     }
@@ -79,7 +79,7 @@
      "english": "dog",
      "chinese": "狗",
      "image": "letters/D_dog.webp",
-     "say": "D <break time=\"0.7s\" /> duh <break time=\"0.7s\" /> Dog.",
+     "say": "D <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"D AH0\">d</phoneme> <break time=\"0.7s\" /> Dog.",
      "expect": "D dog",
      "audio": "letters/D_dog.mp3"
     },
@@ -87,7 +87,7 @@
      "english": "duck",
      "chinese": "鴨子",
      "image": "letters/D_duck.webp",
-     "say": "D <break time=\"0.7s\" /> duh <break time=\"0.7s\" /> Duck.",
+     "say": "D <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"D AH0\">d</phoneme> <break time=\"0.7s\" /> Duck.",
      "expect": "D duck",
      "audio": "letters/D_duck.mp3"
     }
@@ -125,7 +125,7 @@
      "english": "fish",
      "chinese": "魚",
      "image": "letters/F_fish.webp",
-     "say": "F <break time=\"0.7s\" /> fff <break time=\"0.7s\" /> Fish.",
+     "say": "F <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"F AH0\">f</phoneme> <break time=\"0.7s\" /> Fish.",
      "expect": "F fish",
      "audio": "letters/F_fish.mp3"
     },
@@ -133,7 +133,7 @@
      "english": "fox",
      "chinese": "狐狸",
      "image": "letters/F_fox.webp",
-     "say": "F <break time=\"0.7s\" /> fff <break time=\"0.7s\" /> Fox.",
+     "say": "F <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"F AH0\">f</phoneme> <break time=\"0.7s\" /> Fox.",
      "expect": "F fox",
      "audio": "letters/F_fox.mp3"
     }
@@ -148,7 +148,7 @@
      "english": "goat",
      "chinese": "山羊",
      "image": "letters/G_goat.webp",
-     "say": "G <break time=\"0.7s\" /> guh <break time=\"0.7s\" /> Goat.",
+     "say": "G <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"G AH0\">g</phoneme> <break time=\"0.7s\" /> Goat.",
      "expect": "G goat",
      "audio": "letters/G_goat.mp3"
     },
@@ -156,7 +156,7 @@
      "english": "girl",
      "chinese": "女孩",
      "image": "letters/G_girl.webp",
-     "say": "G <break time=\"0.7s\" /> guh <break time=\"0.7s\" /> Girl.",
+     "say": "G <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"G AH0\">g</phoneme> <break time=\"0.7s\" /> Girl.",
      "expect": "G girl",
      "audio": "letters/G_girl.mp3"
     }
@@ -171,7 +171,7 @@
      "english": "hippo",
      "chinese": "河馬",
      "image": "letters/H_hippo.webp",
-     "say": "H <break time=\"0.7s\" /> huh <break time=\"0.7s\" /> Hippo.",
+     "say": "H <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"HH AH0\">h</phoneme> <break time=\"0.7s\" /> Hippo.",
      "expect": "H hippo",
      "audio": "letters/H_hippo.mp3"
     },
@@ -179,7 +179,7 @@
      "english": "hat",
      "chinese": "帽子",
      "image": "letters/H_hat.webp",
-     "say": "H <break time=\"0.7s\" /> huh <break time=\"0.7s\" /> Hat.",
+     "say": "H <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"HH AH0\">h</phoneme> <break time=\"0.7s\" /> Hat.",
      "expect": "H hat",
      "audio": "letters/H_hat.mp3"
     }
@@ -217,7 +217,7 @@
      "english": "juice",
      "chinese": "果汁",
      "image": "letters/J_juice.webp",
-     "say": "J <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"JH AH0\">j</phoneme> <break time=\"0.7s\" /> Juice.",
+     "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Juice.",
      "expect": "J juice",
      "audio": "letters/J_juice.mp3"
     },
@@ -225,7 +225,7 @@
      "english": "jellyfish",
      "chinese": "水母",
      "image": "letters/J_jellyfish.webp",
-     "say": "J <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"JH AH0\">j</phoneme> <break time=\"0.7s\" /> Jellyfish.",
+     "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Jellyfish.",
      "expect": "J jellyfish",
      "audio": "letters/J_jellyfish.mp3"
     }
@@ -240,7 +240,7 @@
      "english": "kangaroo",
      "chinese": "袋鼠",
      "image": "letters/K_kangaroo.webp",
-     "say": "K <break time=\"0.7s\" /> kuh <break time=\"0.7s\" /> Kangaroo.",
+     "say": "K <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"K AH0\">k</phoneme> <break time=\"0.7s\" /> Kangaroo.",
      "expect": "K kangaroo",
      "audio": "letters/K_kangaroo.mp3"
     },
@@ -248,7 +248,7 @@
      "english": "kite",
      "chinese": "風箏",
      "image": "letters/K_kite.webp",
-     "say": "K <break time=\"0.7s\" /> kuh <break time=\"0.7s\" /> Kite.",
+     "say": "K <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"K AH0\">k</phoneme> <break time=\"0.7s\" /> Kite.",
      "expect": "K kite",
      "audio": "letters/K_kite.mp3"
     }
@@ -263,7 +263,7 @@
      "english": "lion",
      "chinese": "獅子",
      "image": "letters/L_lion.webp",
-     "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> Lion.",
+     "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AY1 AH0 N\">Lion</phoneme>.",
      "expect": "L lion",
      "audio": "letters/L_lion.mp3"
     },
@@ -286,7 +286,7 @@
      "english": "monkey",
      "chinese": "猴子",
      "image": "letters/M_monkey.webp",
-     "say": "M <break time=\"0.7s\" /> mmm <break time=\"0.7s\" /> Monkey.",
+     "say": "M <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"M AH0\">m</phoneme> <break time=\"0.7s\" /> Monkey.",
      "expect": "M monkey",
      "audio": "letters/M_monkey.mp3"
     },
@@ -294,7 +294,7 @@
      "english": "melon",
      "chinese": "甜瓜",
      "image": "letters/M_melon.webp",
-     "say": "M <break time=\"0.7s\" /> mmm <break time=\"0.7s\" /> Melon.",
+     "say": "M <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"M AH0\">m</phoneme> <break time=\"0.7s\" /> Melon.",
      "expect": "M melon",
      "audio": "letters/M_melon.mp3"
     }
@@ -332,7 +332,7 @@
      "english": "octopus",
      "chinese": "章魚",
      "image": "letters/O_octopus.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"AA1\">o</phoneme> <break time=\"0.7s\" /> Octopus.",
+     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme> <break time=\"0.7s\" /> ah <break time=\"0.7s\" /> Octopus.",
      "expect": "O octopus",
      "audio": "letters/O_octopus.mp3"
     },
@@ -340,7 +340,7 @@
      "english": "ox",
      "chinese": "公牛",
      "image": "letters/O_ox.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"AA1\">o</phoneme> <break time=\"0.7s\" /> Ox.",
+     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme> <break time=\"0.7s\" /> ah <break time=\"0.7s\" /> Ox.",
      "expect": "O ox",
      "audio": "letters/O_ox.mp3"
     }
@@ -447,7 +447,7 @@
      "english": "tiger",
      "chinese": "老虎",
      "image": "letters/T_tiger.webp",
-     "say": "T <break time=\"0.7s\" /> tuh <break time=\"0.7s\" /> Tiger.",
+     "say": "T <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"T AH0\">t</phoneme> <break time=\"0.7s\" /> Tiger.",
      "expect": "T tiger",
      "audio": "letters/T_tiger.mp3"
     },
@@ -455,7 +455,7 @@
      "english": "TV",
      "chinese": "電視",
      "image": "letters/T_TV.webp",
-     "say": "T <break time=\"0.7s\" /> tuh <break time=\"0.7s\" /> TV.",
+     "say": "T <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"T AH0\">t</phoneme> <break time=\"0.7s\" /> TV.",
      "expect": "T TV",
      "audio": "letters/T_TV.mp3"
     }
@@ -493,7 +493,7 @@
      "english": "violin",
      "chinese": "小提琴",
      "image": "letters/V_violin.webp",
-     "say": "V <break time=\"0.7s\" /> vvv <break time=\"0.7s\" /> Violin.",
+     "say": "V <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"V AH0\">v</phoneme> <break time=\"0.7s\" /> Violin.",
      "expect": "V violin",
      "audio": "letters/V_violin.mp3"
     },
@@ -501,7 +501,7 @@
      "english": "volleyball",
      "chinese": "排球",
      "image": "letters/V_volleyball.webp",
-     "say": "V <break time=\"0.7s\" /> vvv <break time=\"0.7s\" /> Volleyball.",
+     "say": "V <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"V AH0\">v</phoneme> <break time=\"0.7s\" /> Volleyball.",
      "expect": "V volleyball",
      "audio": "letters/V_volleyball.mp3"
     }
@@ -562,7 +562,7 @@
      "english": "yo-yo",
      "chinese": "溜溜球",
      "image": "letters/Y_yo-yo.webp",
-     "say": "Y <break time=\"0.7s\" /> yuh <break time=\"0.7s\" /> Yo-yo.",
+     "say": "Y <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"Y AH0\">y</phoneme> <break time=\"0.7s\" /> Yo-yo.",
      "expect": "Y yo-yo",
      "audio": "letters/Y_yo-yo.mp3"
     },
@@ -570,7 +570,7 @@
      "english": "yogurt",
      "chinese": "優格",
      "image": "letters/Y_yogurt.webp",
-     "say": "Y <break time=\"0.7s\" /> yuh <break time=\"0.7s\" /> Yogurt.",
+     "say": "Y <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"Y AH0\">y</phoneme> <break time=\"0.7s\" /> Yogurt.",
      "expect": "Y yogurt",
      "audio": "letters/Y_yogurt.mp3"
     }

@@ -45,13 +45,17 @@ DEFAULT_VOICE = "21m00Tcm4TlvDq8ikWAM"          # Rachel
 DEFAULT_MODEL = "eleven_flash_v2"
 
 
-def speak(text, voice, model, key):
+# 使用者試聽後要「短一點」的字母：整段放快一點（沒有只縮某一個音的旋鈕）
+SPEED_OVERRIDE = {"K": 0.9, "O": 0.9}
+
+
+def speak(text, voice, model, key, speed=0.8):
     body = json.dumps({
         "text": text,
         "model_id": model,
         # stability 高一點：同一個音每次唸出來要一樣，不要有情緒起伏
         # speed 0.8：使用者實聽第一版覺得太快。這是給小小孩跟著唸的，寧可慢。
-        "voice_settings": {"stability": 0.75, "similarity_boost": 0.75, "speed": 0.8},
+        "voice_settings": {"stability": 0.75, "similarity_boost": 0.75, "speed": speed},
     }).encode("utf-8")
     request = urllib.request.Request(
         API % voice, data=body,
@@ -94,14 +98,14 @@ def main():
             target = os.path.join(HERE, "audio", word["audio"].replace("/", os.sep))
             if os.path.exists(target) and not args.force:
                 continue
-            todo.append((word["say"], target))
+            todo.append((word["say"], target, SPEED_OVERRIDE.get(head, 0.8)))
 
     if not todo:
         print("✅ 每一張卡都已經有錄音了（要重錄請加 --force）。")
         return
 
     print("要錄 %d 段：" % len(todo))
-    for text, target in todo[:5]:
+    for text, target, _speed in todo[:5]:
         print("   %-24s %s" % (os.path.basename(target), text))
     if len(todo) > 5:
         print("   ...")
@@ -110,9 +114,9 @@ def main():
         return
 
     done = 0
-    for text, target in todo:
+    for text, target, speed in todo:
         try:
-            audio = speak(text, args.voice, args.model, key)
+            audio = speak(text, args.voice, args.model, key, speed)
         except urllib.error.HTTPError as error:
             detail = error.read().decode("utf-8", "replace")[:300]
             sys.exit("ElevenLabs 回應 %s：%s\n已錄好 %d 段，修好之後再跑一次會從中斷的地方接下去。"

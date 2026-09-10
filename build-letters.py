@@ -77,15 +77,24 @@ LETTER_NAME = {
     "Y": "W AY1", "Z": "Z IY1",
 }
 
-# 母音字母的「音」也用 Arpabet 指定（apple 的 /æ/、egg 的 /ɛ/ ...）。
-# I 例外：IH1 單獨唸出來使用者實聽覺得怪（2026-09-10 第四輪），改回文字 ih。
-VOWEL_SOUND = {"A": "AE1", "E": "EH1", "O": "AA1", "U": "AH1"}
-
-# 幾個子音的「音」用文字拼法也唸不好，改用 Arpabet 釘住（帶一個很輕的 uh）：
-#   J  「juh」被唸成字母名 jay（Scribe 對讀聽到兩個 J）
-#   L  「lll」整段沒被聽到，大概是一聲悶哼
-# 使用者實聽回報哪個怪，就往這張表加，只重錄那幾個字母。
-CONSONANT_SOUND_PHONEME = {"J": "JH AH0", "L": "L AH0"}
+# 每個字母的「音」怎麼唸——**使用者在試聽室（tests/letter-audio-lab.html）用耳朵挑的**，
+# 2026-09-10。("phoneme", Arpabet) 是釘死音標；("text", 拼法) 是讓 TTS 讀文字。
+# 沒在這張表裡的字母（A E U R S X Z）三種候選都被打回票，還在找別的引擎，
+# 暫時沿用最接近的寫法（見下方 FALLBACK）。改這張表 → build-letters.py →
+# build-units-from-gogo.py → build-letter-audio.py --only … → review-letter-audio.py
+SOUND_SPEC = {
+    "B": ("phoneme", "B AH0"),  "C": ("text", "kuh"),      "D": ("phoneme", "D AH0"),
+    "F": ("phoneme", "F AH0"),  "G": ("phoneme", "G AH0"), "H": ("phoneme", "HH AH0"),
+    "I": ("text", "ih"),        "J": ("text", "juh"),      "K": ("phoneme", "K AH0"),
+    "L": ("phoneme", "L AH0"),  "M": ("phoneme", "M AH0"), "N": ("text", "nnn"),
+    "O": ("text", "ah"),        "P": ("text", "puh"),      "Q": ("text", "kwuh"),
+    "T": ("phoneme", "T AH0"),  "V": ("phoneme", "V AH0"), "W": ("text", "wuh"),
+    "Y": ("phoneme", "Y AH0"),
+}
+FALLBACK_SOUND = {
+    "A": ("phoneme", "AE1"), "E": ("phoneme", "EH1"), "U": ("phoneme", "AH1"),
+    "R": ("text", "rrr"), "S": ("text", "sss"), "X": ("text", "ks"), "Z": ("text", "zzz"),
+}
 
 # 子音的「音」用自然發音法教材慣用的拼法。能延長的就拉長（fff、mmm），
 # 塞音只能帶一個很輕的 uh（buh、kuh）——這是 TTS 的限制，人聲錄音不會這樣。
@@ -102,7 +111,7 @@ PAUSE = '<break time="0.7s" />'
 
 # 例字本身被 TTS 唸歪的，也用 phoneme 釘住。
 # igloo：第 2、3 輪轉回文字都是「I... Blue」，跟母音的音接在一起就糊掉。
-WORD_SAY = {"igloo": "IH1 G L UW0"}
+WORD_SAY = {"igloo": "IH1 G L UW0", "lion": "L AY1 AH0 N"}   # lion：試聽室回報唸錯
 
 
 def phoneme(word, arpabet):
@@ -117,12 +126,8 @@ def say_line(letter, head, english, first):
     子音的字母名純文字 TTS 本來就唸得對，所以只有母音走 phoneme。
     """
     name = phoneme(head, LETTER_NAME[head]) if head in "AEIOU" else head
-    if head in VOWEL_SOUND:
-        sound = phoneme(head.lower(), VOWEL_SOUND[head])
-    elif head in CONSONANT_SOUND_PHONEME:
-        sound = phoneme(head.lower(), CONSONANT_SOUND_PHONEME[head])
-    else:
-        sound = SOUND_SAY.get(head, "")
+    kind, value = SOUND_SPEC.get(head) or FALLBACK_SOUND.get(head) or ("text", SOUND_SAY.get(head, ""))
+    sound = phoneme(head.lower(), value) if kind == "phoneme" else value
     word = english[0].upper() + english[1:] if english else english
     if english.lower() in WORD_SAY:
         word = phoneme(word, WORD_SAY[english.lower()])

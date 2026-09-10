@@ -57,13 +57,38 @@ def candidates(head, word):
     return lines
 
 
+# 第二輪：flash_v2 的三種寫法都被打回票的字母，換引擎再試。
+#   1  eleven_turbo_v2 ＋ Arpabet 音標（跟 flash 同一套標籤、不同模型）
+#   2  eleven_v3 ＋ 原生 IPA（/æ/ 這種直接寫在斜線裡）
+#   3  eleven_v3 ＋ 拉長的 IPA（/æː/）
+# v3 不吃 <break>，用 ... 停頓；母音的字母名也用 IPA 寫，子音字母名直接寫字母。
+ROUND2 = {
+    "A": ("AE1", "æ", "/eɪ/"), "E": ("EH1", "ɛ", "/iː/"), "U": ("AH1", "ʌ", "/juː/"),
+    "R": ("R", "ɹ", "R"), "S": ("S", "s", "S"), "X": ("K S", "ks", "X"), "Z": ("Z", "z", "Z"),
+}
+
+
+def candidates_round2(head, word_plain):
+    ph = builder.phoneme
+    arpa, ipa, v3name = ROUND2[head]
+    name_v2 = ph(head, builder.LETTER_NAME[head]) if head in "AEIOU" else head
+    v2 = (" " + builder.PAUSE + " ").join([name_v2, ph(head.lower(), arpa), word_plain]) + "."
+    v3a = " ... ".join([v3name, "/%s/" % ipa, word_plain]) + "."
+    v3b = " ... ".join([v3name, "/%sː/" % ipa, word_plain]) + "."
+    return [("turbo_v2 音標 " + arpa, v2, "eleven_turbo_v2"),
+            ("v3 原生 IPA /%s/" % ipa, v3a, "eleven_v3"),
+            ("v3 拉長 IPA /%sː/" % ipa, v3b, "eleven_v3")]
+
+
 def main(argv):
     for stream in (sys.stdout, sys.stderr):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8", errors="replace")
+    round2 = "--round2" in argv
+    argv = [a for a in argv if a != "--round2"]
     heads = [h.strip().upper() for h in (argv[0] if argv else "").split(",") if h.strip()]
     if not heads:
-        sys.exit("用法：python letter-audio-lab.py I,J,L")
+        sys.exit("用法：python letter-audio-lab.py I,J,L   或   python letter-audio-lab.py --round2 A,E,U")
     key = os.environ.get("ELEVENLABS_API_KEY", "").strip()
     if not key:
         sys.exit("請先設好環境變數 ELEVENLABS_API_KEY。")
@@ -82,13 +107,21 @@ def main(argv):
         if english.lower() in builder.WORD_SAY:
             word = builder.phoneme(word, builder.WORD_SAY[english.lower()])
         rows = []
-        for index, (label, line) in enumerate(candidates(head, word), 1):
-            target = os.path.join(LAB_DIR, "%s_%d.mp3" % (head, index))
-            audio = recorder.speak(line, recorder.DEFAULT_VOICE, recorder.DEFAULT_MODEL, key)
+        if round2:
+            plain = english[0].upper() + english[1:]
+            picks = [(label, line, model) for label, line, model in candidates_round2(head, plain)]
+            suffix = "r2"
+        else:
+            picks = [(label, line, recorder.DEFAULT_MODEL) for label, line in candidates(head, word)]
+            suffix = ""
+        for index, (label, line, model) in enumerate(picks, 1):
+            stem = "%s_%s%d" % (head, suffix, index)
+            target = os.path.join(LAB_DIR, stem + ".mp3")
+            audio = recorder.speak(line, recorder.DEFAULT_VOICE, model, key)
             with open(target, "wb") as handle:
                 handle.write(audio)
-            rows.append((index, label, line, "../audio/letters/lab/%s_%d.mp3" % (head, index)))
-            print("  錄好 %s_%d  %s" % (head, index, label))
+            rows.append((index, label, line, "../audio/letters/lab/%s.mp3" % stem))
+            print("  錄好 %s  %s" % (stem, label))
         sections.append((name, english, rows))
 
     parts = ['<!doctype html><html lang="zh-TW"><meta charset="utf-8"><title>字母旁白試聽室</title>',
@@ -102,8 +135,9 @@ def main(argv):
         for index, label, line, src in rows:
             parts.append('<div class="row"><b>%d</b><audio controls preload="none" src="%s"></audio>'
                          '<small>%s</small></div>' % (index, src, html.escape(label)))
-    io.open(PAGE, "w", encoding="utf-8", newline="\n").write("\n".join(parts) + "\n")
-    print("✅ 試聽頁：tests/letter-audio-lab.html（本機開 http://127.0.0.1:8000/tests/letter-audio-lab.html）")
+    page = PAGE.replace("letter-audio-lab.html", "letter-audio-lab-round2.html") if round2 else PAGE
+    io.open(page, "w", encoding="utf-8", newline="\n").write("\n".join(parts) + "\n")
+    print("✅ 試聽頁：tests/%s" % os.path.basename(page))
 
 
 if __name__ == "__main__":

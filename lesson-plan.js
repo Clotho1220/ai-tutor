@@ -829,16 +829,17 @@
         return items;
     }
 
+    // 2026-09-10 使用者定案：字母單元**每次都聽完整輪** 26 個字母（52 張，約 6 分鐘），
+    // 不分天、不接續。第一版切成五天、上完自動換下一天，使用者的反應是
+    // 「跳出再進來怎麼接著上次的？也沒辦法重來」——這種練習就是每天整輪聽一遍。
     function buildLetterPlan(config, unit, day) {
-        const blocks = splitEvenly(unit.letters || [], WEEK_DAYS);
-        const today = blocks[day - 1] || [];
+        const today = unit.letters || [];
         const items = [makeItem({
             id: "opening",
             type: "opening",
             maxAttempts: 1,
             ladder: [{ reveal: {},
-                instruction: "開場白：告訴孩子今天要認識哪幾個字母" +
-                    (today.length ? `（${today.map(one => text(one.letter)).join("、")}）` : "") +
+                instruction: "開場白：告訴孩子今天要從 A 到 Z 認識每個字母" +
                     "，說我們會看圖卡、一起唸字母和它的音。" +
                     "最後用英文問「Are you ready?」，然後結束回合等待回答。" +
                     "孩子不管回答什麼都算開場完成，立刻回報。" }]

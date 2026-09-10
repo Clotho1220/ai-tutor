@@ -258,11 +258,12 @@
             letterDays[0].items.every(item =>
                 ["opening", "closing", "letter_say"].indexOf(item.type) >= 0) &&
             letterDays[0].items.some(item => item.type === "letter_say"));
-        check("all 26 letters are covered across the week exactly once", (function () {
-            const seen = letterDays.flatMap(plan =>
-                plan.items.filter(item => item.type === "letter_say").map(item => item.letter));
-            return seen.length === 52 && new Set(seen).size === 26;
-        })());
+        // 使用者定案 2026-09-10：每次都聽完整輪，不分天、不接續
+        check("every session plays the whole alphabet, all 52 cards",
+            letterDays.every(plan => {
+                const seen = plan.items.filter(item => item.type === "letter_say").map(item => item.letter);
+                return seen.length === 52 && new Set(seen).size === 26;
+            }));
         check("a letter's two cards never split across days",
             letterDays.every(plan => {
                 const letters = plan.items.filter(item => item.type === "letter_say")
@@ -270,12 +271,14 @@
                 return [...new Set(letters)].every(one =>
                     letters.filter(other => other === one).length === 2);
             }));
-        check("the days are evenly sized, never 6/6/6/6/2", (function () {
-            const sizes = letterDays.map(plan =>
-                new Set(plan.items.filter(item => item.type === "letter_say")
-                    .map(item => item.letter)).size);
-            return Math.max(...sizes) - Math.min(...sizes) <= 1;
-        })());
+        // appSource 在檔案更下面才宣告（const 的 TDZ），這裡自己抓一份
+        const letterAppSource = await fetch("../app.js?letters-app=" + Date.now()).then(r => r.text());
+        check("a letters session never writes week progress (no day to continue from)",
+            letterAppSource.split("async function startLetterPlayerSession")[1]
+                .split("function finishLetterPlayer")[0].indexOf("markLetterDayDone") < 0);
+        check("leaving the letters screen leaves a way back",
+            /\(sessionReady \|\| letterPlayerActive\) && !document\.body\.classList\.contains\('student-mode'\)/.test(letterAppSource) &&
+            /if \(!sessionReady && !letterPlayerActive\) return;/.test(letterAppSource));
         check("only the first card of a letter introduces the sound", (function () {
             const cards = letterDays[0].items.filter(item => item.letter === "Aa");
             return cards.length === 2 && cards[0].first && !cards[1].first &&

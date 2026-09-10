@@ -1,6 +1,6 @@
 # 交接說明（新對話視窗請先讀這份）
 
-最後更新：2026-09-10　目前版本：v3.45
+最後更新：2026-09-10　目前版本：v3.46
 
 這份文件記錄「**使用者定義的教學需求**」與「**目前做到哪、還沒做什麼**」。
 技術細節與版本歷史在 [`PROJECT-STATUS.md`](PROJECT-STATUS.md)，兩份一起看。
@@ -109,7 +109,8 @@ AI 用英文問（Can you fly?），學員要會答（No, I can't.）。
 | **句子練習的對話漫畫圖（239 張）** | ✅ v3.38 全部完成 | 圖已生成並轉進 `images/`（766 張）；`dialogueFor()` 掛圖、`bubblesFor()` 決定泡泡壓什麼字 |
 | 每日單字互動式點選介面 | ✅ v3.40 | day2 唸完點中文、day3 點選再唸、day4 點字母、day5 排字母、對答點答案；對錯由程式判定 |
 | B2U7/B3U7 單複數、家具槽位、多空格句型 | ✅ v3.39 | `wordPlurals`／`wordSlots` + 槽位相符的 `fillSlot()` |
-| 字母單元（認識 A–Z 與發音） | ✅ v3.42 | 「字母 ABC」兩個單元（順序／隨機），52 張字母卡；**播放模式，完全不連線** |
+| 字母單元（認識 A–Z 與發音） | ✅ v3.46 | 「字母 ABC」兩個單元（順序／隨機），每次整輪 52 張；**播放模式，完全不連線** |
+| 字母旁白的「音」怎麼唸 | ⏳ 等使用者從試聽室挑 | `tests/letter-audio-lab.html`（26 字母 × 3 種）；挑完寫進 `build-letters.py` 的表、重錄、`review-letter-audio.py` |
 | **開場三種回應處理** | ❌ 未實作 | 目前只有一段 opening 指令 |
 | **學員弱點累積與運用** | ❌ 未實作 | 需要先累積 `report_item_result` 資料 |
 | **結束時完整匯出到試算表** | ⚠️ 部分 | 項目層級結果尚未寫入 |
@@ -206,6 +207,8 @@ python -m http.server 8000 --bind 127.0.0.1
 - 更新教材：先改「Gogo English」專案的 `教材資料/gogo{1,2,3}.json`，
   再回本專案執行 `python build-units-from-gogo.py`
 - 更新圖庫：母版重生成後執行 `python build-images.py`（只轉新增的，`--force` 全部重轉）
+- 字母旁白試聽室：`python letter-audio-lab.py A,B,C`（每個字母錄三種「音」的唸法到
+  `audio/letters/lab/`，頁面在 `tests/letter-audio-lab.html`；我聽不到，只有人耳能挑）
 - 檢查字母旁白：`python review-letter-audio.py`（Scribe 轉回文字對一次；錄完一定要跑，
   只看檔案長度看不出「字母沒唸」「唸成別的音」）
 - 錄字母旁白：`setx ELEVENLABS_API_KEY "..."` 之後 `python build-letter-audio.py`

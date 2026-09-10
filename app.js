@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.45";
+const APP_VERSION = "3.46";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -203,7 +203,8 @@ let openaiAiTranscriptStarted = false;
 
 function refreshStudentReturnButton() {
     if (!resumeStudentBtn) return;
-    const shouldShow = sessionReady && !document.body.classList.contains('student-mode');
+    // 播放模式沒有 sessionReady（不連線），但一樣要能回到上課畫面
+    const shouldShow = (sessionReady || letterPlayerActive) && !document.body.classList.contains('student-mode');
     resumeStudentBtn.classList.toggle('visible', shouldShow);
 }
 
@@ -1830,12 +1831,12 @@ async function startLetterPlayerSession() {
     });
     refreshDiagnosticsStatus();
 
-    const { day, key } = letterDayFor(unit);
-    const plan = window.LessonPlan.build({ person: currentPersonName(), day, unit });
+    // 字母單元每次都是整輪（使用者定案 2026-09-10），不記「上到第幾天」、不接續
+    const plan = window.LessonPlan.build({ person: currentPersonName(), day: 1, unit });
     const cards = plan.items.filter(item => item.type === "letter_say");
     const label = `${unit.book} Unit ${unit.num}: ${unit.title}`;
-    sessionDiagnostics.updateMetadata({ unit: `${label} — Day ${day}`, planItems: cards.length });
-    logSystem(`🔤 播放模式：${label} 第 ${day} 天，共 ${cards.length} 張卡（不連線）。`);
+    sessionDiagnostics.updateMetadata({ unit: label, planItems: cards.length });
+    logSystem(`🔤 播放模式：${label}，整輪 ${cards.length} 張卡（不連線、每次從頭）。`);
     cards.forEach(item => { new Image().src = "images/" + item.image; });
 
     studentView.reset();
@@ -1878,10 +1879,7 @@ async function startLetterPlayerSession() {
         letterPlayerWaiting = resolve;
     });
     letterPlayerWaiting = null;
-    if (!result.stopped) {
-        markLetterDayDone(key);
-        logSystem(`✅ ${label} 第 ${day} 天播完了（${result.played} 張）。`);
-    }
+    if (!result.stopped) logSystem(`✅ ${label} 整輪播完了（${result.played} 張）。`);
     finishLetterPlayer();
     return true;
 }
@@ -2049,7 +2047,7 @@ async function gasPost(data) {
     const enterBtn = document.getElementById('studentModeBtn');
     const exitBtn = document.getElementById('exitStudentBtn');
     const enterStudentView = () => {
-        if (!sessionReady) return;
+        if (!sessionReady && !letterPlayerActive) return;
         document.body.classList.remove('settings-mode');
         document.body.classList.add('student-mode');
         refreshStudentReturnButton();

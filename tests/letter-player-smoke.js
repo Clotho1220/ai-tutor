@@ -50,8 +50,9 @@
         return Array.from({ length: n }, (_, i) => ({
             type: "letter_say",
             letter: "Aa", target: "apple" + i,
-            image: "letters/A_apple.webp", audio: "letters/A_apple.mp3",
-            say: "A ... aa ... Apple."
+            image: "letters/A_apple.webp",
+            audio: ["letters/seg/A_name.mp3", "letters/seg/A_sound.mp3", "letters/seg/A_apple.mp3"],
+            say: "A ... a ... apple."
         }));
     }
 
@@ -87,9 +88,12 @@
         await runTimers();
         const result = await finished;
 
-        check("every card is played once, in order",
-            result.played === 3 && played.length === 3 &&
-            played[0] === "audio/letters/A_apple.mp3");
+        // 一張卡＝三段小檔（字母名／音／單字）接起來播
+        check("every card plays its three segments, in order",
+            result.played === 3 && played.length === 9 &&
+            played[0] === "audio/letters/seg/A_name.mp3" &&
+            played[1] === "audio/letters/seg/A_sound.mp3" &&
+            played[2] === "audio/letters/seg/A_apple.mp3");
         check("the card image comes from the local library",
             view.cards.length >= 3 &&
             view.cards[0].imageUrl === "images/letters/A_apple.webp" &&
@@ -131,8 +135,8 @@
         await runTimers();
         await run5;
         check("every clip reuses the one unlocked audio element",
-            shared.plays === 3 && shared.srcs.length === 3 &&
-            shared.srcs[0] === "audio/letters/A_apple.mp3");
+            shared.plays === 9 && shared.srcs.length === 9 &&
+            shared.srcs[0] === "audio/letters/seg/A_name.mp3");
 
         // ---- 走 WebAudio（跟一般課 AI 語音同一條路）----
         const sources = [];
@@ -168,12 +172,12 @@
         await runTimers();
         await run7;
         check("with an AudioContext the clips go through WebAudio, not the <audio> element",
-            preloaded === 3 && sources.length === 3 &&
+            preloaded === 3 && sources.length === 9 &&
             sources.every(s => s.started && s.connected === output) &&
             shared.plays === sharedPlaysBefore);
-        // 三張卡指到同一個檔，只抓一次、之後都用解好的那份
+        // 三張卡指到同樣的三段小檔，每段只抓一次、之後都用解好的那份
         check("preloading decodes each clip once and playback reuses it",
-            fetched.length === 1);
+            fetched.length === 3);
 
         // ---- 播不出來要講出來，不要默默沒聲音 ----
         const blockedSpeech = [];
@@ -215,7 +219,7 @@
         await runTimers();
         await run2;
         check("cards with no recording fall back to browser speech",
-            spoken.length === 2 && spoken[0] === "A ... aa ... Apple.");
+            spoken.length === 2 && spoken[0] === "A ... a ... apple.");
 
         // ---- 老師中途按結束 ----
         const player3 = LP.create({

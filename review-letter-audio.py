@@ -57,34 +57,26 @@ def norm(text):
     return re.sub(r"[^a-z0-9 ]+", " ", str(text or "").lower()).split()
 
 
-def judge(letter_head, english, transcript):
-    """該聽到：字母名一次、例字一次。多的、少的、錯的都列出來。"""
+def judge_segment(role, head, english, transcript):
+    """字母名那段要聽到字母；單字那段要聽到例字；音那段轉文字判不了，只確認不是空的。"""
     heard = norm(transcript)
-    problems = []
-    word_tokens = norm(english)
-    # 例字有沒有出現（x-ray → x ray，允許被拆開或黏在一起）
-    joined = " ".join(heard)
-    if " ".join(word_tokens) not in joined and "".join(word_tokens) not in joined.replace(" ", ""):
-        problems.append("沒聽到例字「%s」" % english)
-    # 字母名：轉文字通常寫成單獨一個大寫字母（A / B），或字母的字（bee / see 也算）
-    name_forms = {letter_head.lower()}
-    name_forms |= {"bee": "b", "see": "c", "dee": "d", "gee": "g", "jay": "j", "kay": "k",
-                   "el": "l", "em": "m", "en": "n", "oh": "o", "pee": "p", "cue": "q",
-                   "queue": "q", "are": "r", "ess": "s", "tea": "t", "tee": "t", "you": "u",
-                   "vee": "v", "ex": "x", "why": "y", "zee": "z", "zed": "z", "eye": "i",
-                   "ay": "a", "aitch": "h", "ef": "f", "ee": "e"}.keys()
-    letter_hits = [t for t in heard if t == letter_head.lower()
-                   or (t in name_forms and t != letter_head.lower())]
-    if not letter_hits:
-        problems.append("沒聽到字母名「%s」" % letter_head)
-    # 唸了四次以上字母＝多唸。名＋音各一次是正常的，轉文字兩個都可能寫成 J，
-    # 例字開頭那個字母偶爾還會被拆成第三個（J-j-j-jellyfish），三次以內不算
-    if heard.count(letter_head.lower()) >= 4:
-        problems.append("字母「%s」出現 %d 次，多唸了" % (letter_head, heard.count(letter_head.lower())))
-    # 整段太長＝夾了別的字
-    if len(heard) > len(word_tokens) + 4:
-        problems.append("聽到多餘的字：%s" % " ".join(heard))
-    return problems
+    if role == "name":
+        names = {"bee": "b", "see": "c", "dee": "d", "gee": "g", "jay": "j", "kay": "k", "el": "l",
+                 "em": "m", "en": "n", "oh": "o", "pee": "p", "cue": "q", "queue": "q", "are": "r",
+                 "ess": "s", "tea": "t", "tee": "t", "you": "u", "vee": "v", "ex": "x", "why": "y",
+                 "zee": "z", "zed": "z", "eye": "i", "ay": "a", "aitch": "h", "ef": "f", "ee": "e"}
+        hit = any(t == head.lower() or names.get(t) == head.lower() for t in heard)
+        return [] if hit else ["沒聽到字母名「%s」（聽到：%s）" % (head, transcript.strip() or "空的")]
+    if role == "word":
+        tokens = norm(english)
+        joined = " ".join(heard)
+        # 同音字：轉文字寫成哪個都算（ant→aunt、sun→son、lion→leon）
+        homophones = {"ant": ["aunt"], "sun": ["son"], "lion": ["leon", "lyon"], "bear": ["bare"],
+                      "rice": ["rise"], "witch": ["which"], "ox": ["ocks"]}
+        forms = [" ".join(tokens), "".join(tokens)] + homophones.get(english.lower(), [])
+        ok = any(f in joined or f in joined.replace(" ", "") for f in forms)
+        return [] if ok else ["沒聽到例字「%s」（聽到：%s）" % (english, transcript.strip() or "空的")]
+    return [] if heard else ["音那段是空的"]
 
 
 def main():
@@ -102,36 +94,41 @@ def main():
         rows = json.load(handle)["letters"]
     wanted = {p.strip().upper() for p in args.only.split(",") if p.strip()}
 
-    report, bad = [], 0
+    report, bad, seen = [], 0, set()
     for row in rows:
         head = row["letter"][0]
         if wanted and head not in wanted:
             continue
         for word in row["words"]:
-            path = os.path.join(AUDIO_DIR, word["audio"].replace("/", os.sep))
-            if not os.path.isfile(path):
-                report.append({"file": word["audio"], "problems": ["沒有錄音檔"]})
-                bad += 1
-                continue
-            try:
-                result = transcribe(path, key)
-            except urllib.error.HTTPError as error:
-                sys.exit("Scribe 回應 %s：%s" % (error.code, error.read().decode("utf-8", "replace")[:300]))
-            text = result.get("text", "")
-            problems = judge(head, word["english"], text)
-            report.append({"file": word["audio"], "expect": word["expect"],
-                           "heard": text, "problems": problems})
-            mark = "❌" if problems else "✅"
-            print("%s %-22s 聽到：%-32s %s" % (mark, os.path.basename(path), text.strip(),
-                                            "；".join(problems)))
-            bad += 1 if problems else 0
+            for seg in word["segments"]:
+                if seg["file"] in seen:
+                    continue
+                seen.add(seg["file"])
+                path = os.path.join(AUDIO_DIR, seg["file"].replace("/", os.sep))
+                if not os.path.isfile(path):
+                    report.append({"file": seg["file"], "problems": ["沒有錄音檔"]})
+                    bad += 1
+                    print("❌ %-22s 沒有錄音檔" % os.path.basename(path))
+                    continue
+                try:
+                    result = transcribe(path, key)
+                except urllib.error.HTTPError as error:
+                    sys.exit("Scribe 回應 %s：%s" % (error.code, error.read().decode("utf-8", "replace")[:300]))
+                text = result.get("text", "")
+                problems = judge_segment(seg["role"], head, word["english"], text)
+                report.append({"file": seg["file"], "role": seg["role"], "model": seg["model"],
+                               "heard": text, "problems": problems})
+                mark = "❌" if problems else "✅"
+                print("%s %-22s %-5s 聽到：%-22s %s" % (mark, os.path.basename(path), seg["role"],
+                                                      text.strip(), "；".join(problems)))
+                bad += 1 if problems else 0
 
     os.makedirs(os.path.dirname(REPORT), exist_ok=True)
     io.open(REPORT, "w", encoding="utf-8", newline="\n").write(
         json.dumps(report, ensure_ascii=False, indent=1) + "\n")
     print("\n%s：%d 段，有問題 %d 段。報告在 %s"
           % ("⚠️" if bad else "✅", len(report), bad, os.path.relpath(REPORT, HERE)))
-    print("（轉文字分不出同一個字母的「名」與「音」，那部分靠 phoneme 標籤釘死；這裡守的是少唸、多唸、唸錯。）")
+    print("（「音」那段轉文字判不了，只確認不是空的；字母名與例字才有對。）")
     sys.exit(1 if bad else 0)
 
 

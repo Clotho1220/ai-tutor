@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.46";
+const APP_VERSION = "3.47";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1772,7 +1772,7 @@ function primeLetterAudio() {
         // 靜音播一段真的檔案再馬上暫停：目的只是在手勢裡「播過一次」把元素解鎖。
         // 不用 data: URI——本專案的 CSP 是 media-src 'self' blob:，data: 會被擋掉。
         letterAudioElement.muted = true;
-        letterAudioElement.src = "audio/letters/A_apple.mp3";
+        letterAudioElement.src = "audio/letters/seg/A_name.mp3";
         const attempt = letterAudioElement.play();
         if (attempt && typeof attempt.catch === 'function') attempt.catch(() => {});
         // 同步收尾，不要用 then()：第一張卡剛好就是 A_apple，

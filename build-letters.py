@@ -54,89 +54,76 @@ SOUND_NOTES = {
 
 # ---- 旁白要怎麼唸 ----
 #
-# 2026-09-10 實聽兩輪的教訓：
-#   第 1 輪  「A, a. aa. Apple.」 → 有些卡字母唸兩次、有些不唸；整體太快
-#   第 2 輪  「A ... aa ... Apple.」→ A、E 這種母音字母，字母名被唸成了它的音
-#           （TTS 看到後面接著 aa 就把前面的 A 也猜成 /æ/）
+# 2026-09-10 一整天的教訓，濃縮成三條：
+#   1. 字母名不能讓 TTS 猜（A、E 會被後面的音帶偏），要釘死。
+#   2. 沒有一個引擎唸得好所有的音：flash_v2 子音還行，短母音與摩擦音（A E U R S X Z）
+#      要靠 turbo_v2 或 eleven_v3 的原生 IPA。而且 X 要「turbo 的字母名＋v3 的音」。
+#   3. 只有使用者的耳朵能判。所以每一段都要能單獨換、單獨重錄。
 #
-# 所以字母名不能再靠 TTS 猜，改用 ElevenLabs 的 phoneme 標籤直接指定音標
-# （CMU Arpabet；只有 eleven_flash_v2 支援）。母音的「音」也一樣指定，
-# 因為 aa／eh／ih 這種拼法本身就跟字母名長得太像。
-# 子音的音維持文字拼法（fff、mmm、buh）——那幾個實聽沒被抱怨，
-# 而且單獨一個子音音素丟給 TTS 常常短到聽不見。
-#
-# 段落之間用 <break> 留停頓（v2 模型支援，最多 3 秒），不再用 ...。
+# 因此旁白拆成**三段獨立小檔**：字母名、音、單字，各自指定引擎與寫法，
+# 播放時由 letter-player.js 接起來、段與段之間留 0.7 秒。
+# 使用者在試聽室（tests/letter-audio-lab*.html）挑的結果就寫在下面三張表裡。
 
-# 26 個字母的「名字」（Arpabet）。這是這一版真正要修的東西。
-LETTER_NAME = {
-    "A": "EY1", "B": "B IY1", "C": "S IY1", "D": "D IY1", "E": "IY1",
-    "F": "EH1 F", "G": "JH IY1", "H": "EY1 CH", "I": "AY1", "J": "JH EY1",
-    "K": "K EY1", "L": "EH1 L", "M": "EH1 M", "N": "EH1 N", "O": "OW1",
-    "P": "P IY1", "Q": "K Y UW1", "R": "AA1 R", "S": "EH1 S", "T": "T IY1",
-    "U": "Y UW1", "V": "V IY1", "W": "D AH1 B AH0 L Y UW0", "X": "EH1 K S",
-    "Y": "W AY1", "Z": "Z IY1",
-}
-
-# 每個字母的「音」怎麼唸——**使用者在試聽室（tests/letter-audio-lab.html）用耳朵挑的**，
-# 2026-09-10。("phoneme", Arpabet) 是釘死音標；("text", 拼法) 是讓 TTS 讀文字。
-# 沒在這張表裡的字母（A E U R S X Z）三種候選都被打回票，還在找別的引擎，
-# 暫時沿用最接近的寫法（見下方 FALLBACK）。改這張表 → build-letters.py →
-# build-units-from-gogo.py → build-letter-audio.py --only … → review-letter-audio.py
-SOUND_SPEC = {
-    "B": ("phoneme", "B AH0"),  "C": ("text", "kuh"),      "D": ("phoneme", "D AH0"),
-    "F": ("phoneme", "F AH0"),  "G": ("phoneme", "G AH0"), "H": ("phoneme", "HH AH0"),
-    "I": ("text", "ih"),        "J": ("text", "juh"),      "K": ("phoneme", "K AH0"),
-    "L": ("phoneme", "L AH0"),  "M": ("phoneme", "M AH0"), "N": ("text", "nnn"),
-    "O": ("text", "ah"),        "P": ("text", "puh"),      "Q": ("text", "kwuh"),
-    "T": ("phoneme", "T AH0"),  "V": ("phoneme", "V AH0"), "W": ("text", "wuh"),
-    "Y": ("phoneme", "Y AH0"),
-}
-FALLBACK_SOUND = {
-    "A": ("phoneme", "AE1"), "E": ("phoneme", "EH1"), "U": ("phoneme", "AH1"),
-    "R": ("text", "rrr"), "S": ("text", "sss"), "X": ("text", "ks"), "Z": ("text", "zzz"),
-}
-
-# 子音的「音」用自然發音法教材慣用的拼法。能延長的就拉長（fff、mmm），
-# 塞音只能帶一個很輕的 uh（buh、kuh）——這是 TTS 的限制，人聲錄音不會這樣。
-# **這張表是拿來調的**：錄完聽過覺得哪個音怪，改這裡再用 --only 補錄就好。
-SOUND_SAY = {
-    "I": "ih",
-    "B": "buh", "C": "kuh", "D": "duh", "F": "fff", "G": "guh", "H": "huh",
-    "J": "juh", "K": "kuh", "L": "lll", "M": "mmm", "N": "nnn", "P": "puh",
-    "Q": "kwuh", "R": "rrr", "S": "sss", "T": "tuh", "V": "vvv", "W": "wuh",
-    "X": "ks", "Y": "yuh", "Z": "zzz",
-}
-
-PAUSE = '<break time="0.7s" />'
-
-# 例字本身被 TTS 唸歪的，也用 phoneme 釘住。
-# igloo：第 2、3 輪轉回文字都是「I... Blue」，跟母音的音接在一起就糊掉。
-WORD_SAY = {"igloo": "IH1 G L UW0", "lion": "L AY1 AH0 N"}   # lion：試聽室回報唸錯
+FLASH, TURBO, V3 = "eleven_flash_v2", "eleven_turbo_v2", "eleven_v3"
 
 
 def phoneme(word, arpabet):
     return '<phoneme alphabet="cmu-arpabet" ph="%s">%s</phoneme>' % (arpabet, word)
 
 
-def say_line(letter, head, english, first):
-    """這張卡要唸的一句話：字母名 → 音 → 單字（使用者定案的教法），每張卡都一樣。
+# 字母名：(引擎, 文字)。母音用音標／IPA 釘死，子音純文字（套 phoneme 反而壞）。
+LETTER_NAME_ARPA = {"A": "EY1", "E": "IY1", "I": "AY1", "O": "OW1", "U": "Y UW1"}
+NAME_SPEC = {
+    "A": (TURBO, phoneme("A", "EY1")),
+    "E": (V3, "/iː/"),
+    "I": (FLASH, phoneme("I", "AY1")),
+    "O": (FLASH, phoneme("O", "OW1")),
+    "U": (TURBO, phoneme("U", "Y UW1")),
+    "X": (TURBO, "X"),
+    "Z": (V3, "/ziː/"),
+}
 
-    第 3 輪（Scribe 轉回文字對過）：phoneme 標籤把母音的字母名修好了，
-    但套在子音上反而壞掉——H 唸成 A、N 唸成 and、S 唸成 say、Y 唸成 we。
-    子音的字母名純文字 TTS 本來就唸得對，所以只有母音走 phoneme。
-    """
-    name = phoneme(head, LETTER_NAME[head]) if head in "AEIOU" else head
-    kind, value = SOUND_SPEC.get(head) or FALLBACK_SOUND.get(head) or ("text", SOUND_SAY.get(head, ""))
-    sound = phoneme(head.lower(), value) if kind == "phoneme" else value
-    word = english[0].upper() + english[1:] if english else english
-    if english.lower() in WORD_SAY:
-        word = phoneme(word, WORD_SAY[english.lower()])
-    return (" " + PAUSE + " ").join(part for part in [name, sound, word] if part) + "."
+# 音：(引擎, 文字)。使用者 2026-09-10 兩輪試聽挑的。
+SOUND_SPEC = {
+    "A": (TURBO, phoneme("a", "AE1")),   "B": (FLASH, phoneme("b", "B AH0")),
+    "C": (FLASH, "kuh"),                  "D": (FLASH, phoneme("d", "D AH0")),
+    "E": (V3, "/ɛ/"),                     "F": (FLASH, phoneme("f", "F AH0")),
+    "G": (FLASH, phoneme("g", "G AH0")),  "H": (FLASH, phoneme("h", "HH AH0")),
+    "I": (FLASH, "ih"),                   "J": (FLASH, "juh"),
+    "K": (FLASH, phoneme("k", "K AH0")),  "L": (FLASH, phoneme("l", "L AH0")),
+    "M": (FLASH, phoneme("m", "M AH0")),  "N": (FLASH, "nnn"),
+    "O": (FLASH, "ah"),                   "P": (FLASH, "puh"),
+    "Q": (FLASH, "kwuh"),                 "R": (V3, "/ɹː/"),
+    "S": (V3, "/sː/"),                    "T": (FLASH, phoneme("t", "T AH0")),
+    "U": (TURBO, phoneme("u", "AH1")),    "V": (FLASH, phoneme("v", "V AH0")),
+    "W": (FLASH, "wuh"),                  "X": (V3, "/ks/"),
+    "Y": (FLASH, phoneme("y", "Y AH0")),  "Z": (V3, "/z/"),
+}
+
+# 例字：flash_v2；被 TTS 唸歪的釘音標
+WORD_SAY = {"igloo": "IH1 G L UW0", "lion": "L AY1 AH0 N"}
+
+# 使用者要「短一點」的音：那一段放快一點
+SOUND_SPEED = {"K": 0.9, "O": 0.9}
+
+
+def segments_for(head, english):
+    """這張卡的三段：(role, 引擎, 要唸的文字, 檔名, 速度)。字母名與音兩張卡共用同一個檔。"""
+    name_model, name_text = NAME_SPEC.get(head, (FLASH, head))
+    sound_model, sound_text = SOUND_SPEC[head]
+    word = english[0].upper() + english[1:]
+    word_text = phoneme(word, WORD_SAY[english.lower()]) if english.lower() in WORD_SAY else word
+    slug = english.replace(" ", "_")
+    return [
+        ("name", name_model, name_text + ".", "letters/seg/%s_name.mp3" % head, 0.8),
+        ("sound", sound_model, sound_text + ".", "letters/seg/%s_sound.mp3" % head, SOUND_SPEED.get(head, 0.8)),
+        ("word", FLASH, word_text + ".", "letters/seg/%s_%s.mp3" % (head, slug), 0.8),
+    ]
 
 
 def say_plain(letter, head, english):
-    """同一句的純文字版（給檢查用：預期聽到的字）。"""
-    return "%s %s" % (head, english)
+    """純文字版（瀏覽器語音備援、與檢查用）。"""
+    return "%s ... %s ... %s." % (head, head.lower(), english)
 
 
 def read_pairs():
@@ -184,7 +171,8 @@ def main():
                    "image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，"
                    "前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，"
                    "不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。"
-                   "say 是旁白要唸的那一句（字母→音→單字），audio 是 build-letter-audio.py 產出的檔名。")
+                   "audio 是三段小檔（字母名／音／單字）的順序清單，segments 記每段的引擎與寫法；"
+                   "say 是純文字版（瀏覽器語音備援）。")
     rows = []
     done = skipped = 0
     for name, words in letters.items():
@@ -210,13 +198,18 @@ def main():
                 done += 1
             else:
                 skipped += 1
+            segs = segments_for(head, english)
             entry["words"].append(OrderedDict([
                 ("english", english),
                 ("chinese", chinese),
                 ("image", "letters/" + webp_name),
-                ("say", say_line(name, head, english, not entry["words"])),
-                ("expect", say_plain(name, head, english)),
-                ("audio", "letters/%s_%s.mp3" % (head, english)),
+                ("say", say_plain(name, head, english)),
+                ("expect", "%s %s" % (head, english)),
+                # 三段獨立小檔，播放時接起來（順序就是唸的順序）
+                ("audio", [file for _role, _model, _text, file, _speed in segs]),
+                ("segments", [OrderedDict([("role", role), ("model", model), ("text", text),
+                                           ("file", file), ("speed", speed)])
+                              for role, model, text, file, speed in segs]),
             ]))
         rows.append(entry)
     out["letters"] = rows

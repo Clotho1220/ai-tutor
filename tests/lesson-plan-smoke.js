@@ -246,9 +246,11 @@
                 sound: head === "A" ? "/æ/" : "/b/",
                 words: [
                     { english: head.toLowerCase() + "1", chinese: "一", image: `letters/${head}_1.webp`,
-                      audio: `letters/${head}_1.mp3`, say: head + " ... " + head.toLowerCase() + "1." },
+                      audio: [`letters/seg/${head}_name.mp3`, `letters/seg/${head}_sound.mp3`, `letters/seg/${head}_1.mp3`],
+                      say: head + " ... " + head.toLowerCase() + "1." },
                     { english: head.toLowerCase() + "2", chinese: "二", image: `letters/${head}_2.webp`,
-                      audio: `letters/${head}_2.mp3`, say: head + " ... " + head.toLowerCase() + "2." }
+                      audio: [`letters/seg/${head}_name.mp3`, `letters/seg/${head}_sound.mp3`, `letters/seg/${head}_2.mp3`],
+                      say: head + " ... " + head.toLowerCase() + "2." }
                 ]
             }))
         };
@@ -307,9 +309,11 @@
                 reveal.word === card.letter && reveal.meaning === "";
         })());
         // 播放模式靠這兩個欄位出聲。2026-09-10 三輪「完全沒聲音」就是它們沒被帶出來
-        check("letter items carry the narration file and script",
+        // 旁白是三段小檔（字母名／音／單字）的清單，播放時接起來
+        check("letter items carry the three narration segments and a script",
             letterDays.every(plan => plan.items.filter(item => item.type === "letter_say")
-                .every(item => /^letters\/.+\.mp3$/.test(item.audio) && item.say.length > 0)));
+                .every(item => Array.isArray(item.audio) && item.audio.length === 3 &&
+                    item.audio.every(f => /^letters\/seg\/.+\.mp3$/.test(f)) && item.say.length > 0)));
 
         // 上面那條用的是假資料；真正上課讀的是 units.json。2026-09-10 的第二層根因就是
         // letters.json 加了 audio/say 之後沒重跑 build-units-from-gogo.py，
@@ -319,7 +323,8 @@
                 const data = await fetch("../units.json?letters-test=" + Date.now()).then(r => r.json());
                 const book = (data.books || []).find(b => b.name === "字母 ABC");
                 const words = (book ? book.units : []).flatMap(u => (u.letters || []).flatMap(l => l.words || []));
-                return words.length >= 52 && words.every(w => /^letters\/.+\.mp3$/.test(w.audio || "") && (w.say || "").length > 0);
+                return words.length >= 52 && words.every(w => Array.isArray(w.audio) && w.audio.length === 3 &&
+                    w.audio.every(f => /^letters\/seg\/.+\.mp3$/.test(f)) && (w.say || "").length > 0);
             } catch (e) { return false; }
         })());
 

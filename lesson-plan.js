@@ -814,7 +814,8 @@
                     image: text(word.image),
                     // 播放模式要的兩個欄位。2026-09-10 三輪「完全沒聲音」的真正原因就是這裡
                     // 沒帶出來：item.audio 是 undefined，播放器每張卡都靜靜跳到 2.6 秒的安靜。
-                    audio: text(word.audio),
+                    // audio 是三段小檔的清單（字母名／音／單字），原樣帶出來給播放器接
+                    audio: Array.isArray(word.audio) ? word.audio.map(text) : text(word.audio),
                     say: text(word.say),
                     first,
                     maxAttempts: 1,

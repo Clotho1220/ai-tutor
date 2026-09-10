@@ -1,5 +1,5 @@
 {
- "_說明": "字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。say 是旁白要唸的那一句（字母→音→單字），audio 是 build-letter-audio.py 產出的檔名。",
+ "_說明": "字母卡（A–Z，每個字母兩個例字）。由 AI tutor/build-letters.py 產生，不要手改。image 是 images/letters/ 裡的檔名；卡面上已經有字母、英文單字與中文，前端整張顯示即可。sound 是這個字母最常見的音（音標，給模型用英文發出來的，不會印在畫面上）；soundNote 只有例字錨不住那個音的字母才有。audio 是三段小檔（字母名／音／單字）的順序清單，segments 記每段的引擎與寫法；say 是純文字版（瀏覽器語音備援）。",
  "letters": [
   {
    "letter": "Aa",
@@ -10,17 +10,71 @@
      "english": "apple",
      "chinese": "蘋果",
      "image": "letters/A_apple.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"EY1\">A</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"AE1\">a</phoneme> <break time=\"0.7s\" /> Apple.",
+     "say": "A ... a ... apple.",
      "expect": "A apple",
-     "audio": "letters/A_apple.mp3"
+     "audio": [
+      "letters/seg/A_name.mp3",
+      "letters/seg/A_sound.mp3",
+      "letters/seg/A_apple.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"EY1\">A</phoneme>.",
+       "file": "letters/seg/A_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AE1\">a</phoneme>.",
+       "file": "letters/seg/A_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Apple.",
+       "file": "letters/seg/A_apple.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "ant",
      "chinese": "螞蟻",
      "image": "letters/A_ant.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"EY1\">A</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"AE1\">a</phoneme> <break time=\"0.7s\" /> Ant.",
+     "say": "A ... a ... ant.",
      "expect": "A ant",
-     "audio": "letters/A_ant.mp3"
+     "audio": [
+      "letters/seg/A_name.mp3",
+      "letters/seg/A_sound.mp3",
+      "letters/seg/A_ant.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"EY1\">A</phoneme>.",
+       "file": "letters/seg/A_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AE1\">a</phoneme>.",
+       "file": "letters/seg/A_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Ant.",
+       "file": "letters/seg/A_ant.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -33,17 +87,71 @@
      "english": "banana",
      "chinese": "香蕉",
      "image": "letters/B_banana.webp",
-     "say": "B <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"B AH0\">b</phoneme> <break time=\"0.7s\" /> Banana.",
+     "say": "B ... b ... banana.",
      "expect": "B banana",
-     "audio": "letters/B_banana.mp3"
+     "audio": [
+      "letters/seg/B_name.mp3",
+      "letters/seg/B_sound.mp3",
+      "letters/seg/B_banana.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "B.",
+       "file": "letters/seg/B_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"B AH0\">b</phoneme>.",
+       "file": "letters/seg/B_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Banana.",
+       "file": "letters/seg/B_banana.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "bear",
      "chinese": "熊",
      "image": "letters/B_bear.webp",
-     "say": "B <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"B AH0\">b</phoneme> <break time=\"0.7s\" /> Bear.",
+     "say": "B ... b ... bear.",
      "expect": "B bear",
-     "audio": "letters/B_bear.mp3"
+     "audio": [
+      "letters/seg/B_name.mp3",
+      "letters/seg/B_sound.mp3",
+      "letters/seg/B_bear.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "B.",
+       "file": "letters/seg/B_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"B AH0\">b</phoneme>.",
+       "file": "letters/seg/B_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Bear.",
+       "file": "letters/seg/B_bear.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -56,17 +164,71 @@
      "english": "cat",
      "chinese": "貓",
      "image": "letters/C_cat.webp",
-     "say": "C <break time=\"0.7s\" /> kuh <break time=\"0.7s\" /> Cat.",
+     "say": "C ... c ... cat.",
      "expect": "C cat",
-     "audio": "letters/C_cat.mp3"
+     "audio": [
+      "letters/seg/C_name.mp3",
+      "letters/seg/C_sound.mp3",
+      "letters/seg/C_cat.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "C.",
+       "file": "letters/seg/C_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "kuh.",
+       "file": "letters/seg/C_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Cat.",
+       "file": "letters/seg/C_cat.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "carrot",
      "chinese": "紅蘿蔔",
      "image": "letters/C_carrot.webp",
-     "say": "C <break time=\"0.7s\" /> kuh <break time=\"0.7s\" /> Carrot.",
+     "say": "C ... c ... carrot.",
      "expect": "C carrot",
-     "audio": "letters/C_carrot.mp3"
+     "audio": [
+      "letters/seg/C_name.mp3",
+      "letters/seg/C_sound.mp3",
+      "letters/seg/C_carrot.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "C.",
+       "file": "letters/seg/C_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "kuh.",
+       "file": "letters/seg/C_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Carrot.",
+       "file": "letters/seg/C_carrot.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -79,17 +241,71 @@
      "english": "dog",
      "chinese": "狗",
      "image": "letters/D_dog.webp",
-     "say": "D <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"D AH0\">d</phoneme> <break time=\"0.7s\" /> Dog.",
+     "say": "D ... d ... dog.",
      "expect": "D dog",
-     "audio": "letters/D_dog.mp3"
+     "audio": [
+      "letters/seg/D_name.mp3",
+      "letters/seg/D_sound.mp3",
+      "letters/seg/D_dog.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "D.",
+       "file": "letters/seg/D_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"D AH0\">d</phoneme>.",
+       "file": "letters/seg/D_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Dog.",
+       "file": "letters/seg/D_dog.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "duck",
      "chinese": "鴨子",
      "image": "letters/D_duck.webp",
-     "say": "D <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"D AH0\">d</phoneme> <break time=\"0.7s\" /> Duck.",
+     "say": "D ... d ... duck.",
      "expect": "D duck",
-     "audio": "letters/D_duck.mp3"
+     "audio": [
+      "letters/seg/D_name.mp3",
+      "letters/seg/D_sound.mp3",
+      "letters/seg/D_duck.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "D.",
+       "file": "letters/seg/D_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"D AH0\">d</phoneme>.",
+       "file": "letters/seg/D_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Duck.",
+       "file": "letters/seg/D_duck.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -102,17 +318,71 @@
      "english": "elephant",
      "chinese": "大象",
      "image": "letters/E_elephant.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"IY1\">E</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"EH1\">e</phoneme> <break time=\"0.7s\" /> Elephant.",
+     "say": "E ... e ... elephant.",
      "expect": "E elephant",
-     "audio": "letters/E_elephant.mp3"
+     "audio": [
+      "letters/seg/E_name.mp3",
+      "letters/seg/E_sound.mp3",
+      "letters/seg/E_elephant.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_v3",
+       "text": "/iː/.",
+       "file": "letters/seg/E_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/ɛ/.",
+       "file": "letters/seg/E_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Elephant.",
+       "file": "letters/seg/E_elephant.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "egg",
      "chinese": "蛋",
      "image": "letters/E_egg.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"IY1\">E</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"EH1\">e</phoneme> <break time=\"0.7s\" /> Egg.",
+     "say": "E ... e ... egg.",
      "expect": "E egg",
-     "audio": "letters/E_egg.mp3"
+     "audio": [
+      "letters/seg/E_name.mp3",
+      "letters/seg/E_sound.mp3",
+      "letters/seg/E_egg.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_v3",
+       "text": "/iː/.",
+       "file": "letters/seg/E_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/ɛ/.",
+       "file": "letters/seg/E_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Egg.",
+       "file": "letters/seg/E_egg.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -125,17 +395,71 @@
      "english": "fish",
      "chinese": "魚",
      "image": "letters/F_fish.webp",
-     "say": "F <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"F AH0\">f</phoneme> <break time=\"0.7s\" /> Fish.",
+     "say": "F ... f ... fish.",
      "expect": "F fish",
-     "audio": "letters/F_fish.mp3"
+     "audio": [
+      "letters/seg/F_name.mp3",
+      "letters/seg/F_sound.mp3",
+      "letters/seg/F_fish.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "F.",
+       "file": "letters/seg/F_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"F AH0\">f</phoneme>.",
+       "file": "letters/seg/F_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Fish.",
+       "file": "letters/seg/F_fish.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "fox",
      "chinese": "狐狸",
      "image": "letters/F_fox.webp",
-     "say": "F <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"F AH0\">f</phoneme> <break time=\"0.7s\" /> Fox.",
+     "say": "F ... f ... fox.",
      "expect": "F fox",
-     "audio": "letters/F_fox.mp3"
+     "audio": [
+      "letters/seg/F_name.mp3",
+      "letters/seg/F_sound.mp3",
+      "letters/seg/F_fox.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "F.",
+       "file": "letters/seg/F_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"F AH0\">f</phoneme>.",
+       "file": "letters/seg/F_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Fox.",
+       "file": "letters/seg/F_fox.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -148,17 +472,71 @@
      "english": "goat",
      "chinese": "山羊",
      "image": "letters/G_goat.webp",
-     "say": "G <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"G AH0\">g</phoneme> <break time=\"0.7s\" /> Goat.",
+     "say": "G ... g ... goat.",
      "expect": "G goat",
-     "audio": "letters/G_goat.mp3"
+     "audio": [
+      "letters/seg/G_name.mp3",
+      "letters/seg/G_sound.mp3",
+      "letters/seg/G_goat.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "G.",
+       "file": "letters/seg/G_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"G AH0\">g</phoneme>.",
+       "file": "letters/seg/G_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Goat.",
+       "file": "letters/seg/G_goat.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "girl",
      "chinese": "女孩",
      "image": "letters/G_girl.webp",
-     "say": "G <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"G AH0\">g</phoneme> <break time=\"0.7s\" /> Girl.",
+     "say": "G ... g ... girl.",
      "expect": "G girl",
-     "audio": "letters/G_girl.mp3"
+     "audio": [
+      "letters/seg/G_name.mp3",
+      "letters/seg/G_sound.mp3",
+      "letters/seg/G_girl.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "G.",
+       "file": "letters/seg/G_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"G AH0\">g</phoneme>.",
+       "file": "letters/seg/G_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Girl.",
+       "file": "letters/seg/G_girl.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -171,17 +549,71 @@
      "english": "hippo",
      "chinese": "河馬",
      "image": "letters/H_hippo.webp",
-     "say": "H <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"HH AH0\">h</phoneme> <break time=\"0.7s\" /> Hippo.",
+     "say": "H ... h ... hippo.",
      "expect": "H hippo",
-     "audio": "letters/H_hippo.mp3"
+     "audio": [
+      "letters/seg/H_name.mp3",
+      "letters/seg/H_sound.mp3",
+      "letters/seg/H_hippo.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "H.",
+       "file": "letters/seg/H_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"HH AH0\">h</phoneme>.",
+       "file": "letters/seg/H_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Hippo.",
+       "file": "letters/seg/H_hippo.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "hat",
      "chinese": "帽子",
      "image": "letters/H_hat.webp",
-     "say": "H <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"HH AH0\">h</phoneme> <break time=\"0.7s\" /> Hat.",
+     "say": "H ... h ... hat.",
      "expect": "H hat",
-     "audio": "letters/H_hat.mp3"
+     "audio": [
+      "letters/seg/H_name.mp3",
+      "letters/seg/H_sound.mp3",
+      "letters/seg/H_hat.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "H.",
+       "file": "letters/seg/H_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"HH AH0\">h</phoneme>.",
+       "file": "letters/seg/H_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Hat.",
+       "file": "letters/seg/H_hat.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -194,17 +626,71 @@
      "english": "iguana",
      "chinese": "鬣蜥",
      "image": "letters/I_iguana.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> ih <break time=\"0.7s\" /> Iguana.",
+     "say": "I ... i ... iguana.",
      "expect": "I iguana",
-     "audio": "letters/I_iguana.mp3"
+     "audio": [
+      "letters/seg/I_name.mp3",
+      "letters/seg/I_sound.mp3",
+      "letters/seg/I_iguana.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme>.",
+       "file": "letters/seg/I_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "ih.",
+       "file": "letters/seg/I_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Iguana.",
+       "file": "letters/seg/I_iguana.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "igloo",
      "chinese": "冰屋",
      "image": "letters/I_igloo.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> ih <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1 G L UW0\">Igloo</phoneme>.",
+     "say": "I ... i ... igloo.",
      "expect": "I igloo",
-     "audio": "letters/I_igloo.mp3"
+     "audio": [
+      "letters/seg/I_name.mp3",
+      "letters/seg/I_sound.mp3",
+      "letters/seg/I_igloo.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme>.",
+       "file": "letters/seg/I_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "ih.",
+       "file": "letters/seg/I_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"IH1 G L UW0\">Igloo</phoneme>.",
+       "file": "letters/seg/I_igloo.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -217,17 +703,71 @@
      "english": "juice",
      "chinese": "果汁",
      "image": "letters/J_juice.webp",
-     "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Juice.",
+     "say": "J ... j ... juice.",
      "expect": "J juice",
-     "audio": "letters/J_juice.mp3"
+     "audio": [
+      "letters/seg/J_name.mp3",
+      "letters/seg/J_sound.mp3",
+      "letters/seg/J_juice.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "J.",
+       "file": "letters/seg/J_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "juh.",
+       "file": "letters/seg/J_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Juice.",
+       "file": "letters/seg/J_juice.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "jellyfish",
      "chinese": "水母",
      "image": "letters/J_jellyfish.webp",
-     "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Jellyfish.",
+     "say": "J ... j ... jellyfish.",
      "expect": "J jellyfish",
-     "audio": "letters/J_jellyfish.mp3"
+     "audio": [
+      "letters/seg/J_name.mp3",
+      "letters/seg/J_sound.mp3",
+      "letters/seg/J_jellyfish.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "J.",
+       "file": "letters/seg/J_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "juh.",
+       "file": "letters/seg/J_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Jellyfish.",
+       "file": "letters/seg/J_jellyfish.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -240,17 +780,71 @@
      "english": "kangaroo",
      "chinese": "袋鼠",
      "image": "letters/K_kangaroo.webp",
-     "say": "K <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"K AH0\">k</phoneme> <break time=\"0.7s\" /> Kangaroo.",
+     "say": "K ... k ... kangaroo.",
      "expect": "K kangaroo",
-     "audio": "letters/K_kangaroo.mp3"
+     "audio": [
+      "letters/seg/K_name.mp3",
+      "letters/seg/K_sound.mp3",
+      "letters/seg/K_kangaroo.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "K.",
+       "file": "letters/seg/K_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"K AH0\">k</phoneme>.",
+       "file": "letters/seg/K_sound.mp3",
+       "speed": 0.9
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Kangaroo.",
+       "file": "letters/seg/K_kangaroo.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "kite",
      "chinese": "風箏",
      "image": "letters/K_kite.webp",
-     "say": "K <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"K AH0\">k</phoneme> <break time=\"0.7s\" /> Kite.",
+     "say": "K ... k ... kite.",
      "expect": "K kite",
-     "audio": "letters/K_kite.mp3"
+     "audio": [
+      "letters/seg/K_name.mp3",
+      "letters/seg/K_sound.mp3",
+      "letters/seg/K_kite.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "K.",
+       "file": "letters/seg/K_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"K AH0\">k</phoneme>.",
+       "file": "letters/seg/K_sound.mp3",
+       "speed": 0.9
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Kite.",
+       "file": "letters/seg/K_kite.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -263,17 +857,71 @@
      "english": "lion",
      "chinese": "獅子",
      "image": "letters/L_lion.webp",
-     "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AY1 AH0 N\">Lion</phoneme>.",
+     "say": "L ... l ... lion.",
      "expect": "L lion",
-     "audio": "letters/L_lion.mp3"
+     "audio": [
+      "letters/seg/L_name.mp3",
+      "letters/seg/L_sound.mp3",
+      "letters/seg/L_lion.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "L.",
+       "file": "letters/seg/L_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme>.",
+       "file": "letters/seg/L_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"L AY1 AH0 N\">Lion</phoneme>.",
+       "file": "letters/seg/L_lion.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "lemon",
      "chinese": "檸檬",
      "image": "letters/L_lemon.webp",
-     "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> Lemon.",
+     "say": "L ... l ... lemon.",
      "expect": "L lemon",
-     "audio": "letters/L_lemon.mp3"
+     "audio": [
+      "letters/seg/L_name.mp3",
+      "letters/seg/L_sound.mp3",
+      "letters/seg/L_lemon.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "L.",
+       "file": "letters/seg/L_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme>.",
+       "file": "letters/seg/L_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Lemon.",
+       "file": "letters/seg/L_lemon.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -286,17 +934,71 @@
      "english": "monkey",
      "chinese": "猴子",
      "image": "letters/M_monkey.webp",
-     "say": "M <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"M AH0\">m</phoneme> <break time=\"0.7s\" /> Monkey.",
+     "say": "M ... m ... monkey.",
      "expect": "M monkey",
-     "audio": "letters/M_monkey.mp3"
+     "audio": [
+      "letters/seg/M_name.mp3",
+      "letters/seg/M_sound.mp3",
+      "letters/seg/M_monkey.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "M.",
+       "file": "letters/seg/M_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"M AH0\">m</phoneme>.",
+       "file": "letters/seg/M_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Monkey.",
+       "file": "letters/seg/M_monkey.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "melon",
      "chinese": "甜瓜",
      "image": "letters/M_melon.webp",
-     "say": "M <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"M AH0\">m</phoneme> <break time=\"0.7s\" /> Melon.",
+     "say": "M ... m ... melon.",
      "expect": "M melon",
-     "audio": "letters/M_melon.mp3"
+     "audio": [
+      "letters/seg/M_name.mp3",
+      "letters/seg/M_sound.mp3",
+      "letters/seg/M_melon.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "M.",
+       "file": "letters/seg/M_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"M AH0\">m</phoneme>.",
+       "file": "letters/seg/M_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Melon.",
+       "file": "letters/seg/M_melon.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -309,17 +1011,71 @@
      "english": "noodles",
      "chinese": "麵",
      "image": "letters/N_noodles.webp",
-     "say": "N <break time=\"0.7s\" /> nnn <break time=\"0.7s\" /> Noodles.",
+     "say": "N ... n ... noodles.",
      "expect": "N noodles",
-     "audio": "letters/N_noodles.mp3"
+     "audio": [
+      "letters/seg/N_name.mp3",
+      "letters/seg/N_sound.mp3",
+      "letters/seg/N_noodles.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "N.",
+       "file": "letters/seg/N_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "nnn.",
+       "file": "letters/seg/N_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Noodles.",
+       "file": "letters/seg/N_noodles.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "nose",
      "chinese": "鼻子",
      "image": "letters/N_nose.webp",
-     "say": "N <break time=\"0.7s\" /> nnn <break time=\"0.7s\" /> Nose.",
+     "say": "N ... n ... nose.",
      "expect": "N nose",
-     "audio": "letters/N_nose.mp3"
+     "audio": [
+      "letters/seg/N_name.mp3",
+      "letters/seg/N_sound.mp3",
+      "letters/seg/N_nose.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "N.",
+       "file": "letters/seg/N_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "nnn.",
+       "file": "letters/seg/N_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Nose.",
+       "file": "letters/seg/N_nose.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -332,17 +1088,71 @@
      "english": "octopus",
      "chinese": "章魚",
      "image": "letters/O_octopus.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme> <break time=\"0.7s\" /> ah <break time=\"0.7s\" /> Octopus.",
+     "say": "O ... o ... octopus.",
      "expect": "O octopus",
-     "audio": "letters/O_octopus.mp3"
+     "audio": [
+      "letters/seg/O_name.mp3",
+      "letters/seg/O_sound.mp3",
+      "letters/seg/O_octopus.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme>.",
+       "file": "letters/seg/O_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "ah.",
+       "file": "letters/seg/O_sound.mp3",
+       "speed": 0.9
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Octopus.",
+       "file": "letters/seg/O_octopus.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "ox",
      "chinese": "公牛",
      "image": "letters/O_ox.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme> <break time=\"0.7s\" /> ah <break time=\"0.7s\" /> Ox.",
+     "say": "O ... o ... ox.",
      "expect": "O ox",
-     "audio": "letters/O_ox.mp3"
+     "audio": [
+      "letters/seg/O_name.mp3",
+      "letters/seg/O_sound.mp3",
+      "letters/seg/O_ox.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"OW1\">O</phoneme>.",
+       "file": "letters/seg/O_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "ah.",
+       "file": "letters/seg/O_sound.mp3",
+       "speed": 0.9
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Ox.",
+       "file": "letters/seg/O_ox.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -355,17 +1165,71 @@
      "english": "panda",
      "chinese": "熊貓",
      "image": "letters/P_panda.webp",
-     "say": "P <break time=\"0.7s\" /> puh <break time=\"0.7s\" /> Panda.",
+     "say": "P ... p ... panda.",
      "expect": "P panda",
-     "audio": "letters/P_panda.mp3"
+     "audio": [
+      "letters/seg/P_name.mp3",
+      "letters/seg/P_sound.mp3",
+      "letters/seg/P_panda.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "P.",
+       "file": "letters/seg/P_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "puh.",
+       "file": "letters/seg/P_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Panda.",
+       "file": "letters/seg/P_panda.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "piano",
      "chinese": "鋼琴",
      "image": "letters/P_piano.webp",
-     "say": "P <break time=\"0.7s\" /> puh <break time=\"0.7s\" /> Piano.",
+     "say": "P ... p ... piano.",
      "expect": "P piano",
-     "audio": "letters/P_piano.mp3"
+     "audio": [
+      "letters/seg/P_name.mp3",
+      "letters/seg/P_sound.mp3",
+      "letters/seg/P_piano.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "P.",
+       "file": "letters/seg/P_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "puh.",
+       "file": "letters/seg/P_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Piano.",
+       "file": "letters/seg/P_piano.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -378,17 +1242,71 @@
      "english": "queen",
      "chinese": "皇后",
      "image": "letters/Q_queen.webp",
-     "say": "Q <break time=\"0.7s\" /> kwuh <break time=\"0.7s\" /> Queen.",
+     "say": "Q ... q ... queen.",
      "expect": "Q queen",
-     "audio": "letters/Q_queen.mp3"
+     "audio": [
+      "letters/seg/Q_name.mp3",
+      "letters/seg/Q_sound.mp3",
+      "letters/seg/Q_queen.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "Q.",
+       "file": "letters/seg/Q_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "kwuh.",
+       "file": "letters/seg/Q_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Queen.",
+       "file": "letters/seg/Q_queen.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "question",
      "chinese": "問題",
      "image": "letters/Q_question.webp",
-     "say": "Q <break time=\"0.7s\" /> kwuh <break time=\"0.7s\" /> Question.",
+     "say": "Q ... q ... question.",
      "expect": "Q question",
-     "audio": "letters/Q_question.mp3"
+     "audio": [
+      "letters/seg/Q_name.mp3",
+      "letters/seg/Q_sound.mp3",
+      "letters/seg/Q_question.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "Q.",
+       "file": "letters/seg/Q_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "kwuh.",
+       "file": "letters/seg/Q_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Question.",
+       "file": "letters/seg/Q_question.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -401,17 +1319,71 @@
      "english": "rabbit",
      "chinese": "兔子",
      "image": "letters/R_rabbit.webp",
-     "say": "R <break time=\"0.7s\" /> rrr <break time=\"0.7s\" /> Rabbit.",
+     "say": "R ... r ... rabbit.",
      "expect": "R rabbit",
-     "audio": "letters/R_rabbit.mp3"
+     "audio": [
+      "letters/seg/R_name.mp3",
+      "letters/seg/R_sound.mp3",
+      "letters/seg/R_rabbit.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "R.",
+       "file": "letters/seg/R_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/ɹː/.",
+       "file": "letters/seg/R_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Rabbit.",
+       "file": "letters/seg/R_rabbit.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "rice",
      "chinese": "米飯",
      "image": "letters/R_rice.webp",
-     "say": "R <break time=\"0.7s\" /> rrr <break time=\"0.7s\" /> Rice.",
+     "say": "R ... r ... rice.",
      "expect": "R rice",
-     "audio": "letters/R_rice.mp3"
+     "audio": [
+      "letters/seg/R_name.mp3",
+      "letters/seg/R_sound.mp3",
+      "letters/seg/R_rice.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "R.",
+       "file": "letters/seg/R_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/ɹː/.",
+       "file": "letters/seg/R_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Rice.",
+       "file": "letters/seg/R_rice.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -424,17 +1396,71 @@
      "english": "sun",
      "chinese": "太陽",
      "image": "letters/S_sun.webp",
-     "say": "S <break time=\"0.7s\" /> sss <break time=\"0.7s\" /> Sun.",
+     "say": "S ... s ... sun.",
      "expect": "S sun",
-     "audio": "letters/S_sun.mp3"
+     "audio": [
+      "letters/seg/S_name.mp3",
+      "letters/seg/S_sound.mp3",
+      "letters/seg/S_sun.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "S.",
+       "file": "letters/seg/S_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/sː/.",
+       "file": "letters/seg/S_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Sun.",
+       "file": "letters/seg/S_sun.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "soccer",
      "chinese": "足球",
      "image": "letters/S_soccer.webp",
-     "say": "S <break time=\"0.7s\" /> sss <break time=\"0.7s\" /> Soccer.",
+     "say": "S ... s ... soccer.",
      "expect": "S soccer",
-     "audio": "letters/S_soccer.mp3"
+     "audio": [
+      "letters/seg/S_name.mp3",
+      "letters/seg/S_sound.mp3",
+      "letters/seg/S_soccer.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "S.",
+       "file": "letters/seg/S_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/sː/.",
+       "file": "letters/seg/S_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Soccer.",
+       "file": "letters/seg/S_soccer.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -447,17 +1473,71 @@
      "english": "tiger",
      "chinese": "老虎",
      "image": "letters/T_tiger.webp",
-     "say": "T <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"T AH0\">t</phoneme> <break time=\"0.7s\" /> Tiger.",
+     "say": "T ... t ... tiger.",
      "expect": "T tiger",
-     "audio": "letters/T_tiger.mp3"
+     "audio": [
+      "letters/seg/T_name.mp3",
+      "letters/seg/T_sound.mp3",
+      "letters/seg/T_tiger.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "T.",
+       "file": "letters/seg/T_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"T AH0\">t</phoneme>.",
+       "file": "letters/seg/T_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Tiger.",
+       "file": "letters/seg/T_tiger.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "TV",
      "chinese": "電視",
      "image": "letters/T_TV.webp",
-     "say": "T <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"T AH0\">t</phoneme> <break time=\"0.7s\" /> TV.",
+     "say": "T ... t ... TV.",
      "expect": "T TV",
-     "audio": "letters/T_TV.mp3"
+     "audio": [
+      "letters/seg/T_name.mp3",
+      "letters/seg/T_sound.mp3",
+      "letters/seg/T_TV.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "T.",
+       "file": "letters/seg/T_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"T AH0\">t</phoneme>.",
+       "file": "letters/seg/T_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "TV.",
+       "file": "letters/seg/T_TV.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -470,17 +1550,71 @@
      "english": "umbrella",
      "chinese": "雨傘",
      "image": "letters/U_umbrella.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"Y UW1\">U</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"AH1\">u</phoneme> <break time=\"0.7s\" /> Umbrella.",
+     "say": "U ... u ... umbrella.",
      "expect": "U umbrella",
-     "audio": "letters/U_umbrella.mp3"
+     "audio": [
+      "letters/seg/U_name.mp3",
+      "letters/seg/U_sound.mp3",
+      "letters/seg/U_umbrella.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"Y UW1\">U</phoneme>.",
+       "file": "letters/seg/U_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AH1\">u</phoneme>.",
+       "file": "letters/seg/U_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Umbrella.",
+       "file": "letters/seg/U_umbrella.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "unhappy",
      "chinese": "不開心的",
      "image": "letters/U_unhappy.webp",
-     "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"Y UW1\">U</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"AH1\">u</phoneme> <break time=\"0.7s\" /> Unhappy.",
+     "say": "U ... u ... unhappy.",
      "expect": "U unhappy",
-     "audio": "letters/U_unhappy.mp3"
+     "audio": [
+      "letters/seg/U_name.mp3",
+      "letters/seg/U_sound.mp3",
+      "letters/seg/U_unhappy.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"Y UW1\">U</phoneme>.",
+       "file": "letters/seg/U_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_turbo_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AH1\">u</phoneme>.",
+       "file": "letters/seg/U_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Unhappy.",
+       "file": "letters/seg/U_unhappy.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -493,17 +1627,71 @@
      "english": "violin",
      "chinese": "小提琴",
      "image": "letters/V_violin.webp",
-     "say": "V <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"V AH0\">v</phoneme> <break time=\"0.7s\" /> Violin.",
+     "say": "V ... v ... violin.",
      "expect": "V violin",
-     "audio": "letters/V_violin.mp3"
+     "audio": [
+      "letters/seg/V_name.mp3",
+      "letters/seg/V_sound.mp3",
+      "letters/seg/V_violin.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "V.",
+       "file": "letters/seg/V_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"V AH0\">v</phoneme>.",
+       "file": "letters/seg/V_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Violin.",
+       "file": "letters/seg/V_violin.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "volleyball",
      "chinese": "排球",
      "image": "letters/V_volleyball.webp",
-     "say": "V <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"V AH0\">v</phoneme> <break time=\"0.7s\" /> Volleyball.",
+     "say": "V ... v ... volleyball.",
      "expect": "V volleyball",
-     "audio": "letters/V_volleyball.mp3"
+     "audio": [
+      "letters/seg/V_name.mp3",
+      "letters/seg/V_sound.mp3",
+      "letters/seg/V_volleyball.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "V.",
+       "file": "letters/seg/V_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"V AH0\">v</phoneme>.",
+       "file": "letters/seg/V_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Volleyball.",
+       "file": "letters/seg/V_volleyball.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -516,17 +1704,71 @@
      "english": "watch",
      "chinese": "手錶",
      "image": "letters/W_watch.webp",
-     "say": "W <break time=\"0.7s\" /> wuh <break time=\"0.7s\" /> Watch.",
+     "say": "W ... w ... watch.",
      "expect": "W watch",
-     "audio": "letters/W_watch.mp3"
+     "audio": [
+      "letters/seg/W_name.mp3",
+      "letters/seg/W_sound.mp3",
+      "letters/seg/W_watch.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "W.",
+       "file": "letters/seg/W_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "wuh.",
+       "file": "letters/seg/W_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Watch.",
+       "file": "letters/seg/W_watch.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "witch",
      "chinese": "女巫",
      "image": "letters/W_witch.webp",
-     "say": "W <break time=\"0.7s\" /> wuh <break time=\"0.7s\" /> Witch.",
+     "say": "W ... w ... witch.",
      "expect": "W witch",
-     "audio": "letters/W_witch.mp3"
+     "audio": [
+      "letters/seg/W_name.mp3",
+      "letters/seg/W_sound.mp3",
+      "letters/seg/W_witch.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "W.",
+       "file": "letters/seg/W_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "wuh.",
+       "file": "letters/seg/W_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Witch.",
+       "file": "letters/seg/W_witch.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -539,17 +1781,71 @@
      "english": "x-ray",
      "chinese": "X光",
      "image": "letters/X_x-ray.webp",
-     "say": "X <break time=\"0.7s\" /> ks <break time=\"0.7s\" /> X-ray.",
+     "say": "X ... x ... x-ray.",
      "expect": "X x-ray",
-     "audio": "letters/X_x-ray.mp3"
+     "audio": [
+      "letters/seg/X_name.mp3",
+      "letters/seg/X_sound.mp3",
+      "letters/seg/X_x-ray.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_turbo_v2",
+       "text": "X.",
+       "file": "letters/seg/X_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/ks/.",
+       "file": "letters/seg/X_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "X-ray.",
+       "file": "letters/seg/X_x-ray.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "exercise",
      "chinese": "運動",
      "image": "letters/X_exercise.webp",
-     "say": "X <break time=\"0.7s\" /> ks <break time=\"0.7s\" /> Exercise.",
+     "say": "X ... x ... exercise.",
      "expect": "X exercise",
-     "audio": "letters/X_exercise.mp3"
+     "audio": [
+      "letters/seg/X_name.mp3",
+      "letters/seg/X_sound.mp3",
+      "letters/seg/X_exercise.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_turbo_v2",
+       "text": "X.",
+       "file": "letters/seg/X_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/ks/.",
+       "file": "letters/seg/X_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Exercise.",
+       "file": "letters/seg/X_exercise.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -562,17 +1858,71 @@
      "english": "yo-yo",
      "chinese": "溜溜球",
      "image": "letters/Y_yo-yo.webp",
-     "say": "Y <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"Y AH0\">y</phoneme> <break time=\"0.7s\" /> Yo-yo.",
+     "say": "Y ... y ... yo-yo.",
      "expect": "Y yo-yo",
-     "audio": "letters/Y_yo-yo.mp3"
+     "audio": [
+      "letters/seg/Y_name.mp3",
+      "letters/seg/Y_sound.mp3",
+      "letters/seg/Y_yo-yo.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "Y.",
+       "file": "letters/seg/Y_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"Y AH0\">y</phoneme>.",
+       "file": "letters/seg/Y_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Yo-yo.",
+       "file": "letters/seg/Y_yo-yo.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "yogurt",
      "chinese": "優格",
      "image": "letters/Y_yogurt.webp",
-     "say": "Y <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"Y AH0\">y</phoneme> <break time=\"0.7s\" /> Yogurt.",
+     "say": "Y ... y ... yogurt.",
      "expect": "Y yogurt",
-     "audio": "letters/Y_yogurt.mp3"
+     "audio": [
+      "letters/seg/Y_name.mp3",
+      "letters/seg/Y_sound.mp3",
+      "letters/seg/Y_yogurt.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_flash_v2",
+       "text": "Y.",
+       "file": "letters/seg/Y_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_flash_v2",
+       "text": "<phoneme alphabet=\"cmu-arpabet\" ph=\"Y AH0\">y</phoneme>.",
+       "file": "letters/seg/Y_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Yogurt.",
+       "file": "letters/seg/Y_yogurt.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   },
@@ -585,17 +1935,71 @@
      "english": "zebra",
      "chinese": "斑馬",
      "image": "letters/Z_zebra.webp",
-     "say": "Z <break time=\"0.7s\" /> zzz <break time=\"0.7s\" /> Zebra.",
+     "say": "Z ... z ... zebra.",
      "expect": "Z zebra",
-     "audio": "letters/Z_zebra.mp3"
+     "audio": [
+      "letters/seg/Z_name.mp3",
+      "letters/seg/Z_sound.mp3",
+      "letters/seg/Z_zebra.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_v3",
+       "text": "/ziː/.",
+       "file": "letters/seg/Z_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/z/.",
+       "file": "letters/seg/Z_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Zebra.",
+       "file": "letters/seg/Z_zebra.mp3",
+       "speed": 0.8
+      }
+     ]
     },
     {
      "english": "zoo",
      "chinese": "動物園",
      "image": "letters/Z_zoo.webp",
-     "say": "Z <break time=\"0.7s\" /> zzz <break time=\"0.7s\" /> Zoo.",
+     "say": "Z ... z ... zoo.",
      "expect": "Z zoo",
-     "audio": "letters/Z_zoo.mp3"
+     "audio": [
+      "letters/seg/Z_name.mp3",
+      "letters/seg/Z_sound.mp3",
+      "letters/seg/Z_zoo.mp3"
+     ],
+     "segments": [
+      {
+       "role": "name",
+       "model": "eleven_v3",
+       "text": "/ziː/.",
+       "file": "letters/seg/Z_name.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "sound",
+       "model": "eleven_v3",
+       "text": "/z/.",
+       "file": "letters/seg/Z_sound.mp3",
+       "speed": 0.8
+      },
+      {
+       "role": "word",
+       "model": "eleven_flash_v2",
+       "text": "Zoo.",
+       "file": "letters/seg/Z_zoo.mp3",
+       "speed": 0.8
+      }
+     ]
     }
    ]
   }

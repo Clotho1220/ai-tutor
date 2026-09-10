@@ -1,236 +1,734 @@
 [
  {
-  "file": "letters/B_banana.mp3",
-  "expect": "B banana",
-  "heard": "B. B- banana",
+  "file": "letters/seg/A_name.mp3",
+  "role": "name",
+  "model": "eleven_turbo_v2",
+  "heard": "A",
   "problems": []
  },
  {
-  "file": "letters/B_bear.mp3",
-  "expect": "B bear",
-  "heard": "B, buh, bear",
+  "file": "letters/seg/A_sound.mp3",
+  "role": "sound",
+  "model": "eleven_turbo_v2",
+  "heard": "A",
   "problems": []
  },
  {
-  "file": "letters/C_cat.mp3",
-  "expect": "C cat",
-  "heard": "C, c, cat",
+  "file": "letters/seg/A_apple.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Apple",
   "problems": []
  },
  {
-  "file": "letters/C_carrot.mp3",
-  "expect": "C carrot",
-  "heard": "C, cu, carrot",
-  "problems": []
- },
- {
-  "file": "letters/D_dog.mp3",
-  "expect": "D dog",
-  "heard": "D, d, dog",
-  "problems": []
- },
- {
-  "file": "letters/D_duck.mp3",
-  "expect": "D duck",
-  "heard": "D, d, duck",
-  "problems": []
- },
- {
-  "file": "letters/F_fish.mp3",
-  "expect": "F fish",
-  "heard": "F. Fuh. Fish",
-  "problems": []
- },
- {
-  "file": "letters/F_fox.mp3",
-  "expect": "F fox",
-  "heard": "F, F, fox",
-  "problems": []
- },
- {
-  "file": "letters/G_goat.mp3",
-  "expect": "G goat",
-  "heard": "G, g, goat",
-  "problems": []
- },
- {
-  "file": "letters/G_girl.mp3",
-  "expect": "G girl",
-  "heard": "G, g, girl",
-  "problems": []
- },
- {
-  "file": "letters/H_hippo.mp3",
-  "expect": "H hippo",
-  "heard": "H. H. Hippo",
-  "problems": []
- },
- {
-  "file": "letters/H_hat.mp3",
-  "expect": "H hat",
-  "heard": "H. It",
+  "file": "letters/seg/A_ant.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Aunt?",
   "problems": [
-   "沒聽到例字「hat」"
+   "沒聽到例字「ant」（聽到：Aunt?）"
   ]
  },
  {
-  "file": "letters/I_iguana.mp3",
-  "expect": "I iguana",
-  "heard": "I, uh, iguana",
+  "file": "letters/seg/B_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "B",
   "problems": []
  },
  {
-  "file": "letters/I_igloo.mp3",
-  "expect": "I igloo",
-  "heard": "Iiiigloo?",
+  "file": "letters/seg/B_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Ba",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/B_banana.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Banana",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/B_bear.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Bear",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/C_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "C",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/C_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "K",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/C_cat.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Cat",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/C_carrot.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Carrot",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/D_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "D",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/D_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Da",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/D_dog.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Dog",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/D_duck.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Duck",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/E_name.mp3",
+  "role": "name",
+  "model": "eleven_v3",
+  "heard": "E",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/E_sound.mp3",
+  "role": "sound",
+  "model": "eleven_v3",
+  "heard": "R",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/E_elephant.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Elephant",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/E_egg.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Egg",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/F_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "F",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/F_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Fa",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/F_fish.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Fish",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/F_fox.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Fox",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/G_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "G",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/G_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "G",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/G_goat.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Goat",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/G_girl.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Girl",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/H_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "H",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/H_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Huh",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/H_hippo.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Hippo",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/H_hat.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Hat",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/I_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "I",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/I_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "I",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/I_iguana.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Iguana",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/I_igloo.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Igloo",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/J_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "J",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/J_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Ja",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/J_juice.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Juice",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/J_jellyfish.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Jellyfish",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/K_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "K",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/K_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "KA",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/K_kangaroo.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Kangaroo",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/K_kite.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Kite",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/L_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "L",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/L_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "LA",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/L_lion.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Lion",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/L_lemon.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Lemon",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/M_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "M",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/M_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Ma",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/M_monkey.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Monkey",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/M_melon.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Melon",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/N_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "N",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/N_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Nine",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/N_noodles.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Noodles",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/N_nose.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Nose",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/O_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "Oh",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/O_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Uh",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/O_octopus.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Octopus",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/O_ox.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Ox",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/P_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "P",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/P_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Puh",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/P_panda.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Panda",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/P_piano.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Piano",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Q_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "Q",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Q_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Qu",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Q_queen.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Queen",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Q_question.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Question",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/R_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "R",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/R_sound.mp3",
+  "role": "sound",
+  "model": "eleven_v3",
+  "heard": "Rah",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/R_rabbit.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Rabbit",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/R_rice.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Rice",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/S_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "S",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/S_sound.mp3",
+  "role": "sound",
+  "model": "eleven_v3",
+  "heard": "Sir",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/S_sun.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Son",
   "problems": [
-   "沒聽到字母名「I」"
+   "沒聽到例字「sun」（聽到：Son）"
   ]
  },
  {
-  "file": "letters/J_juice.mp3",
-  "expect": "J juice",
-  "heard": "J, j, juice",
+  "file": "letters/seg/S_soccer.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Soccer",
   "problems": []
  },
  {
-  "file": "letters/J_jellyfish.mp3",
-  "expect": "J jellyfish",
-  "heard": "J, j, jellyfish",
+  "file": "letters/seg/T_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "T",
   "problems": []
  },
  {
-  "file": "letters/K_kangaroo.mp3",
-  "expect": "K kangaroo",
-  "heard": "K, ka, kangaroo",
+  "file": "letters/seg/T_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Ta.",
   "problems": []
  },
  {
-  "file": "letters/K_kite.mp3",
-  "expect": "K kite",
-  "heard": "K, k, kite",
+  "file": "letters/seg/T_tiger.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Tiger",
   "problems": []
  },
  {
-  "file": "letters/L_lion.mp3",
-  "expect": "L lion",
-  "heard": "L, La, Leon",
-  "problems": [
-   "沒聽到例字「lion」"
-  ]
- },
- {
-  "file": "letters/L_lemon.mp3",
-  "expect": "L lemon",
-  "heard": "El, la, lemon",
+  "file": "letters/seg/T_TV.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "TV",
   "problems": []
  },
  {
-  "file": "letters/M_monkey.mp3",
-  "expect": "M monkey",
-  "heard": "M. Muh. Monkey",
+  "file": "letters/seg/U_name.mp3",
+  "role": "name",
+  "model": "eleven_turbo_v2",
+  "heard": "You?",
   "problems": []
  },
  {
-  "file": "letters/M_melon.mp3",
-  "expect": "M melon",
-  "heard": "M, m, melon",
+  "file": "letters/seg/U_sound.mp3",
+  "role": "sound",
+  "model": "eleven_turbo_v2",
+  "heard": "Uh",
   "problems": []
  },
  {
-  "file": "letters/N_noodles.mp3",
-  "expect": "N noodles",
-  "heard": "N, n, noodles",
+  "file": "letters/seg/U_umbrella.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Umbrella",
   "problems": []
  },
  {
-  "file": "letters/N_nose.mp3",
-  "expect": "N nose",
-  "heard": "N, nose",
+  "file": "letters/seg/U_unhappy.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Unhappy",
   "problems": []
  },
  {
-  "file": "letters/O_octopus.mp3",
-  "expect": "O octopus",
-  "heard": "Oh, uh, octopus",
+  "file": "letters/seg/V_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "V",
   "problems": []
  },
  {
-  "file": "letters/O_ox.mp3",
-  "expect": "O ox",
-  "heard": "O, uh, ox",
+  "file": "letters/seg/V_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Via",
   "problems": []
  },
  {
-  "file": "letters/P_panda.mp3",
-  "expect": "P panda",
-  "heard": "P-P-P-Panda",
+  "file": "letters/seg/V_violin.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Violin",
   "problems": []
  },
  {
-  "file": "letters/P_piano.mp3",
-  "expect": "P piano",
-  "heard": "P, P, piano",
+  "file": "letters/seg/V_volleyball.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Volleyball",
   "problems": []
  },
  {
-  "file": "letters/Q_queen.mp3",
-  "expect": "Q queen",
-  "heard": "Q, qu, queen",
+  "file": "letters/seg/W_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "W",
   "problems": []
  },
  {
-  "file": "letters/Q_question.mp3",
-  "expect": "Q question",
-  "heard": "Q, qua, question",
+  "file": "letters/seg/W_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Were",
   "problems": []
  },
  {
-  "file": "letters/T_tiger.mp3",
-  "expect": "T tiger",
-  "heard": "T, tuh, tiger",
+  "file": "letters/seg/W_watch.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Watch",
   "problems": []
  },
  {
-  "file": "letters/T_TV.mp3",
-  "expect": "T TV",
-  "heard": "T, t, TV",
+  "file": "letters/seg/W_witch.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Witch",
   "problems": []
  },
  {
-  "file": "letters/V_violin.mp3",
-  "expect": "V violin",
-  "heard": "V, v, violin",
+  "file": "letters/seg/X_name.mp3",
+  "role": "name",
+  "model": "eleven_turbo_v2",
+  "heard": "X",
   "problems": []
  },
  {
-  "file": "letters/V_volleyball.mp3",
-  "expect": "V volleyball",
-  "heard": "V, va, volleyball",
+  "file": "letters/seg/X_sound.mp3",
+  "role": "sound",
+  "model": "eleven_v3",
+  "heard": "Kiss",
   "problems": []
  },
  {
-  "file": "letters/W_watch.mp3",
-  "expect": "W watch",
-  "heard": "W. Wuh. Watch",
+  "file": "letters/seg/X_x-ray.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "X-ray",
   "problems": []
  },
  {
-  "file": "letters/W_witch.mp3",
-  "expect": "W witch",
-  "heard": "W, w, witch",
+  "file": "letters/seg/X_exercise.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Exercise",
   "problems": []
  },
  {
-  "file": "letters/Y_yo-yo.mp3",
-  "expect": "Y yo-yo",
-  "heard": "Y. Yuh. Yo-yo",
+  "file": "letters/seg/Y_name.mp3",
+  "role": "name",
+  "model": "eleven_flash_v2",
+  "heard": "Why?",
   "problems": []
  },
  {
-  "file": "letters/Y_yogurt.mp3",
-  "expect": "Y yogurt",
-  "heard": "Y, Y, yogurt",
+  "file": "letters/seg/Y_sound.mp3",
+  "role": "sound",
+  "model": "eleven_flash_v2",
+  "heard": "Yeah",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Y_yo-yo.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Yo-yo",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Y_yogurt.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Yogurt",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Z_name.mp3",
+  "role": "name",
+  "model": "eleven_v3",
+  "heard": "Z.",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Z_sound.mp3",
+  "role": "sound",
+  "model": "eleven_v3",
+  "heard": "Z.",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Z_zebra.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Zebra",
+  "problems": []
+ },
+ {
+  "file": "letters/seg/Z_zoo.mp3",
+  "role": "word",
+  "model": "eleven_flash_v2",
+  "heard": "Zoo",
   "problems": []
  }
 ]

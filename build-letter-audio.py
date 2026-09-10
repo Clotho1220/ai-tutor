@@ -72,8 +72,8 @@ def main():
 
     parser = argparse.ArgumentParser()
     parser.add_argument("--voice", default=os.environ.get("ELEVENLABS_VOICE_ID", DEFAULT_VOICE))
-    parser.add_argument("--model", default=DEFAULT_MODEL)
     parser.add_argument("--only", default="", help="只錄這幾個字母，逗號分隔（A,B,C）")
+    parser.add_argument("--role", default="", help="只錄這一種段落：name／sound／word")
     parser.add_argument("--force", action="store_true", help="已存在的也重錄")
     parser.add_argument("--dry-run", action="store_true", help="只列出要錄什麼，不呼叫 API")
     args = parser.parse_args()
@@ -87,36 +87,43 @@ def main():
         rows = json.load(handle)["letters"]
 
     wanted = {part.strip().upper() for part in args.only.split(",") if part.strip()}
-    os.makedirs(OUT_DIR, exist_ok=True)
+    os.makedirs(os.path.join(OUT_DIR, "seg"), exist_ok=True)
 
-    todo = []
+    # 三段獨立小檔：字母名與音兩張卡共用，同一個檔只錄一次
+    todo, seen = [], set()
     for row in rows:
         head = row["letter"][0]
         if wanted and head not in wanted:
             continue
         for word in row["words"]:
-            target = os.path.join(HERE, "audio", word["audio"].replace("/", os.sep))
-            if os.path.exists(target) and not args.force:
-                continue
-            todo.append((word["say"], target, SPEED_OVERRIDE.get(head, 0.8)))
+            for seg in word["segments"]:
+                if args.role and seg["role"] != args.role:
+                    continue
+                if seg["file"] in seen:
+                    continue
+                seen.add(seg["file"])
+                target = os.path.join(HERE, "audio", seg["file"].replace("/", os.sep))
+                if os.path.exists(target) and not args.force:
+                    continue
+                todo.append((seg["text"], seg["model"], seg["speed"], target))
 
     if not todo:
-        print("✅ 每一張卡都已經有錄音了（要重錄請加 --force）。")
+        print("✅ 每一段都已經有錄音了（要重錄請加 --force）。")
         return
 
     print("要錄 %d 段：" % len(todo))
-    for text, target, _speed in todo[:5]:
-        print("   %-24s %s" % (os.path.basename(target), text))
-    if len(todo) > 5:
+    for text, model, _speed, target in todo[:6]:
+        print("   %-22s %-18s %s" % (os.path.basename(target), model, text))
+    if len(todo) > 6:
         print("   ...")
     if args.dry_run:
         print("（--dry-run，沒有真的呼叫 API）")
         return
 
     done = 0
-    for text, target, speed in todo:
+    for text, model, speed, target in todo:
         try:
-            audio = speak(text, args.voice, args.model, key, speed)
+            audio = speak(text, args.voice, model, key, speed)
         except urllib.error.HTTPError as error:
             detail = error.read().decode("utf-8", "replace")[:300]
             sys.exit("ElevenLabs 回應 %s：%s\n已錄好 %d 段，修好之後再跑一次會從中斷的地方接下去。"
@@ -130,9 +137,10 @@ def main():
             print("  ... 已錄 %d/%d" % (done, len(todo)), flush=True)
         time.sleep(0.2)          # 別把免費額度的速率限制打爆
 
-    total = sum(os.path.getsize(os.path.join(OUT_DIR, name))
-                for name in os.listdir(OUT_DIR) if name.endswith(".mp3"))
-    print("✅ audio/letters/：新錄 %d 段，合計 %.1f MB" % (done, total / 1024 / 1024))
+    seg_dir = os.path.join(OUT_DIR, "seg")
+    total = sum(os.path.getsize(os.path.join(seg_dir, name))
+                for name in os.listdir(seg_dir) if name.endswith(".mp3"))
+    print("✅ audio/letters/seg/：新錄 %d 段，合計 %.1f MB" % (done, total / 1024 / 1024))
     print("   重新整理網頁就會用預錄的聲音。")
 
 

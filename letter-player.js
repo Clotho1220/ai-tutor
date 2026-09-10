@@ -16,6 +16,7 @@
     const DEFAULT_PAUSE = 2600;      // 旁白之後最少留這麼久給孩子跟著唸
     const MAX_PAUSE = 5200;
     const GAP = 400;                 // 換卡之間的空隙，不要一句接一句
+    const SEGMENT_GAP = 700;         // 字母名／音／單字三段之間的停頓（原本寫在 TTS 裡的 <break>）
 
     function create(options) {
         const config = options || {};
@@ -78,15 +79,46 @@
             return buffer;
         }
 
+        // item.audio 可以是一個檔，或三段小檔（字母名／音／單字）的清單
+        function filesOf(item) {
+            const audio = item && item.audio;
+            if (!audio) return [];
+            return (Array.isArray(audio) ? audio : [audio]).filter(Boolean).map(f => config.audioBase + f);
+        }
+
         // 課前先把今天的旁白全部解好，播的時候零等待（順便驗證檔案抓得到）
         async function preload(items) {
             if (!audioContext || !fetchFn) return 0;
             let ok = 0;
             for (const item of items || []) {
-                if (!item || !item.audio) continue;
-                try { await decode(config.audioBase + item.audio); ok += 1; } catch (e) {}
+                const urls = filesOf(item);
+                if (!urls.length) continue;
+                try {
+                    for (const url of urls) await decode(url);
+                    ok += 1;
+                } catch (e) {}
             }
             return ok;
+        }
+
+        // <audio> 元素備援也要三段接起來，不能只播第一段（只唸字母名）
+        async function playFiles(urls) {
+            let total = 0;
+            for (let i = 0; i < urls.length && state.running; i++) {
+                total += await playFile(urls[i]);
+                if (i < urls.length - 1 && state.running) { await wait(SEGMENT_GAP); total += SEGMENT_GAP; }
+            }
+            return total;
+        }
+
+        // 三段接起來播，段與段之間留 SEGMENT_GAP；回傳總共播了多久
+        async function playBuffers(urls) {
+            let total = 0;
+            for (let i = 0; i < urls.length && state.running; i++) {
+                total += await playBuffer(urls[i]);
+                if (i < urls.length - 1 && state.running) { await wait(SEGMENT_GAP); total += SEGMENT_GAP; }
+            }
+            return total;
         }
 
         function playBuffer(url) {
@@ -111,9 +143,10 @@
         // 回傳這段聲音大概播了多久，用來決定要留多長的安靜給孩子。
         let audioWarned = false;
         function speakCard(item) {
-            const url = item.audio ? config.audioBase + item.audio : "";
+            const urls = filesOf(item);
+            const url = urls[0] || "";
             if (url && audioContext && fetchFn) {
-                return playBuffer(url).catch(error => {
+                return playBuffers(urls).catch(error => {
                     if (!audioWarned) {
                         audioWarned = true;
                         const why = String(error && (error.name || error.message) || "unknown");
@@ -121,12 +154,12 @@
                         record("letter_audio_blocked", { url, path: "webaudio", reason: why });
                     }
                     return (shared || AudioCtor)
-                        ? playFile(url).catch(() => speakText(item.say))
+                        ? playFiles(urls).catch(() => speakText(item.say))
                         : speakText(item.say);
                 });
             }
             if (url && (shared || AudioCtor)) {
-                return playFile(url).catch(error => {
+                return playFiles(urls).catch(error => {
                     // 一堂課只講一次，但一定要講——不然「完全沒聲音」只能用猜的
                     if (!audioWarned) {
                         audioWarned = true;

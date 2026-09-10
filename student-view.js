@@ -119,7 +119,10 @@
             }
             area.hidden = false;
             if (body) body.classList.add('tap-mode');
-            if (elements.tapHint) elements.tapHint.textContent = tap.hint || "";
+            if (elements.tapHint) {
+                elements.tapHint.textContent = tap.hint || "";
+                elements.tapHint.classList.remove('nudge');
+            }
             // 依序點的題目（點字母、排字母）把已經點到的字母列出來當進度
             if (elements.tapPicked) {
                 elements.tapPicked.textContent = tap.ordered
@@ -168,6 +171,15 @@
             if (startHandler) button.removeEventListener('click', startHandler);
             startHandler = null;
             button.hidden = true;
+        }
+
+        // 點選題：孩子講完話之後把提示放大跳一下，讓他知道現在該點畫面
+        function nudgeTap() {
+            const hint = elements.tapHint;
+            if (!hint || !elements.tapArea || elements.tapArea.hidden) return;
+            hint.classList.remove('nudge');
+            void hint.offsetWidth;          // 重新觸發動畫
+            hint.classList.add('nudge');
         }
 
         // 字母單元：旁白唸完之後亮「換你唸」，那段安靜是留給孩子的
@@ -476,6 +488,7 @@
             showCard,
             showTap,
             showSpeakCue,
+            nudgeTap,
             showStartButton,
             hideStartButton,
             showImage,

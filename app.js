@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.44";
+const APP_VERSION = "3.45";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -335,6 +335,7 @@ talkBtn.addEventListener('click', () => {
                 provider: "openai",
                 turn: studentTurnGeneration
             });
+            noteSpeechOnTapItem();
             talkBtn.classList.remove('talking');
             talkBtn.textContent = '🎙️ 按一下開始說話';
         }
@@ -372,6 +373,7 @@ talkBtn.addEventListener('click', () => {
             turn: studentTurnGeneration,
             bufferedAudioChunks: turnChunks.length
         });
+        noteSpeechOnTapItem();
         stageTransitionGate.noteStudentTurn();
         if (webSocket && webSocket.readyState === WebSocket.OPEN) {
             webSocket.send(JSON.stringify({ realtimeInput: { activityEnd: {} } }));
@@ -1844,14 +1846,22 @@ async function startLetterPlayerSession() {
     statusBadge.textContent = '播放中'; statusBadge.style.background = '#2d7d46'; statusBadge.style.color = '#fff';
     actionBtn.textContent = '結束播放'; actionBtn.disabled = false;
 
+    // 旁白走跟一般課 AI 語音同一條 WebAudio 路（playbackContext → getOutputNode，
+    // 含喇叭／聽筒模式的路由）。<audio> 元素三輪實測在使用者的裝置上都出不了聲。
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!playbackContext && AC) playbackContext = new AC({ sampleRate: 24000 });
     letterPlayer = window.LetterPlayer.create({
         studentView,
         imageBase: "images/",
         audioBase: "audio/",
+        audioContext: playbackContext,
+        outputNode: () => getOutputNode(),
         audioElement: primeLetterAudio(),
         onLog: logSystem,
         onEvent: (type, detail) => sessionDiagnostics.record(type, detail)
     });
+    // 課前先解好今天的段落，播的時候零等待（順便驗證檔案抓得到）
+    letterPlayer.preload(cards).then(n => logSystem("🔉 旁白預先解碼 " + n + "/" + cards.length + " 段。"));
     // 第一段旁白一定要在孩子（或老師）親手按的那一下裡直接播：
     // play() 到第一次 audio.play() 之前沒有任何 await，所以在 click handler 裡
     // 同步呼叫它，第一段就是手勢觸發的；之後同一個元素接著播就都被允許。
@@ -1860,6 +1870,8 @@ async function startLetterPlayerSession() {
                            word: cards[0] ? cards[0].letter : "", meaning: "", kind: "letter", icon: "🔤" });
     const result = await new Promise(resolve => {
         studentView.showStartButton(() => {
+            // AudioContext 要在使用者那一下裡 resume 才會出聲（跟「開始連線」那顆一樣）
+            if (playbackContext && playbackContext.state === 'suspended') playbackContext.resume();
             letterPlayerStarted = true;
             letterPlayer.play(cards).then(resolve);
         });
@@ -2820,6 +2832,18 @@ function applyPlanReveal(item, attempts) {
 // 對錯由程式判定、程式推進。模型只負責出題與回饋，不參與判分——
 // 「拼字用語音辨識不可靠」「發音正確性偵測不到」這兩個已知限制就是這樣繞過去的。
 let planTap = null;
+
+// 點選題上孩子講完話（唸完那個字）之後，模型是被要求不判斷、不回應的——
+// 在他點下去之前畫面會完全沒動靜，孩子會以為當機（2026-09-10 實測「講完沒反應，像 lag」）。
+// 所以講完話那一刻，把「點出…」的提示放大跳一下，並記進診斷檔。
+function noteSpeechOnTapItem() {
+    if (!planTap || !planRunner || planTap.picked.length) return;
+    const item = planRunner.current();
+    if (!item || item.id !== planTap.itemId) return;
+    studentView.nudgeTap();
+    sessionDiagnostics.record("plan_tap_waiting", { id: item.id, type: item.type, hint: planTap.tap.hint || "" });
+    logSystem("👆 點選題：孩子講完了，等他點畫面（模型不會回應，這是正常的）。");
+}
 
 function handlePlanTap(optionId) {
     if (!planTap || !planRunner || planRunner.isFinished()) return;

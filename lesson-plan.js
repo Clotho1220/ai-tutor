@@ -812,6 +812,10 @@
                     meaning: "",
                     example: chinese,
                     image: text(word.image),
+                    // 播放模式要的兩個欄位。2026-09-10 三輪「完全沒聲音」的真正原因就是這裡
+                    // 沒帶出來：item.audio 是 undefined，播放器每張卡都靜靜跳到 2.6 秒的安靜。
+                    audio: text(word.audio),
+                    say: text(word.say),
                     first,
                     maxAttempts: 1,
                     ladder: [{

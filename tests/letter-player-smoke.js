@@ -134,6 +134,47 @@
             shared.plays === 3 && shared.srcs.length === 3 &&
             shared.srcs[0] === "audio/letters/A_apple.mp3");
 
+        // ---- 走 WebAudio（跟一般課 AI 語音同一條路）----
+        const sources = [];
+        const fakeContext = {
+            state: "running",
+            destination: { id: "dest" },
+            decodeAudioData: bytes => Promise.resolve({ bytes }),
+            createBufferSource() {
+                const source = {
+                    connected: null, onended: null, started: false,
+                    connect(node) { this.connected = node; },
+                    start() { this.started = true; setTimeoutFn(() => this.onended && this.onended(), 1); },
+                    stop() {}
+                };
+                sources.push(source);
+                return source;
+            }
+        };
+        const fetched = [];
+        const fakeFetch = url => {
+            fetched.push(url);
+            return Promise.resolve({ ok: true, arrayBuffer: () => Promise.resolve(new ArrayBuffer(4)) });
+        };
+        const output = { id: "speaker" };
+        const player7 = LP.create({
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
+            audioContext: fakeContext, outputNode: () => output, fetchFn: fakeFetch,
+            audioElement: shared, setTimeoutFn, clearTimeoutFn
+        });
+        const sharedPlaysBefore = shared.plays;
+        const preloaded = await player7.preload(cards(3));
+        const run7 = player7.play(cards(3));
+        await runTimers();
+        await run7;
+        check("with an AudioContext the clips go through WebAudio, not the <audio> element",
+            preloaded === 3 && sources.length === 3 &&
+            sources.every(s => s.started && s.connected === output) &&
+            shared.plays === sharedPlaysBefore);
+        // 三張卡指到同一個檔，只抓一次、之後都用解好的那份
+        check("preloading decodes each clip once and playback reuses it",
+            fetched.length === 1);
+
         // ---- 播不出來要講出來，不要默默沒聲音 ----
         const blockedSpeech = [];
         const logs = [];
@@ -218,7 +259,7 @@
         // 第一段旁白要在 ▶ 開始那一下裡直接播，不能隔著 await
         check("the first clip is played from inside the start tap", (function () {
             const at = appSource.indexOf("studentView.showStartButton(() => {");
-            const body = at >= 0 ? appSource.slice(at, at + 200) : "";
+            const body = at >= 0 ? appSource.slice(at, at + 800) : "";
             return body.indexOf("letterPlayer.play(cards)") > 0 &&
                 body.slice(0, body.indexOf("letterPlayer.play(cards)")).indexOf("await") < 0;
         })());

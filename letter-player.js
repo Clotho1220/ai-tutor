@@ -31,10 +31,18 @@
         // 結果整堂課一點聲音都沒有（2026-09-10 實測）。
         // 解法是共用同一個已經在點擊當下解鎖過的 <audio>，之後只換 src。
         const shared = config.audioElement || null;
+        // 2026-09-10 第三輪還是沒聲音，但同一台裝置一般課的 AI 語音有聲音——
+        // 那條路是 WebAudio（playbackContext → getOutputNode，含喇叭／聽筒的路由）。
+        // <audio> 元素在那台裝置上顯然出不了聲，所以旁白改走同一條 WebAudio 路，
+        // 由呼叫端把 AudioContext 與輸出節點傳進來；沒有的話才退回 <audio>。
+        const audioContext = config.audioContext || null;
+        const outputNode = typeof config.outputNode === 'function' ? config.outputNode : null;
+        const fetchFn = config.fetchFn || (global.fetch ? global.fetch.bind(global) : null);
+        const decoded = new Map();      // url → AudioBuffer，一堂課的 12 段預先解好
         const speech = config.speechSynthesis !== undefined
             ? config.speechSynthesis : global.speechSynthesis;
 
-        const state = { running: false, timer: null, release: null, audio: null, index: 0, total: 0 };
+        const state = { running: false, timer: null, release: null, audio: null, source: null, index: 0, total: 0 };
 
         function clear() {
             if (state.timer != null) clearTimer(state.timer);
@@ -46,6 +54,10 @@
                 try { state.audio.pause(); } catch (e) {}
                 state.audio = null;
             }
+            if (state.source) {
+                try { state.source.stop(); } catch (e) {}
+                state.source = null;
+            }
             if (speech && speech.cancel) { try { speech.cancel(); } catch (e) {} }
         }
 
@@ -56,11 +68,63 @@
             });
         }
 
+        async function decode(url) {
+            if (decoded.has(url)) return decoded.get(url);
+            const response = await fetchFn(url);
+            if (!response || !response.ok) throw new Error("fetch " + (response && response.status));
+            const bytes = await response.arrayBuffer();
+            const buffer = await audioContext.decodeAudioData(bytes);
+            decoded.set(url, buffer);
+            return buffer;
+        }
+
+        // 課前先把今天的旁白全部解好，播的時候零等待（順便驗證檔案抓得到）
+        async function preload(items) {
+            if (!audioContext || !fetchFn) return 0;
+            let ok = 0;
+            for (const item of items || []) {
+                if (!item || !item.audio) continue;
+                try { await decode(config.audioBase + item.audio); ok += 1; } catch (e) {}
+            }
+            return ok;
+        }
+
+        function playBuffer(url) {
+            return new Promise((resolve, reject) => {
+                decode(url).then(buffer => {
+                    if (!state.running) { resolve(0); return; }
+                    const source = audioContext.createBufferSource();
+                    source.buffer = buffer;
+                    source.connect(outputNode ? outputNode() : audioContext.destination);
+                    state.source = source;
+                    const started = Date.now();
+                    source.onended = () => {
+                        if (state.source === source) state.source = null;
+                        resolve(Date.now() - started);
+                    };
+                    source.start();
+                }, reject);
+            });
+        }
+
         // 有預錄的 mp3 就用，沒有就退回瀏覽器內建語音。
         // 回傳這段聲音大概播了多久，用來決定要留多長的安靜給孩子。
         let audioWarned = false;
         function speakCard(item) {
             const url = item.audio ? config.audioBase + item.audio : "";
+            if (url && audioContext && fetchFn) {
+                return playBuffer(url).catch(error => {
+                    if (!audioWarned) {
+                        audioWarned = true;
+                        const why = String(error && (error.name || error.message) || "unknown");
+                        log("🔇 WebAudio 播不出旁白（" + why + "），改用 <audio> 元素。");
+                        record("letter_audio_blocked", { url, path: "webaudio", reason: why });
+                    }
+                    return (shared || AudioCtor)
+                        ? playFile(url).catch(() => speakText(item.say))
+                        : speakText(item.say);
+                });
+            }
             if (url && (shared || AudioCtor)) {
                 return playFile(url).catch(error => {
                     // 一堂課只講一次，但一定要講——不然「完全沒聲音」只能用猜的
@@ -138,7 +202,11 @@
             clear();
             state.running = true;
             state.total = cards.length;
-            record("letter_player_started", { cards: cards.length, audio: !!config.audioBase });
+            record("letter_player_started", {
+                cards: cards.length,
+                path: audioContext && fetchFn ? "webaudio" : (shared || AudioCtor ? "element" : "speech"),
+                contextState: audioContext ? audioContext.state : ""
+            });
             let played = 0;
             for (let i = 0; i < cards.length && state.running; i++) {
                 const item = cards[i];
@@ -173,7 +241,7 @@
         function isPlaying() { return state.running; }
         function progress() { return { index: state.index, total: state.total }; }
 
-        return Object.freeze({ play, stop, isPlaying, progress });
+        return Object.freeze({ play, stop, isPlaying, progress, preload });
     }
 
     global.LetterPlayer = Object.freeze({ create });

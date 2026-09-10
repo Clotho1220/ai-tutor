@@ -101,6 +101,9 @@
         #svTapArea { width:min(92vw,520px); display:flex; flex-direction:column; align-items:center;
                      gap:10px; padding-bottom:96px; }
         #svTapHint { font-size:17px; color:#8a7a64; font-weight:700; }
+        /* 孩子講完話之後，提示放大跳一下：點選題上模型不會回應，畫面得自己給反應 */
+        #svTapHint.nudge { color:#c0392b; animation:tapNudge 0.9s ease-in-out 3; }
+        @keyframes tapNudge { 0%,100% { transform:scale(1); } 50% { transform:scale(1.25); } }
         #svTapPicked { min-height:44px; font-size:34px; font-weight:800; letter-spacing:4px;
                        color:#2b6cb0; display:flex; align-items:center; }
         #svTapOptions { display:flex; flex-wrap:wrap; justify-content:center; gap:12px; width:100%; }
@@ -215,7 +218,7 @@
     <div id="settingsScreen">
         <div class="settings-top">
             <button id="closeSettingsBtn">← 返回</button>
-            <div id="appVersion">AI Tutor Studio v3.44</div>
+            <div id="appVersion">AI Tutor Studio v3.45</div>
         </div>
         <section class="settings-card">
             <div class="settings-card-title">🤖 AI 老師</div>
@@ -413,17 +416,17 @@
     </div>
     <button id="talkBtn" disabled>🎙️ 按一下開始說話</button>
     <!-- 每次更新 app.js 都要同步調整 ?v= 版本號，否則瀏覽器（尤其手機）會用舊快取 -->
-    <script src="dom-utils.js?v=20260910e"></script>
-    <script src="student-view.js?v=20260910e"></script>
-    <script src="letter-player.js?v=20260910e"></script>
-    <script src="live-session.js?v=20260910e"></script>
-    <script src="learning-records.js?v=20260910e"></script>
-    <script src="course-progression.js?v=20260910e"></script>
-    <script src="lesson-plan.js?v=20260910e"></script>
-    <script src="stage-transition.js?v=20260910e"></script>
-    <script src="practice-observer.js?v=20260910e"></script>
-    <script src="session-diagnostics.js?v=20260910e"></script>
-    <script src="lesson-ending.js?v=20260910e"></script>
-    <script src="openai-realtime.js?v=20260910e"></script>
-    <script src="app.js?v=20260910e"></script>
+    <script src="dom-utils.js?v=20260910g"></script>
+    <script src="student-view.js?v=20260910g"></script>
+    <script src="letter-player.js?v=20260910g"></script>
+    <script src="live-session.js?v=20260910g"></script>
+    <script src="learning-records.js?v=20260910g"></script>
+    <script src="course-progression.js?v=20260910g"></script>
+    <script src="lesson-plan.js?v=20260910g"></script>
+    <script src="stage-transition.js?v=20260910g"></script>
+    <script src="practice-observer.js?v=20260910g"></script>
+    <script src="session-diagnostics.js?v=20260910g"></script>
+    <script src="lesson-ending.js?v=20260910g"></script>
+    <script src="openai-realtime.js?v=20260910g"></script>
+    <script src="app.js?v=20260910g"></script>
 </body></html>

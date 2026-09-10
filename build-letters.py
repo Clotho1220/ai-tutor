@@ -77,13 +77,21 @@ LETTER_NAME = {
     "Y": "W AY1", "Z": "Z IY1",
 }
 
-# 母音字母的「音」也用 Arpabet 指定（apple 的 /æ/、egg 的 /ɛ/ ...）
-VOWEL_SOUND = {"A": "AE1", "E": "EH1", "I": "IH1", "O": "AA1", "U": "AH1"}
+# 母音字母的「音」也用 Arpabet 指定（apple 的 /æ/、egg 的 /ɛ/ ...）。
+# I 例外：IH1 單獨唸出來使用者實聽覺得怪（2026-09-10 第四輪），改回文字 ih。
+VOWEL_SOUND = {"A": "AE1", "E": "EH1", "O": "AA1", "U": "AH1"}
+
+# 幾個子音的「音」用文字拼法也唸不好，改用 Arpabet 釘住（帶一個很輕的 uh）：
+#   J  「juh」被唸成字母名 jay（Scribe 對讀聽到兩個 J）
+#   L  「lll」整段沒被聽到，大概是一聲悶哼
+# 使用者實聽回報哪個怪，就往這張表加，只重錄那幾個字母。
+CONSONANT_SOUND_PHONEME = {"J": "JH AH0", "L": "L AH0"}
 
 # 子音的「音」用自然發音法教材慣用的拼法。能延長的就拉長（fff、mmm），
 # 塞音只能帶一個很輕的 uh（buh、kuh）——這是 TTS 的限制，人聲錄音不會這樣。
 # **這張表是拿來調的**：錄完聽過覺得哪個音怪，改這裡再用 --only 補錄就好。
 SOUND_SAY = {
+    "I": "ih",
     "B": "buh", "C": "kuh", "D": "duh", "F": "fff", "G": "guh", "H": "huh",
     "J": "juh", "K": "kuh", "L": "lll", "M": "mmm", "N": "nnn", "P": "puh",
     "Q": "kwuh", "R": "rrr", "S": "sss", "T": "tuh", "V": "vvv", "W": "wuh",
@@ -108,9 +116,13 @@ def say_line(letter, head, english, first):
     但套在子音上反而壞掉——H 唸成 A、N 唸成 and、S 唸成 say、Y 唸成 we。
     子音的字母名純文字 TTS 本來就唸得對，所以只有母音走 phoneme。
     """
-    name = phoneme(head, LETTER_NAME[head]) if head in VOWEL_SOUND else head
-    sound = (phoneme(head.lower(), VOWEL_SOUND[head]) if head in VOWEL_SOUND
-             else SOUND_SAY.get(head, ""))
+    name = phoneme(head, LETTER_NAME[head]) if head in "AEIOU" else head
+    if head in VOWEL_SOUND:
+        sound = phoneme(head.lower(), VOWEL_SOUND[head])
+    elif head in CONSONANT_SOUND_PHONEME:
+        sound = phoneme(head.lower(), CONSONANT_SOUND_PHONEME[head])
+    else:
+        sound = SOUND_SAY.get(head, "")
     word = english[0].upper() + english[1:] if english else english
     if english.lower() in WORD_SAY:
         word = phoneme(word, WORD_SAY[english.lower()])

@@ -11222,7 +11222,7 @@
                   "english": "iguana",
                   "chinese": "鬣蜥",
                   "image": "letters/I_iguana.webp",
-                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1\">i</phoneme> <break time=\"0.7s\" /> Iguana.",
+                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> ih <break time=\"0.7s\" /> Iguana.",
                   "expect": "I iguana",
                   "audio": "letters/I_iguana.mp3"
                 },
@@ -11230,7 +11230,7 @@
                   "english": "igloo",
                   "chinese": "冰屋",
                   "image": "letters/I_igloo.webp",
-                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1\">i</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1 G L UW0\">Igloo</phoneme>.",
+                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> ih <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1 G L UW0\">Igloo</phoneme>.",
                   "expect": "I igloo",
                   "audio": "letters/I_igloo.mp3"
                 }
@@ -11245,7 +11245,7 @@
                   "english": "juice",
                   "chinese": "果汁",
                   "image": "letters/J_juice.webp",
-                  "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Juice.",
+                  "say": "J <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"JH AH0\">j</phoneme> <break time=\"0.7s\" /> Juice.",
                   "expect": "J juice",
                   "audio": "letters/J_juice.mp3"
                 },
@@ -11253,7 +11253,7 @@
                   "english": "jellyfish",
                   "chinese": "水母",
                   "image": "letters/J_jellyfish.webp",
-                  "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Jellyfish.",
+                  "say": "J <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"JH AH0\">j</phoneme> <break time=\"0.7s\" /> Jellyfish.",
                   "expect": "J jellyfish",
                   "audio": "letters/J_jellyfish.mp3"
                 }
@@ -11291,7 +11291,7 @@
                   "english": "lion",
                   "chinese": "獅子",
                   "image": "letters/L_lion.webp",
-                  "say": "L <break time=\"0.7s\" /> lll <break time=\"0.7s\" /> Lion.",
+                  "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> Lion.",
                   "expect": "L lion",
                   "audio": "letters/L_lion.mp3"
                 },
@@ -11299,7 +11299,7 @@
                   "english": "lemon",
                   "chinese": "檸檬",
                   "image": "letters/L_lemon.webp",
-                  "say": "L <break time=\"0.7s\" /> lll <break time=\"0.7s\" /> Lemon.",
+                  "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> Lemon.",
                   "expect": "L lemon",
                   "audio": "letters/L_lemon.mp3"
                 }
@@ -11769,7 +11769,7 @@
                   "english": "iguana",
                   "chinese": "鬣蜥",
                   "image": "letters/I_iguana.webp",
-                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1\">i</phoneme> <break time=\"0.7s\" /> Iguana.",
+                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> ih <break time=\"0.7s\" /> Iguana.",
                   "expect": "I iguana",
                   "audio": "letters/I_iguana.mp3"
                 },
@@ -11777,7 +11777,7 @@
                   "english": "igloo",
                   "chinese": "冰屋",
                   "image": "letters/I_igloo.webp",
-                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1\">i</phoneme> <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1 G L UW0\">Igloo</phoneme>.",
+                  "say": "<phoneme alphabet=\"cmu-arpabet\" ph=\"AY1\">I</phoneme> <break time=\"0.7s\" /> ih <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"IH1 G L UW0\">Igloo</phoneme>.",
                   "expect": "I igloo",
                   "audio": "letters/I_igloo.mp3"
                 }
@@ -11884,7 +11884,7 @@
                   "english": "lion",
                   "chinese": "獅子",
                   "image": "letters/L_lion.webp",
-                  "say": "L <break time=\"0.7s\" /> lll <break time=\"0.7s\" /> Lion.",
+                  "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> Lion.",
                   "expect": "L lion",
                   "audio": "letters/L_lion.mp3"
                 },
@@ -11892,7 +11892,7 @@
                   "english": "lemon",
                   "chinese": "檸檬",
                   "image": "letters/L_lemon.webp",
-                  "say": "L <break time=\"0.7s\" /> lll <break time=\"0.7s\" /> Lemon.",
+                  "say": "L <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"L AH0\">l</phoneme> <break time=\"0.7s\" /> Lemon.",
                   "expect": "L lemon",
                   "audio": "letters/L_lemon.mp3"
                 }
@@ -12206,7 +12206,7 @@
                   "english": "juice",
                   "chinese": "果汁",
                   "image": "letters/J_juice.webp",
-                  "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Juice.",
+                  "say": "J <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"JH AH0\">j</phoneme> <break time=\"0.7s\" /> Juice.",
                   "expect": "J juice",
                   "audio": "letters/J_juice.mp3"
                 },
@@ -12214,7 +12214,7 @@
                   "english": "jellyfish",
                   "chinese": "水母",
                   "image": "letters/J_jellyfish.webp",
-                  "say": "J <break time=\"0.7s\" /> juh <break time=\"0.7s\" /> Jellyfish.",
+                  "say": "J <break time=\"0.7s\" /> <phoneme alphabet=\"cmu-arpabet\" ph=\"JH AH0\">j</phoneme> <break time=\"0.7s\" /> Jellyfish.",
                   "expect": "J jellyfish",
                   "audio": "letters/J_jellyfish.mp3"
                 }

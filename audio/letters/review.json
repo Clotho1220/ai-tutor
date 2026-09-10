@@ -2,25 +2,42 @@
  {
   "file": "letters/I_iguana.mp3",
   "expect": "I iguana",
-  "heard": "I-i-i-iguana",
+  "heard": "I, I, iguana",
   "problems": []
  },
  {
   "file": "letters/I_igloo.mp3",
   "expect": "I igloo",
-  "heard": "I... Igloo",
-  "problems": []
+  "heard": "T. T. Blue",
+  "problems": [
+   "沒聽到例字「igloo」",
+   "沒聽到字母名「I」"
+  ]
  },
  {
   "file": "letters/J_juice.mp3",
   "expect": "J juice",
-  "heard": "J- J- Juice",
+  "heard": "J, ju, juice",
   "problems": []
  },
  {
   "file": "letters/J_jellyfish.mp3",
   "expect": "J jellyfish",
-  "heard": "J-j-j-jellyfish",
+  "heard": "J. J. Jellyfish",
+  "problems": []
+ },
+ {
+  "file": "letters/L_lion.mp3",
+  "expect": "L lion",
+  "heard": "L. Lyon",
+  "problems": [
+   "沒聽到例字「lion」"
+  ]
+ },
+ {
+  "file": "letters/L_lemon.mp3",
+  "expect": "L lemon",
+  "heard": "L, the lemon",
   "problems": []
  }
 ]

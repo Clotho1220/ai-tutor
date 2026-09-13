@@ -555,9 +555,16 @@
             /advancePlan\(verdict\.correct \? "correct" : "incorrect", "tap"\)/.test(appSource));
         // 2026-09-10 實測：21 個項目全部以一句閒聊問句收尾（What do you usually put on
         // a table? / Do you like to sing?），孩子被迫一直接話，課程節奏被拖住
-        check("the contract forbids ending a turn with a chat question",
-            /Do NOT end your turn with a question of any kind/.test(appSource) &&
-            /ONE short sentence of feedback, and then you stop talking/.test(appSource));
+        // 2026-09-13：「不准以問句結尾」跟出題指令打架，GPT 整輪閉嘴。禁的只能是閒聊追問。
+        check("the contract forbids chit-chat questions but requires presenting each item aloud",
+            /Do NOT add chit-chat questions after the feedback/.test(appSource) &&
+            /you MUST speak it out loud/.test(appSource) &&
+            !/Do NOT end your turn with a question of any kind/.test(appSource));
+        check("a silent AI turn after an item is sent gets the directive re-sent once",
+            /function recoverSilentPlanTurn/.test(appSource) &&
+            /plan_silent_turn/.test(appSource) &&
+            /planSilentResentItemId === item\.id\) return false;/.test(appSource) &&
+            /aiSpokeSinceItemSent = false;/.test(appSource));
         // 純口說的項目（點選題有自己的一套規則，判分本來就不歸模型）
         check("spoken word directives forbid asking the learner anything back",
             [dayPlans[0].items.find(one => one.type === "word_zh2en"),

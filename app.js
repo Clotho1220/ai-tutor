@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.48";
+const APP_VERSION = "3.49";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1082,11 +1082,14 @@ function buildSystemInstruction(lesson) {
           // 2026-09-10 實測：21 個項目全部以一句閒聊問句收尾（What do you usually put on a table? /
           // Do you like to sing? / Have you ever seen a real goat?），孩子被迫一直接話，
           // 課程節奏整個被拖住。合約原本只禁「額外例句」，沒禁「追問」。
-          "ONCE THE LEARNER HAS ANSWERED, your entire turn is at most ONE short sentence of feedback, and then you stop talking. " +
-          "Do NOT end your turn with a question of any kind. No conversation questions " +
-          "('What do you usually put on a table?', 'Do you like to sing?', 'Have you ever seen a real goat?'), " +
-          "no 'Can you think of ...?', no 'What else ...?'. The item is finished the moment you have given that one sentence — " +
-          "chatting on keeps the learner talking and holds up every item behind it. " +
+          // 2026-09-13 實測：上一版寫成「不准以問句結尾」，跟每一題「問出來、等他答」的指令打架，
+          // GPT 的解法是整輪一個字都不說（46 輪裡 36 輪空白，第 3 題之後沒有一題唸出來）。
+          // 禁的是閒聊追問，出題的問句是必須的——要講清楚。
+          "AFTER JUDGING THE LEARNER'S ANSWER: one short feedback sentence, then report, then stop. " +
+          "Do NOT add chit-chat questions after the feedback ('What do you usually put on a table?', 'Do you like to sing?', " +
+          "'Have you ever seen a real goat?', 'Can you think of ...?', 'What else ...?') — those keep the learner talking and hold up every item behind. " +
+          "This is NOT a ban on asking: when a DIRECTOR NOTE gives you an item, you MUST speak it out loud — present it and ask its question, then wait. " +
+          "A turn in which you only call a tool and say nothing is a broken turn: the learner hears silence and thinks the app froze. " +
           "The screen (picture, English word, Chinese meaning) is controlled by the lesson system, not by you: " +
           "do NOT call show_image during plan items, and never read out loud anything the note says is still hidden from the learner — " +
           "the hint ladder only works if each hint appears exactly when the note says so. "
@@ -2651,6 +2654,30 @@ function beginTrackedAiTurn() {
     activeAiTurnUserTranscript = activeAiResponseStudentGeneration !== null ? currentUserTurnTranscript : "";
 }
 
+// 項目送出後，AI 有沒有真的開口講過。2026-09-13 GPT 實測：從第 3 題起每一輪都只
+// 呼叫 report_item_result 然後空白結束，新題目一個字都沒唸，孩子對著沉默一直重講。
+// 這種輪要抓出來重送一次指令（每一項最多一次，避免跟模型互相空轉）。
+let aiSpokeSinceItemSent = false;
+let planSilentResentItemId = null;
+
+function recoverSilentPlanTurn(provider, completedAiTranscript) {
+    if (!planDriving() || !planRunner || planRunner.isFinished() || closingStageActive) return false;
+    if (completedAiTranscript.trim().length > 0) { aiSpokeSinceItemSent = true; return false; }
+    if (aiSpokeSinceItemSent || pendingPlanDirective) return false;
+    const item = planRunner.current();
+    if (!item || item.type === "opening" || item.type === "closing") return false;
+    if (planSilentResentItemId === item.id) return false;     // 已經重送過一次，不再追
+    planSilentResentItemId = item.id;
+    sessionDiagnostics.record("plan_silent_turn", { id: item.id, type: item.type, target: item.target || "", provider });
+    logSystem(`🔇 AI 這一輪一個字都沒說（項目「${item.target || item.type}」還沒唸出來），重送一次指令。`);
+    queuePlanDirective({
+        body: "你剛才那一輪只做了回報、一個字都沒說，學員聽到的是一片沉默。" +
+            "現在把目前這一項講出來——" + window.LessonPlan.itemDirective(item, planRunner.progress()),
+        item, attempts: planRunner.progress().attempts
+    });
+    return true;
+}
+
 function completeTrackedAiTurn(provider) {
     const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
         activeAiResponseStudentGeneration === pendingStudentResponseGeneration;
@@ -2678,6 +2705,7 @@ function completeTrackedAiTurn(provider) {
         aiTranscriptLength: completedAiTranscript.length,
         practiceRequested
     });
+    const silentTurnRecovered = recoverSilentPlanTurn(provider, completedAiTranscript);
     isNewAiTurn = true;
     isNewUserTurn = true;
     aiTurnActive = false;
@@ -2962,6 +2990,7 @@ function sendCurrentPlanItem() {
     const progress = planRunner.progress();
     planItemReported = false;
     planNudgedItemId = null;
+    aiSpokeSinceItemSent = false;
     stageIndicator.textContent = `🗒️ 項目 ${progress.index + 1}/${progress.total}：${item.type}`;
     sessionDiagnostics.record("plan_item_sent", {
         id: item.id, type: item.type, target: item.target || "",
@@ -3018,6 +3047,8 @@ let planNudgedItemId = null;   // 每個項目最多補問一次
 
 function planFallbackAfterTurn(completedStudentTurn, completedGeneration) {
     if (!planRunner || planItemReported || !completedStudentTurn) return;
+    // AI 這輪沒開口、剛剛才重送指令：不能把這種空白輪當成一次問答推進
+    if (pendingPlanDirective) return;
     // 新項目的指令還在排隊（學生根本沒聽到題目）就不能計數
     if (pendingPlanDirective) return;
     // 這輪問答若在項目指令送出「之前」就開始，它屬於上一個項目。

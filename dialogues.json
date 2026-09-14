@@ -1314,6 +1314,22 @@
  ],
  "b3_u03": [
   {
+   "image": "b3_u03_dlg01_ruler.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "ruler",
+   "ask": "Can I have a ruler, please?",
+   "answer": "Sure. Here you are.",
+   "zh": "請問我可以拿尺嗎？當然，給你。"
+  },
+  {
+   "image": "b3_u03_dlg01_stapler.webp",
+   "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
+   "word": "stapler",
+   "ask": "Can I have a stapler, please?",
+   "answer": "Sure. Here you are.",
+   "zh": "請問我可以拿訂書機嗎？當然，給你。"
+  },
+  {
    "image": "b3_u03_dlg01_go.webp",
    "pattern": "Can I have a/an [noun], please? / Sure. Here you are.",
    "word": "go",
@@ -1376,6 +1392,22 @@
    "ask": "Can I listen to music?",
    "answer": "Sure.",
    "zh": "我可以聽音樂嗎？當然。"
+  },
+  {
+   "image": "b3_u03_dlg02_ruler.webp",
+   "pattern": "Can I borrow your [noun]? / No. Sorry.",
+   "word": "ruler",
+   "ask": "Can I borrow your ruler?",
+   "answer": "No. Sorry.",
+   "zh": "我可以借你的尺嗎？不行，抱歉。"
+  },
+  {
+   "image": "b3_u03_dlg02_stapler.webp",
+   "pattern": "Can I borrow your [noun]? / No. Sorry.",
+   "word": "stapler",
+   "ask": "Can I borrow your stapler?",
+   "answer": "No. Sorry.",
+   "zh": "我可以借你的訂書機嗎？不行，抱歉。"
   }
  ],
  "b3_u05": [
@@ -1687,6 +1719,14 @@
   }
  ],
  "b3_u07": [
+  {
+   "image": "b3_u07_dlg01_computer_game.webp",
+   "pattern": "Where's my [item]? / It's [preposition] the [furniture].",
+   "word": "computer game",
+   "ask": "Where's my computer game?",
+   "answer": "It's under the desk.",
+   "zh": "我的電腦遊戲在哪裡？在書桌下面。"
+  },
   {
    "image": "b3_u07_dlg01_wallet.webp",
    "pattern": "Where's my [item]? / It's [preposition] the [furniture].",

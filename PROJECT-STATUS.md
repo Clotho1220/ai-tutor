@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
 最後更新：2026-09-14  
-目前版本：v3.50  
+目前版本：v3.51  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -87,13 +87,25 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.50`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.51`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - 每堂的 `prompts`（v3.50）：實際送出的系統提示、工具定義、每題導演指令、指令更新（含原因），
   同一份文字只存一次（雜湊識別）。設定頁「🧾 本堂 AI 指令」可直接看。
 - 每次回報都留原始紀錄（`item_report_raw`），只有通過驗證的進 `item_result`；協定錯誤記 `plan_report_protocol_error`。
 
 ## 3. 最近完成的重要修正
+
+### v3.51
+
+2026-09-14。v3.50 留下的 5 張對話漫畫，使用者用 GPT 生好了。
+
+- **症狀**：代換題有 5 句出題時沒有情境圖（B3U3「Can I have a ruler／stapler, please?」「Can I borrow your ruler／stapler?」、
+  B3U7「Where's my computer game?」），畫面只剩單字卡。
+- **根因**：代換字會從前兩個單元借（`pickSlotWords`），這些組合不在本單元字表裡，當初沒畫。
+- **修法**：`build-dialogue-list.py` 的 `EXTRA_WORDS` 補清單（v3.50）→ 使用者生圖放進母版 →
+  `build-images.py` 轉 WebP（5 張各約 45 KB）→ `build-dialogue-list.py` 收進網頁索引。
+  逐張看過：兩個泡泡空白、畫面無文字、Gogo 左 Tony 右、借不到的兩張 Tony 抱著東西搖頭、電玩盒在書桌下。
+- **如何驗證**：全部單元五天的計畫跑一遍，`pattern_substitute` 沒有圖的項目＝0（瀏覽器實跑）。
 
 ### v3.50
 

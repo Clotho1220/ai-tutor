@@ -100,9 +100,9 @@
         (appSource.match(/name: "show_image"/g) || []).length === 1);
     check("the tool dispatcher handles the new report",
         /if \(name === "report_item_result"\)[\s\S]{0,80}recordItemResult/.test(appSource));
-    check("outcomes are validated against a fixed list",
+    check("outcomes are validated against a fixed list and invalid ones are never recorded as wrong",
         /ITEM_OUTCOMES = \["correct", "incorrect", "no_response"\]/.test(appSource) &&
-        /ITEM_OUTCOMES\.indexOf\(String\(a\.outcome\)\) >= 0/.test(appSource));
+        /outcome: outcomeValid \? String\(a\.outcome\) : "invalid"/.test(appSource));
     check("reports without a target are ignored",
         /if \(!target\) return \{ status: "ignored: missing target" \}/.test(appSource));
     check("每堂課結束會輸出遵從率摘要",
@@ -113,9 +113,19 @@
         /if \(practiceRequested\) practiceTurnsObserved \+= 1/.test(appSource));
     check("item state resets for each new session",
         /itemResults = \[\];\s*\/\/ 練習結果回報逐堂重算/.test(appSource));
+    const promptSource = await fetch('../prompt-builder.js?diagnostics-test=' + Date.now()).then(response => response.text());
     check("the prompt requires silent reporting after every attempt",
-        /PROGRESS REPORTING — mandatory and completely silent/.test(appSource) &&
-        /never say the tool's name/.test(appSource));
+        /PROGRESS REPORTING/.test(promptSource) && /never say the tool's name/.test(promptSource));
+    // v3.50：指令全文隨診斷保存（去重、有上限），且不經一般 2000 字截斷
+    const withPrompts = SessionDiagnostics.create({ storage: new FakeStorage(), nowFn: () => clock, maxSessions: 1, maxTextLength: 300 });
+    withPrompts.start({ person: "Rex" });
+    const longPrompt = "PLAN MODE " + "x".repeat(5000) + " wss://x.test/live?key=SECRETVALUE";
+    withPrompts.setPrompts({ session: { provider: "openai" }, entries: [{ id: "p1", hash: "abcd1234", kind: "system" }], texts: { abcd1234: longPrompt } });
+    withPrompts.finish("test");
+    const promptExport = withPrompts.exportPayload().sessions[0];
+    check("saved sessions keep the full prompt text beyond the normal text limit",
+        promptExport.prompts && promptExport.prompts.texts.abcd1234.length > 4000 && promptExport.prompts.entries[0].hash === "abcd1234");
+    check("prompt texts are still redacted", promptExport.prompts.texts.abcd1234.indexOf("SECRETVALUE") < 0);
 
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');

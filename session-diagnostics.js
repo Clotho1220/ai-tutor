@@ -15,12 +15,15 @@
         const maxTextLength = Math.max(200, Number(config.maxTextLength || 2000));
         let active = null;
 
-        function safeString(value) {
+        function redact(value) {
             return String(value == null ? "" : value)
                 .replace(CREDENTIAL_QUERY_RE, "$1[REDACTED]")
                 .replace(/AIza[0-9A-Za-z_-]{20,}/g, "[REDACTED_API_KEY]")
-                .replace(/(Bearer\s+)[0-9A-Za-z._~-]{12,}/gi, "$1[REDACTED]")
-                .slice(0, maxTextLength);
+                .replace(/(Bearer\s+)[0-9A-Za-z._~-]{12,}/gi, "$1[REDACTED]");
+        }
+
+        function safeString(value) {
+            return redact(value).slice(0, maxTextLength);
         }
 
         function sanitize(value, depth) {
@@ -37,6 +40,14 @@
             const out = {};
             Object.keys(value).slice(0, 80).forEach(key => {
                 if (BLOCKED_KEY_RE.test(key)) return;
+                // 指令全文（prompts.texts）保留到自己的上限，不被一般文字上限截斷
+                if (key === "prompts" && depth === 0 && value[key] && typeof value[key] === "object") {
+                    const prompts = value[key];
+                    const texts = {};
+                    Object.keys(prompts.texts || {}).forEach(hash => { texts[hash] = redact(prompts.texts[hash]).slice(0, maxPromptChars); });
+                    out.prompts = { session: sanitize(prompts.session || {}, 1), entries: sanitize(prompts.entries || [], 1), texts };
+                    return;
+                }
                 out[key] = sanitize(value[key], depth + 1);
             });
             return out;
@@ -97,6 +108,24 @@
             return true;
         }
 
+        // 這堂課實際送出的 AI 指令（prompt-ledger 的匯出物）。全文另有上限，
+        // 不走一般的 maxTextLength 截斷，否則系統提示只剩開頭 2000 字看不出被改了什麼。
+        const maxPromptChars = Math.max(2000, Number(config.maxPromptChars || 24000));
+        const maxPromptTexts = Math.max(5, Number(config.maxPromptTexts || 60));
+        function setPrompts(payload) {
+            if (!active || !payload) return false;
+            const texts = {};
+            Object.keys(payload.texts || {}).slice(0, maxPromptTexts).forEach(hash => {
+                texts[hash] = redact(payload.texts[hash]).slice(0, maxPromptChars);
+            });
+            active.prompts = {
+                session: sanitize(payload.session || {}, 0),
+                entries: (payload.entries || []).slice(0, maxEvents).map(entry => sanitize(entry, 0)),
+                texts
+            };
+            return true;
+        }
+
         function record(type, details) {
             if (!active) return false;
             const event = {
@@ -149,7 +178,7 @@
             return {
                 schemaVersion: 1,
                 exportedAt: new Date(now()).toISOString(),
-                privacy: "Text diagnostics only. No audio, API keys, tokens, secrets, or resumption handles.",
+                privacy: "Text diagnostics only. No audio, API keys, tokens, secrets, or resumption handles. Each session's `prompts` holds the instructions actually sent to the model (deduplicated by hash).",
                 sessions: sessionsForExport()
             };
         }
@@ -175,6 +204,7 @@
         return Object.freeze({
             start,
             updateMetadata,
+            setPrompts,
             record,
             transcript,
             finish,

@@ -900,7 +900,9 @@
             ladder: [{ reveal: {},
                 instruction: "開場白：先說上一次學了哪些東西，再說今天會學什麼，" +
                     "最後用英文問「Are you ready?」，然後結束回合等待回答。" +
-                    "孩子不管回答什麼（Yes、隨便一句話、甚至答非所問）都算開場完成，立刻回報；" +
+                    "孩子不管回答什麼（Yes、隨便一句話、甚至答非所問）都算開場完成：" +
+                    "簡短回應一句就停下來，系統會自動進到第一個項目，不需要回報。" +
+                    "如果他問了英文相關的問題，先用一兩句回答再停下來；問不相關的事就簡短帶過。" +
                     "不要要求他複誦 Yes, I'm ready，也不要自己開始教任何單字或句型——" +
                     "下一個指令會告訴你第一個項目是什麼。" }]
         }));
@@ -983,7 +985,8 @@
             maxAttempts: 1,
             ladder: [{ reveal: {},
                 instruction: "結尾：用簡單的話說今天學到了哪些單字和句子，" +
-                    "稱讚一件具體做得好的事，然後說「我們下次再見囉, bye bye!」道別。" }]
+                    "稱讚一件具體做得好的事，然後說「我們下次再見囉, bye bye!」道別。" +
+                    "不要問問題、不要回報，說完就結束。" }]
         }));
 
         const counts = items.reduce((acc, item) => {
@@ -1094,17 +1097,20 @@
             return item;
         }
 
-        // outcome：correct / incorrect / no_response / unknown
-        // unknown 用於「模型沒回報，但前端確定發生過一次師生問答」的兜底情境。
+        // outcome：correct / incorrect / no_response / unknown / done / unverified
+        // unknown、done 用於「程式確定這一項走過了、但不需要或拿不到模型判斷」（開場、結尾）；
+        // unverified 用於「學生答了、模型沒給合法回報」的兜底——語意是「走過但未確認」，
+        // 報告不得當成 correct（v3.50）。三者都直接前進、不碰提示階梯。
         function recordAttempt(outcome) {
             const item = current();
             if (!item) return { advanced: false, finished: true };
-            if (outcome === "unknown") {
+            if (outcome === "unknown" || outcome === "done" || outcome === "unverified") {
                 // 兜底一律直接前進，不碰提示階梯。實測（2026-08-24 診斷檔）模型的
                 // 回報遵從率很低，若把沒回報的問答當「答不出來」去爬梯，
                 // 階梯指示都是「他不會，給提示再問一次」——孩子明明答對了
                 // 還被重複問同一個字，整堂課變成鬼打牆。
-                return { advanced: true, item: advance("done"), next: current(), finished: isFinished() };
+                const status = outcome === "unverified" ? "unverified" : "done";
+                return { advanced: true, item: advance(status), next: current(), finished: isFinished() };
             }
             attempts += 1;
             const limit = Math.max(1, Number(item.maxAttempts) || 1);

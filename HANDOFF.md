@@ -1,6 +1,6 @@
 # 交接說明（新對話視窗請先讀這份）
 
-最後更新：2026-09-14　目前版本：v3.49
+最後更新：2026-09-14　目前版本：v3.50
 
 這份文件記錄「**使用者定義的教學需求**」與「**目前做到哪、還沒做什麼**」。
 技術細節與版本歷史在 [`PROJECT-STATUS.md`](PROJECT-STATUS.md)；
@@ -10,10 +10,11 @@
 
 ## 0. 一句話現況
 
-**v3.49（2026-09-13）**。一般課：9/13 使用者回報「AI delay 非常嚴重」，實際是 GPT 46 輪裡 36 輪一個字都沒說
-（v3.42 的「不准以問句結尾」跟出題指令打架），v3.49 已改合約並加上沉默輪偵測重送——**尚未實機驗證**。
-字母 ABC：播放模式、教材真人錄音、每張卡等 1.5 秒，使用者實聽「大致上沒問題」。
-**下一步：請使用者用 GPT 上一堂一般課並匯出診斷檔，確認沉默問題已解（見 DEVLOG §8.1）。**
+**v3.50（2026-09-14）**。依 `AI-STABILITY-HANDOFF.md` 做完穩定性重構：提示詞帳本（看得到實際送了什麼）、
+兒童計畫課提示詞移除舊規則、回報帶 attemptId 由程式驗證、流程控制器統一推進、恢復機制共用預算、
+學生畫面有動作橫幅／求助鈕／恢復畫面；判分改寬鬆；78 個單字補例句。**只做過離線測試，真人語音未驗。**
+字母 ABC 沒動。
+**下一步：照 §3.1 上一堂短課並匯出診斷檔；設定 OPENAI_API_KEY 後補 5 張對話漫畫。**
 
 ---
 
@@ -102,17 +103,21 @@ AI 用英文問（Can you fly?），學員要會答（No, I can't.）。
 | 前端控制揭露層級 | ✅ v3.19 | `revealFor()` + `applyPlanReveal()` |
 | 跨單元複習（前兩個 unit） | ✅ | `course-progression.previousUnits()` |
 | 課本 Review 單元 | ✅ v3.18 | 彙整前三單元 |
-| 一次一項、依結果推進 | ✅ 預設開啟（v3.19） | `createRunner()` + `sendCurrentPlanItem()` |
-| 做完所有項目才下課 | ✅ | 計畫跑完 → `scheduleLessonCompletion()` |
-| 補問機制（漏回報先要求回報） | ✅ v3.34 | `planFallbackAfterTurn` 的 nudge |
-| 偏離計畫的回報（重送→跳過） | ✅ v3.36 | `handleOffScriptReport` |
+| 一次一項、依結果推進 | ✅ v3.19 → v3.50 改由流程控制器 | `lesson-flow.js` + `applyFlowActions()` |
+| 做完所有項目才下課 | ✅ | 流程回傳 `finished` → `scheduleLessonCompletion()` |
+| 補問機制（漏回報先要求回報） | ✅ v3.34 → v3.50 補問失敗標 unverified | `lesson-flow.js` `aiTurnCompleted` |
+| 偏離計畫的回報（重送→跳過） | ✅ v3.36 → v3.50 跳過標 system_error | `lesson-flow.js` `offScript` |
 | 結語要真的講了才下課 | ✅ v3.36 | `completeTrackedAiTurn` 的 `closingSpoken` |
+| 看得到實際送出的 AI 指令 | ✅ v3.50 | `prompt-ledger.js`、設定頁「🧾 本堂 AI 指令」、診斷檔 `prompts` |
+| 提示詞按模式分開 | ✅ v3.50 | `prompt-builder.js` |
+| 回報識別碼與去重 | ✅ v3.50 | STATE 行 + `attemptId` |
+| 恢復預算／恢復畫面／求助 | ✅ v3.50 | `lesson-flow.js`、`#svRecover`、`#svHelpBtn` |
 | **句子練習的對話漫畫圖（239 張）** | ✅ v3.38 全部完成 | 圖已生成並轉進 `images/`（766 張）；`dialogueFor()` 掛圖、`bubblesFor()` 決定泡泡壓什麼字 |
 | 每日單字互動式點選介面 | ✅ v3.40 | day2 唸完點中文、day3 點選再唸、day4 點字母、day5 排字母、對答點答案；對錯由程式判定 |
 | B2U7/B3U7 單複數、家具槽位、多空格句型 | ✅ v3.39 | `wordPlurals`／`wordSlots` + 槽位相符的 `fillSlot()` |
 | 字母單元（認識 A–Z 與發音） | ✅ v3.46 | 「字母 ABC」兩個單元（順序／隨機），每次整輪 52 張；**播放模式，完全不連線** |
 | 字母旁白 | ✅ v3.48 教材真人錄音 | 培生 Alphabet 軌＋`pearson-cuts.json` 切點；TTS 三段（`audio/letters/seg/`）是備援 |
-| **開場三種回應處理** | ❌ 未實作 | 目前只有一段 opening 指令 |
+| **開場三種回應處理** | ⚠️ 部分 | v3.50 開場在孩子回話即完成，指令允許先簡答英文問題；獨立判斷三種回應未做（規格 8.3，暫緩） |
 | **學員弱點累積與運用** | ❌ 未實作 | 需要先累積 `report_item_result` 資料 |
 | **結束時完整匯出到試算表** | ⚠️ 部分 | 項目層級結果尚未寫入 |
 | 發音標準與否的判斷 | ⚠️ 只能靠模型 | 語音轉文字會正規化，前端無法稽核（見第 4 節） |
@@ -130,7 +135,17 @@ v3.39 全部修掉，`tests/lesson-plan-smoke.js` 有防守。判斷方式：
 `Where's my puzzle?` 等）。句子是對的，只是沒畫過那個組合——
 要補就在 `build-dialogue-list.py` 加模板再請 Gogo English 專案生圖。
 
-### 3.1 上課前的確認
+### 3.1 v3.50 實機驗證清單（用平常在用的模型，一堂短課就好）
+
+1. 設定頁「🧾 本堂 AI 指令」：連線後應看到 `system`、`tools`（兒童計畫課只有 report_item_result）、每題 `directive`
+2. 口說答對一題 → 應直接換題；答錯一次 → 升一階（圖／中文出現）
+3. 按「🙋 我不懂」→ 老師用更簡單的話再說一次，不換題
+4. 點選題：先講話 → 橫幅變「👆 點一個答案」；連點兩下 → 只判一次
+5. 講到一半關 Wi-Fi 再開 → 不重播開場、不跳題
+6. 匯出診斷檔給 Claude 看：`plan_report_protocol_error` 幾筆（模型有沒有照帶 attemptId）、
+   `plan_silent_turn`、`plan_recovery_exhausted`、`item_result_summary`
+
+### 3.1b 舊的上課前確認（v3.19～v3.40）
 
 點選作答（v3.40 第一次上場）實測要看的：孩子會不會自己知道要點；
 AI 有沒有搶著判分或把選項唸出來（指令明講了不准，但要驗）；
@@ -158,6 +173,13 @@ AI 有沒有搶著判分或把選項唸出來（指令明講了不准，但要�
 
 ## 4. 已知陷阱（踩過的坑，別再踩）
 
+- **兒童計畫課的提示詞在 `prompt-builder.js`，不在 app.js**（v3.50）。要加規則先想清楚屬於哪個模式；
+  `LEGACY_ONLY_PHRASES` 列的舊規則出現在 child-plan 會讓測試失敗——那是故意的
+- **改流程推進邏輯改 `lesson-flow.js`，不要在 app.js 另開推進路徑**：所有推進走 `applyFlowActions()`、
+  所有指令走 `queuePlanDirective()`。另寫一條就回到「越修越多輪」
+- **instructions 更新只能走 `applyInstructionUpdate()`**，否則帳本看不到
+- **回報沒帶 attemptId 會被拒收**（記 `plan_report_protocol_error`）。若實機發現模型常常不帶，先看診斷檔再決定放寬
+- **`build-dialogue-list.py` 只把 `images/` 裡有圖的漫畫列進網頁索引**；清單（給生圖）照樣全列
 - **計畫模式是否真的開著**：v3.19 起預設開啟，但設定頁可以手動關掉。以為開著卻沒開，會誤判整輪測試結果——
   開始連線後 System Log 第一行要是 `🗒️ 計畫驅動模式…`，若是 `📋 流程模式` 代表被關掉了
 - **快取**：`index.html` 的模組版本已統一，改任何 `.js` 都要一起把版本號往前推；測試網頁同理，否則會出現「程式改好了但測試還是失敗」的假警報
@@ -210,7 +232,11 @@ py -3 -m http.server 8000 --bind 127.0.0.1
 ```
 
 - 本機測試：<http://127.0.0.1:8000/index.html>
-- 回歸測試：`tests/*-smoke.html`（12 組，v3.49 全過；`tests/run-all.html` 標題變 ALLPASS 才算過）
+- 回歸測試：`tests/*-smoke.html`（14 組，v3.50 全過；`tests/run-all.html` 標題變 ALLPASS 才算過）
+- 補例句：`py -3 fill-word-examples.py`（`--dry-run` 先看）→ `build-units-from-gogo.py`
+- 補對話漫畫：`build-dialogue-list.py` 會印出缺圖的 id → 在 Gogo English/圖片提示詞 跑 `build_prompts.py` →
+  `$env:OPENAI_API_KEY = [Environment]::GetEnvironmentVariable("OPENAI_API_KEY","User")` →
+  `py -3 build-dialogue-images.py <id>...` → `build-images.py` → 再跑 `build-dialogue-list.py`
 - 更新教材：先改「Gogo English」專案的 `教材資料/gogo{1,2,3}.json`，
   再回本專案執行 `python build-units-from-gogo.py`
 - 更新圖庫：母版重生成後執行 `python build-images.py`（只轉新增的，`--force` 全部重轉）
@@ -258,10 +284,8 @@ units.json                                  ← 產生物，不要手改
 
 ### 已知待補
 
-- **78 個單字沒有例句**（多半是第 2 冊新加的字）。例句是選填，但有的話示範會更穩。
-  可以從 `gogo{1,2,3}.json` 的 `key_expressions` 或單元句型套字補上
-- **句型缺逐句中文**。`gogo` 的 `target_sentences` 有 `{en, zh}` 一句一對，
-  可以拿來補 `units-overlay.json` 裡句型的問句／答句中文，修掉上面第 4 節那個聽不懂的提示
+- ~~78 個單字沒有例句~~：v3.50 用 `fill-word-examples.py` 全補（24 個人工指定）
+- ~~句型缺逐句中文~~：overlay 的 43 個句型都已有 `zh`／`answerZh`，代換題與對答題用的是它們
 
 ### 保留備用的選項（使用者已評估、暫不採用）
 

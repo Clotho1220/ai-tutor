@@ -136,6 +136,19 @@
     check('student view controller loads before app', indexSource.indexOf('src="student-view.js') < indexSource.indexOf('src="app.js'));
     check('tool responses wait for image readiness', /await showImage\(keyword\)/.test(appSource));
     check('legacy student image globals are removed', !/studentImgSeq|studentImgWord/.test(appSource));
+    // v3.50（P1-4）：孩子畫面只顯示「現在要做什麼」；求助是獨立事件；恢復畫面有重試／跳過
+    check('the student screen shows one current action and hides it when idle', (function () {
+        controller.showAction('speak');
+        const speaking = controller.actionState();
+        controller.showAction('');
+        const idle = controller.actionState();
+        return speaking && speaking.kind === 'speak' && /換你說/.test(speaking.label) && !speaking.hidden && idle.hidden;
+    })());
+    check('the student screen wires help, retry and skip to the app',
+        /id="svAction"/.test(indexSource) && /id="svHelpBtn"/.test(indexSource) && /id="svRecover"/.test(indexSource) &&
+        /onHelp\(\)/.test(appSource) && /onRetry\(\)/.test(appSource) && /onSkip\(\)/.test(appSource));
+    check('help never counts as an answer', /planFlow\.helpRequested\("button"\)/.test(appSource));
+    check('the action banner follows the flow phase', /function refreshStudentActionAfterAi/.test(appSource) && /setStudentAction\('tap'\)/.test(appSource) && /setStudentAction\('speak'\)/.test(appSource));
 
     const passed = checks.every(item => item.pass);
     const result = document.getElementById('result');

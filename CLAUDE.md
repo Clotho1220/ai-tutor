@@ -13,7 +13,7 @@
 2. **快取版本**：`index.html` 與 `tests/*.html` 裡所有 `?v=YYYYMMDDx` 一起推進
    （沒推就會出現「程式改好了、測試還是失敗」的假警報）
 3. **產生物重跑到底**：改了 `letters.json`／`pearson-cuts.json` → `build-letters.py` → `build-units-from-gogo.py`
-4. **測試**：`tests/run-all.html` 標題變 **ALLPASS**（12 組）；改到會出聲／會顯示的東西，要在瀏覽器實際跑一次並量時間
+4. **測試**：`tests/run-all.html` 標題變 **ALLPASS**（14 組）；改到會出聲／會顯示的東西，要在瀏覽器實際跑一次並量時間
 5. **更新文件**（使用者 2026-09-14 要求：每次進版都要更新 md）
    - `PROJECT-STATUS.md`：頂部版本與日期；在最上面新增 `### vX.XX` 一節（症狀、根因、修法、如何驗證）
    - `DEVLOG.md`：§4 進度表、§6 問題全紀錄（新問題寫「症狀 → 根因 → 修法 → 教訓」）、§8 待辦勾選／新增、附錄版本一覽加一列、頂部版本日期

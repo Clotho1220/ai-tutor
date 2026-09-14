@@ -28,9 +28,42 @@
             tapArea: doc.getElementById('svTapArea'),
             tapHint: doc.getElementById('svTapHint'),
             tapPicked: doc.getElementById('svTapPicked'),
-            tapOptions: doc.getElementById('svTapOptions')
+            tapOptions: doc.getElementById('svTapOptions'),
+            action: doc.getElementById('svAction'),
+            helpBtn: doc.getElementById('svHelpBtn'),
+            recover: doc.getElementById('svRecover'),
+            retryBtn: doc.getElementById('svRetryBtn'),
+            skipBtn: doc.getElementById('svSkipBtn')
         };
         const onTap = typeof config.onTap === 'function' ? config.onTap : null;
+        // 求助／重試／跳過（v3.50，P1-4）：求助是獨立事件，不是作答；重試與跳過只在恢復畫面出現
+        if (elements.helpBtn && typeof config.onHelp === 'function') elements.helpBtn.addEventListener('click', () => config.onHelp());
+        if (elements.retryBtn && typeof config.onRetry === 'function') elements.retryBtn.addEventListener('click', () => config.onRetry());
+        if (elements.skipBtn && typeof config.onSkip === 'function') elements.skipBtn.addEventListener('click', () => config.onSkip());
+
+        // 孩子畫面只顯示「現在要做什麼」一件事。狀態要跟真正能接收的輸入一致：
+        // 在等點選時就不顯示「換你說」，AI 還在講就不顯示「換你說」。
+        const ACTION_LABELS = {
+            listen: "👂 聽老師說", speak: "🎤 換你說", tap: "👆 點一個答案",
+            wait: "⏳ 老師想一下…", recover: "🔧 稍等一下", done: "🎉 今天完成了！"
+        };
+        function showAction(kind) {
+            const label = ACTION_LABELS[kind] || "";
+            if (elements.action) {
+                elements.action.textContent = label;
+                elements.action.hidden = !label;
+                elements.action.dataset.kind = label ? kind : "";
+            }
+            if (doc.body) doc.body.dataset.svAction = label ? kind : "";
+            // 求助只在有題目在跑的時候才有意義
+            if (elements.helpBtn) elements.helpBtn.hidden = !(kind === 'speak' || kind === 'listen' || kind === 'tap' || kind === 'wait');
+        }
+        function showRecover(on) {
+            if (elements.recover) elements.recover.hidden = !on;
+        }
+        function actionState() {
+            return elements.action ? { kind: elements.action.dataset.kind || "", label: elements.action.textContent, hidden: !!elements.action.hidden } : null;
+        }
 
         const state = {
             contentVersion: 0,
@@ -458,6 +491,8 @@
             state.wordKey = "";
             showTap(null, null);
             showSpeakCue(false);
+            showAction('');
+            showRecover(false);
             hideStartButton();
             invalidateImage('🎈', "");
             if (elements.topics) {
@@ -489,6 +524,9 @@
             showTap,
             showSpeakCue,
             nudgeTap,
+            showAction,
+            showRecover,
+            actionState,
             showStartButton,
             hideStartButton,
             showImage,

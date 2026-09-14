@@ -54,10 +54,14 @@
     check("observer loads before app", indexSource.indexOf('src="practice-observer.js') < indexSource.indexOf('src="app.js'));
     check("Live setup no longer declares log_practice", !/name:\s*"log_practice"/.test(appSource));
     // 上限由「三個連續回合」收緊為「整堂課至多兩次」，並改由前端硬性執行。
-    check("lesson prompt caps one sentence family at two practices",
-        /PRACTICE VARIETY — mandatory/.test(appSource) &&
-        /at most TWICE in the whole session/.test(appSource) &&
-        /more than TWICE in a session/.test(appSource));
+    // v3.50：這條只屬於舊的階段流程（child-flow／adult），兒童計畫課由程式控制換題，不再收到這段
+    const promptSource = await fetch('../prompt-builder.js?practice-observer-test=' + Date.now()).then(response => response.text());
+    check("legacy flow prompt caps one sentence family at two practices",
+        /PRACTICE VARIETY — mandatory/.test(promptSource) &&
+        /at most TWICE in the whole session/.test(promptSource) &&
+        /more than TWICE in a session/.test(promptSource));
+    check("the child plan prompt never receives the family cap",
+        !/TWICE/.test(window.PromptBuilder.build({ mode: "lesson", planDriving: true, student: { name: "Rex", level: 2 }, level: 2, unit: "U", languagePolicy: "x" }).text));
     check("client enforces the practice cap with a director note",
         /const PRACTICE_CAP = 2/.test(appSource) &&
         /function enforcePracticeCap/.test(appSource) &&
@@ -66,14 +70,15 @@
         /enforcePracticeCap\(observedFeedback\)/.test(appSource) &&
         /practiceFamilyCounts = \{\}/.test(appSource));
     check("GPT treats pronoun-only substitutions as the same family",
-        /changing only the subject or name is still the SAME family/.test(appSource));
-    check("GPT receives a live instruction update after a repeated family",
-        /openaiPracticeFamilies/.test(appSource) && /updateInstructions\(instructions/.test(appSource));
+        /changing only the subject or name is still the SAME family/.test(promptSource));
+    check("GPT receives an audited instruction update after a repeated family (legacy flow only)",
+        /openaiPracticeFamilies/.test(appSource) && /applyInstructionUpdate\(instructions \+/.test(appSource) &&
+        /if \(planDriving\(\)\) return;\s*\n\s*if \(feedback && feedback\.suggestion\)/.test(appSource));
     check("turnComplete records observed feedback", /PracticeObserver\.analyze\(\{[\s\S]{0,180}userText:[\s\S]{0,180}aiText:/.test(appSource));
     check("clarification requests override Chinese-to-English feedback",
-        /CLARIFICATION OVERRIDE/.test(appSource) &&
-        /你在說什麼/.test(appSource) &&
-        /Never teach them to say 'What did you say\?'/.test(appSource));
+        /CLARIFICATION OVERRIDE/.test(promptSource) &&
+        /你在說什麼/.test(promptSource) &&
+        /Never teach them to say 'What did you say\?'/.test(promptSource));
     check("student transcript ignores chunks after a closed practice boundary",
         /boundaryAlreadyClosed\s*=\s*suppressAudioAfterFarewell\s*\|\|\s*suppressAudioAfterPractice/.test(appSource));
 
@@ -105,9 +110,10 @@
     // --- 迴歸：兩個模型必須共用同一份回合契約 ---
     // 重點是「兩個模型共用同一份合約」，而不是 return 那行的確切寫法
     // （計畫模式會在前面再串一段合約，寫法允許改變）。
-    check("turn contract is shared by both models",
-        /const TURN_CONTRACT\s*=/.test(appSource) &&
-        /return [^;]*TURN_CONTRACT \+/.test(appSource) &&
+    check("turn contract is shared by both models through the single prompt builder",
+        /const TURN_CONTRACT\s*=/.test(promptSource) &&
+        /PromptBuilder\.build\(/.test(appSource) &&
+        /buildSystemInstruction\(LESSON \|\| DEFAULT_LESSON\)/.test(appSource) &&
         !/GPT REALTIME TURN CONTRACT/.test(appSource));
 
     // --- 迴歸：早退復原指令不得再出現否定式禁語 ---

@@ -101,13 +101,20 @@ def where_b2(word):
 
 def where_b3(word):
     w = bare(word["english"]).lower()
-    spot = {"wallet": "behind the sofa", "glasses": "in front of the bookcase"}[w]
-    zh_spot = {"behind the sofa": "沙發後面", "in front of the bookcase": "書櫃前面"}[spot]
+    spot = {"wallet": "behind the sofa", "glasses": "in front of the bookcase",
+            "computer game": "under the desk"}[w]
+    zh_spot = {"behind the sofa": "沙發後面", "in front of the bookcase": "書櫃前面",
+               "under the desk": "書桌下面"}[spot]
     if is_plural(word):
         return T("Where are my %s?" % w, "They're %s." % spot,
                  "我的%s在哪裡？在%s。" % (word["chinese"], zh_spot),
                  "a living room; the pair of eyeglasses lies on the floor directly %s, "
                  "both fully visible" % spot)
+    if w == "computer game":
+        return T("Where's my %s?" % w, "It's %s." % spot,
+                 "我的%s在哪裡？在%s。" % (word["chinese"], zh_spot),
+                 "a living room with a desk; a small boxed computer game cartridge lies on the "
+                 "floor directly %s, both fully visible" % spot)
     return T("Where's my %s?" % w, "It's %s." % spot,
              "我的%s在哪裡？在%s。" % (word["chinese"], zh_spot),
              "a living room; the brown wallet peeks out from %s, both fully visible" % spot)
@@ -321,6 +328,15 @@ WORD_FILTER = {
 # 這個句型在 units.json 是 action slot 但該單元沒有 action 字：畫一張通用圖
 ALWAYS_ONE = {"What do you do on [Day]? / I [action] on [Day]."}
 
+# 代換題會把「前兩個單元的字」套進本單元句型（lesson-plan 的 pickSlotWords），
+# 那些組合本單元的字表裡沒有，這裡指定要多畫的字（從其他單元借字）。
+# 2026-09-14 全部單元跑一遍，這 5 句是代換題會出、但沒有漫畫的（v3.50）。
+EXTRA_WORDS = {
+    ("b3_u03", "Can I have a/an [noun], please? / Sure. Here you are."): ["ruler", "stapler"],
+    ("b3_u03", "Can I borrow your [noun]? / No. Sorry."): ["ruler", "stapler"],
+    ("b3_u07", "Where's my [item]? / It's [preposition] the [furniture]."): ["computer game"],
+}
+
 # 單元的字不是名詞、套不進句型的，整個句型改用手寫清單（word 仍是單元的字，方便對應）
 CUSTOM = {
     # B3U3 的字是動詞：Can I + 動詞
@@ -376,7 +392,15 @@ def main():
                    "hint＝畫面裡一定要看得到的東西。由 AI tutor/build-dialogue-list.py 產生。")
     missing, total = [], 0
     alt = 0
+    # 借字用：所有單元的字，照 bare 名字查
+    all_words = {}
     for book in data["books"]:
+        for unit in book["units"]:
+            for w in unit.get("words", []):
+                all_words.setdefault(bare(w["english"]), w)
+    for book in data["books"]:
+        if not book["name"].split()[-1].isdigit():
+            continue   # 「字母 ABC」那本沒有句型，不需要對話漫畫（v3.50 修：之前在這裡直接炸掉）
         b = int(book["name"].split()[1])
         for unit in book["units"]:
             if unit["type"] != "unit":
@@ -388,6 +412,21 @@ def main():
                 if not tpl:
                     missing.append((key, pat["english"]))
                     continue
+                # 從其他單元借的字（代換題會出的組合），照一般模板畫
+                for extra in EXTRA_WORDS.get((key, pat["english"]), []):
+                    w = all_words.get(extra)
+                    if not w:
+                        print("[!] EXTRA_WORDS 找不到字：", key, extra)
+                        continue
+                    d = tpl(w)
+                    rows.append(OrderedDict([
+                        ("id", "%s_dlg%02d_%s" % (key, pi, slug(extra))),
+                        ("filename", "%s_dlg%02d_%s.png" % (key, pi, slug(extra))),
+                        ("pattern", pat["english"]),
+                        ("word", extra),
+                        ("word_zh", w["chinese"]),
+                        ("ask", d["ask"]), ("answer", d["answer"]), ("zh", d["zh"]), ("hint", d["hint"]),
+                    ]))
                 if pat["english"] in CUSTOM:
                     zh_of = {bare(w["english"]): w["chinese"] for w in unit["words"]}
                     for word, ask, answer, zh, hint in CUSTOM[pat["english"]]:
@@ -445,17 +484,28 @@ def main():
     local["_說明"] = ("句型對話漫畫的網頁索引，由 AI tutor/build-dialogue-list.py 產生，不要手改。"
                      "image 是 images/ 裡的檔名；圖上兩個泡泡都是空白，"
                      "ask（左上 Gogo）與 answer（右上 Tony）由前端決定要不要壓字。")
+    # 只收 images/ 裡真的有圖的：沒圖的列進網頁索引會變成破圖（v3.50）
+    not_yet = []
     for key, rows in out.items():
         if key.startswith("_"):
             continue
-        local[key] = [OrderedDict([
-            ("image", os.path.splitext(r["filename"])[0] + ".webp"),
-            ("pattern", r["pattern"]),
-            ("word", r["word"]),
-            ("ask", r["ask"]),
-            ("answer", r["answer"]),
-            ("zh", r["zh"]),
-        ]) for r in rows]
+        local[key] = []
+        for r in rows:
+            webp = os.path.splitext(r["filename"])[0] + ".webp"
+            if not os.path.isfile(os.path.join(HERE, "images", webp)):
+                not_yet.append(r["id"])
+                continue
+            local[key].append(OrderedDict([
+                ("image", webp),
+                ("pattern", r["pattern"]),
+                ("word", r["word"]),
+                ("ask", r["ask"]),
+                ("answer", r["answer"]),
+                ("zh", r["zh"]),
+            ]))
+    if not_yet:
+        print("[i] 還沒有圖、暫不列入網頁索引（%d 張）：%s" % (len(not_yet), ", ".join(not_yet)))
+        print("    生圖：py -3 build-dialogue-images.py %s" % " ".join(not_yet))
     io.open(LOCAL_OUT, "w", encoding="utf-8", newline="\n").write(
         json.dumps(local, ensure_ascii=False, indent=1) + "\n")
     print("寫出", LOCAL_OUT)

@@ -38,6 +38,12 @@
         "ant": {
           "display": "ant (n.)",
           "example": "Look at the ant."
+        },
+        "hi": {
+          "example": "Hi, Gogo!"
+        },
+        "bye": {
+          "example": "Bye, Gogo!"
         }
       },
       "wordSlot": "greeting"
@@ -71,6 +77,12 @@
         "pencil": {
           "display": "pencil (n.)",
           "example": "Show me your pencil."
+        },
+        "table": {
+          "example": "It's a table."
+        },
+        "chair": {
+          "example": "It's a chair."
         }
       },
       "wordSlot": "object"
@@ -104,6 +116,12 @@
         "cook": {
           "display": "cook (v.)",
           "example": "My dad can cook."
+        },
+        "fly": {
+          "example": "Can you fly?"
+        },
+        "swim": {
+          "example": "Can you swim?"
         }
       },
       "wordSlot": "action"
@@ -137,6 +155,12 @@
         "sister": {
           "display": "sister (n.)",
           "example": "She's my sister."
+        },
+        "family": {
+          "example": "This is my family."
+        },
+        "friend": {
+          "example": "You're my friend!"
         }
       },
       "wordSlot": "person",
@@ -173,6 +197,12 @@
         "girl": {
           "display": "girl (n.)",
           "example": "The girl is Lisa."
+        },
+        "parent": {
+          "example": "They're my parents."
+        },
+        "baby": {
+          "example": "This is the baby."
         }
       },
       "wordSlot": "person"
@@ -206,6 +236,12 @@
         "polar bear": {
           "display": "polar bear (n.)",
           "example": "The polar bear is white."
+        },
+        "leopard": {
+          "example": "Is this a leopard?"
+        },
+        "ostrich": {
+          "example": "Is this an ostrich?"
         }
       },
       "wordSlot": "animal"
@@ -239,6 +275,12 @@
         "green": {
           "display": "green (adj.)",
           "example": "The grass is green."
+        },
+        "orange": {
+          "example": "It's orange."
+        },
+        "purple": {
+          "example": "It's purple."
         }
       },
       "wordSlot": "color"
@@ -272,6 +314,12 @@
         "cookie": {
           "display": "cookie (n.)",
           "example": "I like cookies."
+        },
+        "plates": {
+          "example": "We don't have plates!"
+        },
+        "cups": {
+          "example": "Excuse me. Do you have cups?"
         }
       },
       "wordSlot": "object"
@@ -305,6 +353,12 @@
         "salad": {
           "display": "salad (n.)",
           "example": "She eats salad."
+        },
+        "ice cream": {
+          "example": "I like ice cream."
+        },
+        "soda": {
+          "example": "I like soda."
         }
       },
       "wordSlot": "food"
@@ -338,6 +392,24 @@
         "notebook": {
           "display": "notebook (n.)",
           "example": "He has a notebook."
+        },
+        "pencil case": {
+          "example": "It's a pencil case."
+        },
+        "snake": {
+          "example": "It's a snake."
+        },
+        "soup": {
+          "example": "I like soup."
+        },
+        "steak": {
+          "example": "I like steak."
+        },
+        "pink": {
+          "example": "It's a pink lamp."
+        },
+        "gray": {
+          "example": "It's gray."
         }
       },
       "wordSlots": {
@@ -366,6 +438,24 @@
         "heavy": {
           "display": "heavy (adj.)",
           "example": "This box is heavy."
+        },
+        "sad": {
+          "example": "He's sad."
+        },
+        "light": {
+          "example": "It's light."
+        },
+        "hot": {
+          "example": "We're hot."
+        },
+        "cold": {
+          "example": "They're cold."
+        },
+        "big": {
+          "example": "I'm big."
+        },
+        "small": {
+          "example": "She's small."
         }
       },
       "wordSlot": "adjective"
@@ -391,6 +481,24 @@
         "soccer": {
           "display": "soccer (n.)",
           "example": "I play soccer on weekends."
+        },
+        "basketball": {
+          "example": "Do you like basketball?"
+        },
+        "dodge ball": {
+          "example": "Do you like dodge ball?"
+        },
+        "badminton": {
+          "example": "I like badminton."
+        },
+        "volleyball": {
+          "example": "Do you like volleyball?"
+        },
+        "tennis": {
+          "example": "Do you like tennis?"
+        },
+        "ping-pong": {
+          "example": "I play ping-pong on Sunday."
         }
       },
       "wordSlot": "sport"
@@ -424,6 +532,24 @@
         "pillow": {
           "display": "pillow (n.)",
           "example": "It's a white pillow."
+        },
+        "bed": {
+          "example": "It's on the bed."
+        },
+        "window": {
+          "example": "It's a window."
+        },
+        "clock": {
+          "example": "It's a clock."
+        },
+        "blanket": {
+          "example": "It's a pink blanket."
+        },
+        "door": {
+          "example": "Is that a brown door?"
+        },
+        "lamp": {
+          "example": "It's a pink lamp."
         }
       },
       "wordSlot": "object"
@@ -457,6 +583,24 @@
         "grapes": {
           "display": "grapes (n. pl.)",
           "example": "Yes, they are. They're grapes."
+        },
+        "strawberries": {
+          "example": "How many strawberries are there?"
+        },
+        "cherries": {
+          "example": "How many cherries are there?"
+        },
+        "pears": {
+          "example": "They're pears."
+        },
+        "oranges": {
+          "example": "They're oranges."
+        },
+        "mangoes": {
+          "example": "They're mangoes."
+        },
+        "pineapples": {
+          "example": "They're pineapples."
         }
       },
       "wordSlot": "food",
@@ -492,6 +636,24 @@
         "jacket": {
           "display": "jacket (n.)",
           "example": "My jacket is on the chair."
+        },
+        "in": {
+          "example": "They're in the box."
+        },
+        "on": {
+          "example": "It's on the bed."
+        },
+        "between": {
+          "example": "It's between the bed and the desk."
+        },
+        "socks": {
+          "example": "Where are my socks?"
+        },
+        "pants": {
+          "example": "Where are my pants?"
+        },
+        "skirt": {
+          "example": "Where's my skirt?"
         }
       },
       "wordPlurals": [
@@ -528,6 +690,42 @@
         "twelve": {
           "display": "twelve (num.)",
           "example": "It's twelve o'clock."
+        },
+        "one o'clock": {
+          "example": "Is it one o'clock?"
+        },
+        "two o'clock": {
+          "example": "It's two o'clock."
+        },
+        "three o'clock": {
+          "example": "It's three o'clock."
+        },
+        "four o'clock": {
+          "example": "It's four o'clock."
+        },
+        "five o'clock": {
+          "example": "It's five o'clock."
+        },
+        "six o'clock": {
+          "example": "It's six o'clock."
+        },
+        "seven o'clock": {
+          "example": "It's seven o'clock."
+        },
+        "eight o'clock": {
+          "example": "It's eight o'clock."
+        },
+        "nine o'clock": {
+          "example": "It's nine o'clock."
+        },
+        "ten o'clock": {
+          "example": "It's ten o'clock."
+        },
+        "eleven o'clock": {
+          "example": "It's eleven o'clock."
+        },
+        "twelve o'clock": {
+          "example": "Is it twelve o'clock?"
         }
       },
       "wordSlot": "time"
@@ -553,6 +751,24 @@
         "twenty": {
           "display": "twenty (num.)",
           "example": "There are twenty cherries."
+        },
+        "fourteen": {
+          "example": "There are fourteen."
+        },
+        "fifteen": {
+          "example": "There are fifteen."
+        },
+        "sixteen": {
+          "example": "There are sixteen."
+        },
+        "seventeen": {
+          "example": "There are seventeen."
+        },
+        "eighteen": {
+          "example": "There are eighteen."
+        },
+        "nineteen": {
+          "example": "There are nineteen."
         }
       },
       "wordSlot": "number"
@@ -586,6 +802,24 @@
         "napkins": {
           "display": "napkins (n.)",
           "example": "Does she have napkins?"
+        },
+        "forks": {
+          "example": "Do you have forks?"
+        },
+        "spoons": {
+          "example": "You have spoons."
+        },
+        "knives": {
+          "example": "Does he have knives?"
+        },
+        "glasses": {
+          "example": "She has glasses."
+        },
+        "tissues": {
+          "example": "Do you have tissues?"
+        },
+        "bowls": {
+          "example": "She has bowls."
         }
       },
       "wordSlot": "object",

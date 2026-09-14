@@ -29,6 +29,10 @@
         function send(event) {
             if (!channel || channel.readyState !== "open") return false;
             channel.send(JSON.stringify(event));
+            // 提示詞帳本（v3.50）：真正送出去的那一刻通知呼叫端，指令快照從這裡取，不是事後重組
+            if (event && (event.type === "session.update" || event.type === "conversation.item.create")) {
+                emit("onOutbound", event);
+            }
             return true;
         }
 
@@ -39,6 +43,7 @@
                 responseInProgress = true;
             } else if (event.type === "output_audio_buffer.started") {
                 outputAudioPlaying = true;
+                emit("onOutputAudioStarted", { event });
             } else if (event.type === "output_audio_buffer.stopped" || event.type === "output_audio_buffer.cleared") {
                 outputAudioPlaying = false;
                 // 播放真正結束的唯一可靠訊號。response.done 只代表「產生完畢」，
@@ -75,6 +80,8 @@
                     }));
                 if (toolCalls.length > 0) {
                     toolCalls.forEach(call => emit("onToolCall", call));
+                    // 只有工具的回合也要通知「生成結束」，否則沉默偵測與回合結算永遠等不到（P1-2）
+                    emit("onToolTurnDone", { event, toolCalls: toolCalls.length });
                     return;
                 }
                 if (responseCreatePending && !talking) {

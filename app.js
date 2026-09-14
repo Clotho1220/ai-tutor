@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.49";
+const APP_VERSION = "3.50";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -66,6 +66,26 @@ if (!window.SafeDOM) throw new Error("dom-utils.js 未載入");
 const { clear: clearNode, text: setText, appendText, element: makeElement, legacyMarkupToText } = window.SafeDOM;
 if (!window.StudentView) throw new Error("student-view.js 未載入");
 const studentView = window.StudentView.create({
+    onHelp() {
+        // 求助不是作答：獨立事件，不消耗嘗試、不算錯（P1-4）
+        if (!planDriving() || !planFlow) return;
+        applyFlowActions(planFlow.helpRequested("button"));
+        flushPendingPlanDirective();
+    },
+    onRetry() {
+        if (!planDriving() || !planFlow) return;
+        studentView.showRecover(false);
+        applyFlowActions(planFlow.manualRetry());
+        flushPendingPlanDirective();
+        setStudentAction('wait');
+    },
+    onSkip() {
+        if (!planDriving() || !planFlow) return;
+        studentView.showRecover(false);
+        applyFlowActions(planFlow.manualSkip());
+        flushPendingPlanDirective();
+        setStudentAction('wait');
+    },
     timeoutMs: 5000,
     onTap: id => handlePlanTap(id)
 });
@@ -86,6 +106,36 @@ const sessionDiagnostics = window.SessionDiagnostics.create({
     maxTextLength: 2000
 });
 const lessonEndingGuard = window.LessonEndingGuard.create();
+
+// ---- 提示詞帳本（v3.50，P0-1）：這堂課實際送出的每一份指令 ----
+// 快照一律在真正送出的那一刻取（GPT 的資料通道 send → onOutbound；Gemini 的 socket.send 之前），
+// 每份事件只記 id／hash，全文由帳本去重保存，隨診斷檔匯出。
+const promptLedger = window.PromptLedger ? window.PromptLedger.create({}) : null;
+let connectionEpoch = 0;          // 連線世代：每次（重）連線 +1，舊連線的遲到事件靠它擋掉
+let outboundContext = null;       // 下一筆送出的指令是什麼、為什麼（GPT 由 onOutbound 讀取）
+
+function capturePrompt(kind, textValue, reason, extra) {
+    if (!promptLedger) return null;
+    const entry = promptLedger.capture(Object.assign({
+        kind, text: textValue, reason: reason || "", connectionEpoch,
+        provider: openaiSessionActive ? "openai" : "gemini"
+    }, extra || {}));
+    sessionDiagnostics.record("prompt_snapshot", {
+        id: entry.id, hash: entry.hash, kind: entry.kind, chars: entry.chars, reason: entry.reason,
+        epoch: entry.connectionEpoch, itemId: entry.itemId, directiveId: entry.directiveId, firstSeen: entry.firstSeen
+    });
+    return entry;
+}
+
+// 任何一次 instructions 更新都走這裡：記錄更新前後與原因，之後才能回答「中途被誰改了」
+function applyInstructionUpdate(textValue, reason) {
+    if (!openaiRealtime || !openaiSessionActive) return false;
+    outboundContext = { kind: "update", reason: reason || "instructions update" };
+    const sent = openaiRealtime.updateInstructions(textValue);
+    if (!sent) outboundContext = null;
+    sessionDiagnostics.record("instructions_updated", { reason: reason || "", chars: String(textValue || "").length, sent });
+    return sent;
+}
 const practiceTurnBoundary = window.PracticeObserver.createTurnBoundary();
 
 // PWA 安裝所需。放在外部腳本中，讓 CSP 可以禁止 inline JavaScript。
@@ -336,7 +386,7 @@ talkBtn.addEventListener('click', () => {
                 provider: "openai",
                 turn: studentTurnGeneration
             });
-            noteSpeechOnTapItem();
+            notePlanStudentTurn();
             talkBtn.classList.remove('talking');
             talkBtn.textContent = '🎙️ 按一下開始說話';
         }
@@ -374,7 +424,7 @@ talkBtn.addEventListener('click', () => {
             turn: studentTurnGeneration,
             bufferedAudioChunks: turnChunks.length
         });
-        noteSpeechOnTapItem();
+        notePlanStudentTurn();
         stageTransitionGate.noteStudentTurn();
         if (webSocket && webSocket.readyState === WebSocket.OPEN) {
             webSocket.send(JSON.stringify({ realtimeInput: { activityEnd: {} } }));
@@ -1049,119 +1099,31 @@ function readLevelOverride(lessonLevel) {
     return (lv >= 1 && lv <= 5) ? lv : lessonLevel;
 }
 
-// 回合契約：兩個模型共用的最高優先規則。
-// 過去只掛在 GPT 前面，Gemini 拿不到「示範後立刻停」「同一句型不得連續操練」這些硬規則，
-// 兩邊行為因此對不齊。放進 buildSystemInstruction 之後，任何模型都一定拿得到同一份。
-const TURN_CONTRACT =
-    "TURN CONTRACT (highest priority): Give ONE short teacher turn, ask at most ONE question, " +
-    "then END YOUR TURN and wait in silence. Finishing cleanly and waiting quietly is part of good teaching — " +
-    "never fill the silence by repeating yourself. " +
-    "If you translate, correct, model a sentence, or ask the learner to repeat, STOP immediately after that invitation. " +
-    "Never ask the learner to practise one sentence family more than TWICE in a session; changing only the subject or name is still the SAME family. After one successful attempt, choose a different target, situation, or open response. " +
-    "Never combine practice instructions with the next lesson topic. Obey DIRECTOR NOTE messages silently; never quote or discuss them. " +
-    "Use the available display and vocabulary tools silently when appropriate. ";
+// 提示詞的組裝已移到 prompt-builder.js（v3.50，P0-2）：按模式各自組，兒童計畫課不再串
+// 舊的回合契約與教學規則（它們跟「一次只做系統給的那一項」互相打架）。
+// 這裡只負責把本堂課的參數交給它，並記住這次組出來的模式與版本。
+let lastPromptBuild = null;
 
-// 依教案組裝完整 system prompt
-function buildSystemInstruction(lesson) {
+function promptInputFor(lesson) {
     const st = lesson.student || {};
-    const interests = (st.interests || []).join(", ");
     const level = readLevelOverride(st.level || 2);
-    const adult = !!st.adult;
-    const learner = adult ? "adult learner" : "child";
-    // 計畫模式：模型只負責把每一個項目演出來，不負責決定下一步
-    const planContract = planDriving()
-        ? "PLAN MODE (highest priority): today's lesson is a fixed list of items decided in advance. " +
-          "Each DIRECTOR NOTE gives you exactly ONE item. Do that one item only — present it, ask, wait for the learner, " +
-          "judge their attempt, give brief feedback, call report_item_result, then STOP and wait for the next note. " +
-          "Never invent extra practice, never jump ahead to another word or pattern, never decide on your own that the lesson is over. " +
-          "If the learner asks something off-topic, answer briefly and warmly, then return to the current item. " +
-          "STRICT TURN-TAKING: one question from you, ONE answer from the learner, ONE short feedback sentence, " +
-          "report, then END your turn and wait in silence for the next note. " +
-          "Never add bonus drills the note did not ask for — no extra example sentences, no 'You can say ...', no 'Try it!' invitations. " +
-          "Those extras stall the lesson: the next note cannot arrive until you finish your turn. " +
-          // 2026-09-10 實測：21 個項目全部以一句閒聊問句收尾（What do you usually put on a table? /
-          // Do you like to sing? / Have you ever seen a real goat?），孩子被迫一直接話，
-          // 課程節奏整個被拖住。合約原本只禁「額外例句」，沒禁「追問」。
-          // 2026-09-13 實測：上一版寫成「不准以問句結尾」，跟每一題「問出來、等他答」的指令打架，
-          // GPT 的解法是整輪一個字都不說（46 輪裡 36 輪空白，第 3 題之後沒有一題唸出來）。
-          // 禁的是閒聊追問，出題的問句是必須的——要講清楚。
-          "AFTER JUDGING THE LEARNER'S ANSWER: one short feedback sentence, then report, then stop. " +
-          "Do NOT add chit-chat questions after the feedback ('What do you usually put on a table?', 'Do you like to sing?', " +
-          "'Have you ever seen a real goat?', 'Can you think of ...?', 'What else ...?') — those keep the learner talking and hold up every item behind. " +
-          "This is NOT a ban on asking: when a DIRECTOR NOTE gives you an item, you MUST speak it out loud — present it and ask its question, then wait. " +
-          "A turn in which you only call a tool and say nothing is a broken turn: the learner hears silence and thinks the app froze. " +
-          "The screen (picture, English word, Chinese meaning) is controlled by the lesson system, not by you: " +
-          "do NOT call show_image during plan items, and never read out loud anything the note says is still hidden from the learner — " +
-          "the hint ladder only works if each hint appears exactly when the note says so. "
-        : "";
-    return planContract + TURN_CONTRACT + (adult
-            ? "You are a skilled, personable English conversation tutor in a LIVE VOICE session with ONE adult learner. Treat them as an intelligent peer who simply wants to get better at English. "
-            : "You are a patient, warm-hearted English tutor in a LIVE VOICE conversation with ONE young child. " +
-              "Give the child real emotional support: encourage generously, never scold or sound disappointed, " +
-              "and make every attempt — right or wrong — feel safe and worth celebrating. " +
-              "PURPOSE: every exchange exists to make the child SPEAK the course material out loud. " +
-              "You listen, judge pronunciation and sentence structure, correct gently, and have them try again — " +
-              "the SAME word or sentence is corrected at most TWICE, then you encourage and move on. ") +
-        (adult
-            ? `STUDENT PROFILE: ${st.name || "the learner"}, an adult Mandarin speaker practising conversational English, level ${level} of 5. `
-            : `STUDENT PROFILE: ${st.name || "the student"}, a young Mandarin-speaking learner, level ${level} of 5. `) +
-        (interests ? `Their interests are: ${interests} — use them in your examples and small talk. ` : "") +
-        (lesson.mode === "news"
-            ? "TODAY'S LESSON IS A NEWS CHAT, not a textbook unit. Your job is to find something that really happened in the world in the LAST 7 DAYS using the google_search tool, and talk about it together. " +
-              "LANGUAGE FIRST — you are an English tutor using news as material, NOT a news anchor: never narrate more than three or four short sentences in a row. After that, STOP and make the " + learner + " talk — ask what they think, then run the feedback loop on whatever they say. The story exists so THEY can practise speaking, not so you can report it. " +
-              "Search in both Chinese (台灣新聞) and English (world news) so you can offer local and international stories. Only use stories you actually found in search results — never invent news, and never present something old as if it were new. " +
-              (adult
-                ? "Pick five genuinely substantive stories an informed adult would find worth discussing — current affairs, business, technology, science, culture, sport. Sensitive subjects are fine; treat them factually and even-handedly, and do not push your own political opinions. "
-                : "NEWS SAFETY — non-negotiable: this is a 6-8 year old child. Choose ONLY stories that are safe and delightful for a young child: animals, nature, space, science, inventions, sports, food, festivals, or kids doing something remarkable. " +
-                  "NEVER pick, describe, or even mention stories involving war, death, violence, crime, accidents, disasters, serious illness, or political conflict. If a search result is unsuitable, silently discard it and look for another. " +
-                  "If the child brings up something frightening they heard elsewhere, say kindly and briefly that it is a topic for grown-ups, then guide them back to today's story. ")
-            : `TODAY'S UNIT: ${lesson.unit || "general practice"}. Stay on this unit's topic and target items; do not wander to other material. `) +
-        "LANGUAGE POLICY: " + languagePolicy(level) + " " +
-        (adult
-            ? "RESCUE RULE (overrides the ratio): if they are clearly stuck on a word or structure, give the Chinese equivalent once, then continue in English. "
-            : "RESCUE RULE (overrides the ratio): if the student answers an English question in Chinese, says 「蛤？」or「什麼意思？」, or seems lost, immediately explain the last point in Traditional Chinese, then retry with SIMPLER English. ") +
-        "TEACHING STYLE: " +
-        (adult
-            ? "(a) Speak naturally at a normal adult pace — two to four sentences per turn is fine — then stop and let them talk. Aim for a real conversation in which THEY do most of the talking. " +
-              "(b) Ask ONE substantive, open-ended question at a time, then wait. Follow up on what they actually said rather than moving down a checklist. " +
-              "(c) CORRECTION: do not interrupt mid-thought. When they finish, if there was a meaningful error, briefly give the natural way to say it and, when useful, one line on why — then carry on with the conversation. " +
-              "Let trivial slips go; prioritise fluency. When their English is already good, occasionally offer a more idiomatic or precise alternative (a better verb, a natural collocation) so they keep levelling up. " +
-              "Skip childish praise — no 'good job!' after every sentence. Respond to the CONTENT of what they said like a real conversation partner, and keep the register adult. " +
-              "(d) PRODUCTION PRACTICE — this is the core of the session, not an optional extra: keep pushing them to express their OWN opinions and reasoning in English, at length, in their own words. " +
-              "After each substantial turn, give a short concrete assessment before moving on: say what worked, give the natural phrasing for the one error most worth fixing, and where useful offer a more idiomatic alternative. Then ask a follow-up that makes them elaborate. "
-            : "(a) GUIDE: follow the lesson material and prompt the child to produce the target — " +
-              "at most TWO short sentences, ONE question, then END your turn and wait in silence for their answer. " +
-              "(b) JUDGE: when they answer, decide whether it is correct and clearly pronounced. " +
-              "An answer in Chinese still counts as a real attempt — show them the English and let them say it. " +
-              "When their message is a repeat of the sentence you just modelled, judge ONLY that attempt; " +
-              "if it is understandable, acknowledge it briefly and never start another repetition chain. " +
-              "(c) CORRECT: if it is off, never say 'wrong'. Gently point out what to fix, demonstrate the correct version ONCE, " +
-              "invite them to try again, then end your turn. The same word or sentence gets at most TWO corrections — " +
-              "after the second, encourage them warmly and move on whatever happens. " +
-              "(d) PRAISE & ADVANCE: if it is correct, give ONE sentence of warm, specific praise " +
-              "(name what they did well — a sound, a word, a whole sentence), then move to the next item. " +
-              "VARY your praise: never use the same praise phrase twice in a row — " +
-              "rotate naturally between things like 太棒了 / Very good / 你唸得好清楚 / Great job / 好厲害. ") +
-        "STRICT RULES: " +
-        "(1) NEVER answer your own questions. NEVER speak for the student or invent their replies. There is only one voice: yours. " +
-        "(2) Messages starting with [DIRECTOR NOTE] are hidden stage directions from the lesson system, not from the student. Follow them SILENTLY. " +
-        "Absolutely never read a director note aloud, never repeat or paraphrase one, never mention that one exists, and NEVER write or invent a director note of your own — that format belongs to the lesson system only, never to you. " +
-        `Everything you say out loud must be natural speech addressed directly to the ${learner}. If you ever find yourself about to say the words 'director note', stop and just talk to the student instead. ` +
-        "(3) When you mention a concrete visual noun (like 'apple', 'cat', 'UFO'), call the show_image tool. When you teach a NEW word, also call the log_vocabulary tool with the word, its Traditional Chinese meaning, and a short example sentence. Tool calls are silent actions: never say tool names, '[System]', braces, or any code-like text out loud. " +
-        "(4) VOICE CONSISTENCY — very important: keep exactly the same voice, tone, accent, speaking speed and persona for the ENTIRE lesson. Do not change your voice character between stages or between sentences. " +
-        "(5) PACING: the lesson is run by DIRECTOR NOTES, stage by stage. Work ONLY on the current stage's task. NEVER run ahead to future material, NEVER summarize the whole day, and NEVER end the lesson or say goodbye on your own — the lesson ends ONLY when a DIRECTOR NOTE explicitly tells you to wrap up. If you finish the current task early, keep practising it in fresh ways until the next DIRECTOR NOTE arrives. " +
-        "PRACTICE VARIETY — mandatory: use one target sentence for ONE imitation and, only if needed, ONE correction retry. As soon as it is understandable, consider it mastered for this session and move to a genuinely different sentence, word, question, situation, or activity. Do not ask for the same sentence again, and do not create a long drill by merely changing I/you/he/she/a name while keeping the same adjective. Rotate through all of TODAY'S listed items and use personal questions, choices, pictures, or a short role-play. A sentence-pattern family may be practised at most TWICE in the whole session — after the second time it is finished for today, whatever happens. " +
-        "(6) CLARIFICATION OVERRIDE — this rule has priority over every feedback or translation rule below. If the learner says 「你在說什麼？」, 「你說什麼？」, 「什麼意思？」, 「我聽不懂」, 「蛤？」, asks you to repeat, or otherwise shows they did not understand YOUR previous words, treat it as a request for help — NOT as an answer to translate or correct. Never teach them to say 'What did you say?' in this situation. Instead, immediately repeat or rephrase YOUR last message in much simpler English; for Mandarin learners, add one short Traditional Chinese explanation when useful. Keep it to one or two short sentences, then STOP and let them respond. Do not continue the lesson topic in the same turn. " +
-        "(6b) PROGRESS REPORTING — mandatory and completely silent: every time the " + learner + " attempts a target word or sentence, call report_item_result right after you have judged it and given your feedback. " +
-        "One call per attempt, including the retry after a correction (attempt 2). Report what you actually heard them say, and whether it was correct, incorrect, or not attempted. " +
-        "This is how the lesson system knows what they have mastered, so never skip it — but never say the tool's name, never announce that you are recording anything, and never let it interrupt the conversation. " +
-        "(7) MANDATORY FEEDBACK LOOP — except for the clarification requests covered by rule 6, after EVERY turn the " + learner + " takes, do all three steps, briefly: " +
-        "first, react to WHAT they said in one short sentence; " +
-        "second, language feedback — if they spoke CHINESE, give the English way to say it and have them say it themselves; if their English had a mistake, naturally restate the corrected sentence and have them try once more; if it was correct, confirm it clearly and optionally offer one more natural way to phrase it; " +
-        "third, hand the turn back with ONE question. " +
-        "CRITICAL: the moment you invite them to say or repeat a sentence (e.g. 'You can say: ... Try it!'), your turn ENDS THERE — stop speaking and wait silently for their attempt. Do NOT continue with the topic, do NOT ask a different question, do NOT answer for them. Step three only happens AFTER they have tried. " +
-        "NEVER skip step two, and never launch into another block of narration without completing this loop first." +
-        (lesson.mode === "news" ? "" : pastLearningSection());   // 時事模式不接續學習進度
+    return {
+        mode: lesson.mode === "news" ? "news" : "lesson",
+        planDriving: planDriving(),
+        student: st, level, unit: lesson.unit,
+        languagePolicy: languagePolicy(level),
+        pastSection: lesson.mode === "news" ? "" : pastLearningSection()
+    };
+}
+
+function buildSystemInstruction(lesson) {
+    lastPromptBuild = window.PromptBuilder.build(promptInputFor(lesson || DEFAULT_LESSON));
+    return lastPromptBuild.text;
+}
+
+function currentPromptMode() {
+    if (lastPromptBuild) return lastPromptBuild.mode;
+    return window.PromptBuilder.resolveMode(promptInputFor(LESSON || DEFAULT_LESSON));
 }
 
 // 過去幾天學過的字 → 寫進 system prompt，讓 AI 跨天記得孩子的學習歷程
@@ -1456,6 +1418,7 @@ function refreshDiagnosticsStatus(message, color) {
 
     exportBtn.addEventListener('click', () => {
         sessionDiagnostics.record("diagnostics_exported", {});
+        if (promptLedger) sessionDiagnostics.setPrompts(promptLedger.exportPayload());   // 進行中的那堂也帶上指令全文
         const blob = new Blob([sessionDiagnostics.exportJson()], { type: 'application/json;charset=utf-8' });
         const link = document.createElement('a');
         const downloadUrl = URL.createObjectURL(blob);
@@ -1466,7 +1429,15 @@ function refreshDiagnosticsStatus(message, color) {
         link.remove();
         // 部分手機瀏覽器會延後接管下載；太早撤銷 Blob URL 會顯示成功卻沒有檔案。
         setTimeout(() => URL.revokeObjectURL(downloadUrl), 30000);
-        refreshDiagnosticsStatus("診斷檔已匯出，可以直接提供給 Codex 分析。", "#4af626");
+        refreshDiagnosticsStatus("診斷檔已匯出（含本堂實際送出的 AI 指令），可以直接提供給 Claude 分析。", "#4af626");
+    });
+
+    // 家長／開發者查看本堂 AI 指令（P0-1）。學生畫面不顯示這些。
+    const ledgerBtn = document.getElementById('promptLedgerBtn');
+    const ledgerBox = document.getElementById('promptLedgerBox');
+    if (ledgerBtn && ledgerBox) ledgerBtn.addEventListener('click', () => {
+        ledgerBox.textContent = promptLedger ? promptLedger.render() : "（帳本模組未載入）";
+        ledgerBox.hidden = false;
     });
 
     clearBtn.addEventListener('click', () => {
@@ -1624,6 +1595,13 @@ async function startOpenAISession() {
         // 回合契約已包含在 buildSystemInstruction 內（兩個模型共用），不需在此重複。
         const instructions = buildSystemInstruction(LESSON || DEFAULT_LESSON) + newsContext;
         const openaiPracticeFamilies = {};
+        connectionEpoch += 1;
+        if (promptLedger) promptLedger.begin({
+            sessionId: sessionDiagnostics.inspect().activeId, provider: "openai", mode: currentPromptMode(),
+            promptVersion: lastPromptBuild ? lastPromptBuild.promptVersion : "", appVersion: `v${APP_VERSION}`
+        });
+        sessionDiagnostics.updateMetadata({ promptMode: currentPromptMode(), promptVersion: lastPromptBuild ? lastPromptBuild.promptVersion : "" });
+        outboundContext = { kind: "system", reason: "session.update on connect" };
         await openaiRealtime.connect({
             tokenEndpoint,
             syncSecret: localStorage.getItem(SYNC_SECRET_KEY) || "",
@@ -1640,12 +1618,43 @@ async function startOpenAISession() {
             onEvent() {
                 openaiLastServerEventAt = Date.now();
             },
+            // 真正送出去的指令（傳輸層那一刻）→ 帳本
+            onOutbound(event) {
+                const ctx = outboundContext || {};
+                outboundContext = null;
+                if (event.type === "session.update") {
+                    const session = event.session || {};
+                    if (typeof session.instructions === "string") {
+                        capturePrompt(ctx.kind || "update", session.instructions, ctx.reason || "session.update");
+                    }
+                    if (Array.isArray(session.tools)) {
+                        capturePrompt("tools", JSON.stringify(session.tools), "tool schema (" + session.tools.map(t => t.name).join(",") + ")");
+                    }
+                    return;
+                }
+                const item = event.item || {};
+                if (item.type === "message" && Array.isArray(item.content)) {
+                    const textPart = item.content.map(part => part.text || "").join("");
+                    capturePrompt(ctx.kind || "directive", textPart, ctx.reason || "message", { itemId: ctx.itemId, directiveId: ctx.directiveId });
+                }
+            },
+            onOutputAudioStarted() {
+                aiAudioSinceDirective = true;
+                if (planDriving() && planFlow) planFlow.aiSpoke();
+                setStudentAction('listen');
+            },
+            onToolTurnDone() {
+                toolCalledThisTurn = true;
+            },
             onOutputAudioStopped() {
                 handleClosingAudioStopped();   // 結語播完才真正下課
                 // GPT 的 turn completed 只代表生成完畢、語音還在播；
                 // 按鈕等播放真的結束才解鎖，否則孩子會在 AI 講到一半時按下說話把它切斷
                 //（2026-08-28 實測的 truncate 錯誤與「句子沒說完就卡住」都是這樣來的）。
                 unlockTalkButton();
+                // 語音真的播完了，排隊中的指令現在送才不會切斷聲音（P1-2）
+                flushPendingPlanDirective();
+                refreshStudentActionAfterAi();
             },
             onAudioRoute(detail) {
                 sessionDiagnostics.record("openai_audio_route", detail);
@@ -1721,6 +1730,8 @@ async function startOpenAISession() {
                 openaiAiTranscriptStarted = false;
                 if (openaiLeakMuted) { openaiRealtime.muteOutput(false); openaiLeakMuted = false; }
                 const feedback = completeTrackedAiTurn("openai");
+                // 句型家族的即時指令更新只屬於舊的階段流程；計畫模式的換題由程式決定（P0-2）
+                if (planDriving()) return;
                 if (feedback && feedback.suggestion) {
                     const family = window.PracticeObserver.sentenceFamily(feedback.suggestion);
                     if (family) openaiPracticeFamilies[family] = (openaiPracticeFamilies[family] || 0) + 1;
@@ -1728,10 +1739,11 @@ async function startOpenAISession() {
                         .filter(key => openaiPracticeFamilies[key] >= 2)
                         .slice(-5);
                     if (repeatedFamilies.length) {
-                        openaiRealtime.updateInstructions(instructions +
+                        applyInstructionUpdate(instructions +
                             " SESSION VARIETY STATE: These sentence families are already mastered or over-practised: " +
                             repeatedFamilies.join("; ") +
-                            ". Do not request another repetition or pronoun/name substitution from these families. Move to a different listed item, situation, question, or role-play now.");
+                            ". Do not request another repetition or pronoun/name substitution from these families. Move to a different listed item, situation, question, or role-play now.",
+                            "practice family cap: " + repeatedFamilies.join("; "));
                         sessionDiagnostics.record("openai_practice_family_limited", { families: repeatedFamilies });
                     }
                 }
@@ -1937,11 +1949,10 @@ async function startSession() {
     awaitingClosingAudio = false;       // 上一堂若在等結語播完，開新課時清掉
     itemResults = [];                   // 練習結果回報逐堂重算
     practiceTurnsObserved = 0;
-    planRunner = null;                  // 計畫執行器由 preparePlanRunner 重建
-    planItemReported = false;
-    pendingPlanDirective = null; planItemSentGeneration = -1;
+    planRunner = null; planFlow = null; // 計畫執行器與流程控制器由 preparePlanRunner 重建
+    pendingPlanDirective = null;
     repetitionCutThisTurn = false; repetitionCutCount = 0;
-    lastCompletedPlanItem = null; planNudgedItemId = null;
+    aiAudioSinceDirective = false; toolCalledThisTurn = false;
     farewellRecoveryCount = 0;          // 早退復原次數逐堂重算
     studentTurnGeneration = 0; pendingStudentResponseGeneration = null;
     activeAiResponseStudentGeneration = null; aiTurnTrackingStarted = false;
@@ -2317,6 +2328,7 @@ function connectWebSocket(isReconnect) {
         return;
     }
     webSocket = socket;
+    connectionEpoch += 1;
     stopAllPlayback(); // 新連線不得接續播放上一條連線已排程的聲音
     if (connectionWatchdog) clearTimeout(connectionWatchdog);
     connectionWatchdog = setTimeout(() => {
@@ -2443,7 +2455,12 @@ function connectWebSocket(isReconnect) {
 
 // ---------------- Setup 訊息（含工具宣告與逐字稿） ----------------
 
-function tutorToolDeclarations() {
+function tutorToolDeclarations(mode) {
+    const allowed = window.PromptBuilder.toolsFor(mode || currentPromptMode());
+    return allTutorToolDeclarations().filter(tool => allowed.indexOf(tool.name) >= 0);
+}
+
+function allTutorToolDeclarations() {
     return [{
         type: "function",
         name: "show_image",
@@ -2482,10 +2499,12 @@ function tutorToolDeclarations() {
         name: "report_item_result",
         description: "Silently report the outcome of ONE practice attempt by the learner. " +
             "Call it immediately after you have judged their attempt and given your feedback, once per attempt including retries. " +
+            "Always pass the attemptId from the current STATE line; a report without the right attemptId is rejected. " +
             "This is how the lesson system knows what the learner has actually mastered. Never say its name and never mention reporting out loud.",
         parameters: {
             type: "object",
             properties: {
+                attemptId: { type: "string", description: "Copy exactly from the STATE line of the current item, e.g. uw2#a1." },
                 target: { type: "string", description: "The English word or sentence the learner was asked to produce." },
                 outcome: {
                     type: "string",
@@ -2501,7 +2520,7 @@ function tutorToolDeclarations() {
                 },
                 issue: { type: "string", description: "Optional short note on what was off, e.g. missing verb, wrong word order, sounded unsure." }
             },
-            required: ["target", "outcome"]
+            required: ["target", "outcome", "attemptId"]
         }
     }];
 }
@@ -2566,16 +2585,21 @@ async function handleOpenAIToolCall(detail) {
     // 後到的被伺服器拒絕（active response in progress，2026-08-30 一場 5 次），
     // 對話裡留下沒被回應的工具輸出，模型下一輪就開始亂唸——連導演指令都照稿唸出來。
     // 改為：指令先「暫存不送」，工具結果先送；有指令就讓指令的 create 當這一輪的回應。
+    toolCalledThisTurn = true;
+    const withIds = Object.assign({}, args, { __callId: detail.callId, __epoch: connectionEpoch });
     if (detail.name === "report_item_result" && planDriving()) {
         deferPlanDirective = true;
         let result;
-        try { result = await executeTutorTool(detail.name, args); }
+        try { result = await executeTutorTool(detail.name, withIds); }
         finally { deferPlanDirective = false; }
+        // 只有工具的回合：GPT 不會再送 response.done 給我們（工具結果會開下一輪），
+        // 所以這一輪的結算在這裡做——沉默偵測、補問都靠它（P1-2）
+        completeTrackedAiTurn("openai");
         openaiRealtime.sendToolResult(detail.callId, result, !pendingPlanDirective);
         flushPendingPlanDirective();
         return;
     }
-    const result = await executeTutorTool(detail.name, args);
+    const result = await executeTutorTool(detail.name, withIds);
     openaiRealtime.sendToolResult(detail.callId, result, true);
 }
 
@@ -2615,12 +2639,21 @@ function sendSetupMessage(socket, socketToken) {
                 .concat([{ functionDeclarations: geminiToolDeclarations() }]),
             systemInstruction: {
                 parts: [{
-                    // system prompt 依本堂教案動態組裝（學生檔案、語言配比、教學風格、既有嚴格規則）
+                    // system prompt 依本堂教案動態組裝（prompt-builder.js 按模式各自組）
                     text: buildSystemInstruction(LESSON || DEFAULT_LESSON)
                 }]
             }
         }
     };
+    // 帳本：從實際要送的 setup 物件取快照（provider: "gemini"）
+    if (promptLedger && !promptLedger.inspect().active) promptLedger.begin({
+        sessionId: sessionDiagnostics.inspect().activeId, provider: "gemini", mode: currentPromptMode(),
+        promptVersion: lastPromptBuild ? lastPromptBuild.promptVersion : "", appVersion: `v${APP_VERSION}`
+    });
+    sessionDiagnostics.updateMetadata({ promptMode: currentPromptMode(), promptVersion: lastPromptBuild ? lastPromptBuild.promptVersion : "" });
+    capturePrompt("system", setup.setup.systemInstruction.parts[0].text,
+        liveSession.inspectState().socketGeneration > 1 ? "setup on reconnect" : "setup on connect", { provider: "gemini" });
+    capturePrompt("tools", JSON.stringify(setup.setup.tools), "tool schema (gemini)", { provider: "gemini" });
     socket.send(JSON.stringify(setup));
     logSystem(`Setup 已送出（模型: ${selectedModel.split('/').pop()}）。`);
 }
@@ -2630,8 +2663,9 @@ function sendSetupMessage(socket, socketToken) {
 // 圖片工具回應會等到「圖片完成」或「等待逾時」才送回模型。
 // 這會讓 AI 在教下一個單字前留出真正的看圖時間，而不是一收到網址就繼續講。
 async function respondToToolCalls(functionCalls, sourceSocket, socketToken) {
+    toolCalledThisTurn = true;
     const functionResponses = await Promise.all(functionCalls.map(async fc => {
-        const result = await executeTutorTool(fc.name, fc.args || {});
+        const result = await executeTutorTool(fc.name, Object.assign({}, fc.args || {}, { __callId: fc.id, __epoch: connectionEpoch }));
         return {
             id: fc.id,
             name: fc.name,
@@ -2647,36 +2681,20 @@ async function respondToToolCalls(functionCalls, sourceSocket, socketToken) {
 }
 
 function beginTrackedAiTurn() {
+    if (planDriving() && planFlow) planFlow.aiSpoke();
     if (aiTurnTrackingStarted) return;
     aiTurnTrackingStarted = true;
+    setStudentAction('listen');
     currentAiTurnTranscript = "";
     activeAiResponseStudentGeneration = pendingStudentResponseGeneration;
     activeAiTurnUserTranscript = activeAiResponseStudentGeneration !== null ? currentUserTurnTranscript : "";
 }
 
-// 項目送出後，AI 有沒有真的開口講過。2026-09-13 GPT 實測：從第 3 題起每一輪都只
-// 呼叫 report_item_result 然後空白結束，新題目一個字都沒唸，孩子對著沉默一直重講。
-// 這種輪要抓出來重送一次指令（每一項最多一次，避免跟模型互相空轉）。
-let aiSpokeSinceItemSent = false;
-let planSilentResentItemId = null;
-
-function recoverSilentPlanTurn(provider, completedAiTranscript) {
-    if (!planDriving() || !planRunner || planRunner.isFinished() || closingStageActive) return false;
-    if (completedAiTranscript.trim().length > 0) { aiSpokeSinceItemSent = true; return false; }
-    if (aiSpokeSinceItemSent || pendingPlanDirective) return false;
-    const item = planRunner.current();
-    if (!item || item.type === "opening" || item.type === "closing") return false;
-    if (planSilentResentItemId === item.id) return false;     // 已經重送過一次，不再追
-    planSilentResentItemId = item.id;
-    sessionDiagnostics.record("plan_silent_turn", { id: item.id, type: item.type, target: item.target || "", provider });
-    logSystem(`🔇 AI 這一輪一個字都沒說（項目「${item.target || item.type}」還沒唸出來），重送一次指令。`);
-    queuePlanDirective({
-        body: "你剛才那一輪只做了回報、一個字都沒說，學員聽到的是一片沉默。" +
-            "現在把目前這一項講出來——" + window.LessonPlan.itemDirective(item, planRunner.progress()),
-        item, attempts: planRunner.progress().attempts
-    });
-    return true;
-}
+// 這一輪的證據（P1-2 / P1-3）：沉默不能只看逐字稿是不是空的——
+// GPT 偶爾只送 final、沒有 delta，Gemini 的逐字稿也可能慢半拍。音訊事件、工具呼叫都算證據，
+// 流程控制器拿這三樣加上 phase 一起判斷。
+let aiAudioSinceDirective = false;   // 指令送出後有沒有真的出過聲（GPT: output_audio_buffer.started；Gemini: 有 PCM 進來）
+let toolCalledThisTurn = false;      // 這一輪模型有沒有呼叫工具
 
 function completeTrackedAiTurn(provider) {
     const completesCurrentStudentTurn = activeAiResponseStudentGeneration !== null &&
@@ -2705,7 +2723,9 @@ function completeTrackedAiTurn(provider) {
         aiTranscriptLength: completedAiTranscript.length,
         practiceRequested
     });
-    const silentTurnRecovered = recoverSilentPlanTurn(provider, completedAiTranscript);
+    const hadAudioThisTurn = aiAudioSinceDirective;
+    const toolCalled = toolCalledThisTurn;
+    toolCalledThisTurn = false;
     isNewAiTurn = true;
     isNewUserTurn = true;
     aiTurnActive = false;
@@ -2732,15 +2752,21 @@ function completeTrackedAiTurn(provider) {
             enforcePracticeCap(observedFeedback);   // 兩個模型共用的重複上限
         }
     }
-    // 計畫模式由計畫本身推進，不走時間排程的階段切換
+    // 計畫模式由流程控制器推進（沉默重送、補問、unverified 兜底、結尾判定都在它裡面，共用一個預算）
     if (planDriving()) {
+        if (planFlow) {
+            applyFlowActions(planFlow.aiTurnCompleted({
+                transcriptChars: completedAiTranscript.trim().length,
+                hadAudio: hadAudioThisTurn,
+                toolCalled,
+                respondedToTurn: completesCurrentStudentTurn ? completedStudentGeneration : null,
+                practiceRequested
+            }));
+        }
         if (endingAction === "finish") scheduleLessonCompletion();
-        // AI 這一輪若剛邀請學員再練一次（糾正後的重試），先不要兜底推進，
-        // 等孩子真的練了那一次再算——否則會發生「叫他再唸一次，下一秒卻跳下一個字」
-        //（2026-08-28 GPT 實測）。
-        else if (!practiceRequested) planFallbackAfterTurn(completesCurrentStudentTurn, completedStudentGeneration);
         // AI 這一輪講完了，排隊中的指令現在送才不會切斷語音
         flushPendingPlanDirective();
+        refreshStudentActionAfterAi();
         return observedFeedback;
     }
     if (endingAction === "continue" && completesCurrentStudentTurn && stagePendingSince !== null &&
@@ -2809,7 +2835,7 @@ async function buildTodayLessonPlan() {
 // 同一題最多兩次是由 LessonPlan 執行器保證的，不再是提示詞的請求。
 const PLAN_MODE_KEY = "plan_mode";
 let planRunner = null;
-let planItemReported = false;   // 這一輪是否已收到模型的結果回報
+let planFlow = null;            // 流程控制器（lesson-flow.js）：識別碼、phase、恢復預算都在它裡面
 
 function planModeEnabled() {
     // v3.19 起預設開啟：使用者已決定放棄舊的階段式上課，改用計畫驅動的新模板。
@@ -2821,15 +2847,22 @@ function planDriving() {
     return !!planRunner;
 }
 
-function sendPlanDirective(noteBody) {
+// 真正把導演指令送到模型（唯一出口）。回傳是否送出。
+function sendPlanDirective(noteBody, payload) {
     const useOpenAI = openaiSessionActive && openaiRealtime;
     if (!useOpenAI && (!webSocket || webSocket.readyState !== WebSocket.OPEN || userStopped)) return false;
     const noteText = DIRECTOR_PREFIX + noteBody + "]";
-    pendingDirectorNote = noteText;
-    if (useOpenAI) openaiRealtime.sendText(noteText, true);
-    else webSocket.send(JSON.stringify({
-        clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
-    }));
+    const meta = payload ? { itemId: payload.itemId, directiveId: payload.directiveId, reason: payload.reason } : {};
+    if (!planDriving()) pendingDirectorNote = noteText;   // 舊流程的重連重送；計畫模式由流程控制器決定
+    if (useOpenAI) {
+        outboundContext = { kind: "directive", reason: meta.reason || "directive", itemId: meta.itemId, directiveId: meta.directiveId };
+        openaiRealtime.sendText(noteText, true);
+    } else {
+        capturePrompt("directive", noteText, meta.reason || "directive", { itemId: meta.itemId, directiveId: meta.directiveId, provider: "gemini" });
+        webSocket.send(JSON.stringify({
+            clientContent: { turns: [{ role: "user", parts: [{ text: noteText }] }], turnComplete: true }
+        }));
+    }
     return true;
 }
 
@@ -2839,8 +2872,8 @@ function applyPlanReveal(item, attempts) {
     if (!window.LessonPlan.revealFor) return;
     const reveal = window.LessonPlan.revealFor(item, attempts);
     if (item.type === "opening" || item.type === "closing") return;   // 保留畫面現狀
-    // 新的一階＝新的一次作答，之前點到的都要清掉
-    planTap = reveal.tap ? { itemId: item.id, tap: reveal.tap, picked: [] } : null;
+    // 新的一階＝新的一次作答，之前點到的都要清掉（流程控制器持有點選狀態）
+    if (planFlow) planFlow.setTap(reveal.tap || null);
     studentView.showCard({
         imageUrl: reveal.image && reveal.picture ? "images/" + reveal.picture : "",
         // 對話漫畫的空白泡泡要壓什麼字（不是漫畫就是 null，泡泡不顯示）
@@ -2854,53 +2887,54 @@ function applyPlanReveal(item, attempts) {
     });
 }
 
+// ---- 學生畫面「現在要做什麼」（P1-4） ----
+// 只顯示當前主要動作：聽、說、點、等、稍等一下（恢復中）。狀態跟真正能接收的輸入一致。
+function setStudentAction(kind) {
+    if (!planDriving()) return;
+    if (!sessionReady && kind !== 'recover') return;
+    studentView.showAction(kind);
+}
+
+function refreshStudentActionAfterAi() {
+    if (!planDriving() || !planFlow) return;
+    if (openaiSessionActive && openaiRealtime && openaiRealtime.isSpeaking()) return;   // 還在播就還是「聽」
+    const phase = planFlow.phase();
+    if (planFlow.isBlocked()) setStudentAction('recover');
+    else if (phase === 'WAITING_TAP') setStudentAction('tap');
+    else if (phase === 'WAITING_SPEECH') setStudentAction('speak');
+    else if (phase === 'EVALUATING') setStudentAction('wait');
+    else if (phase === 'ENDED') setStudentAction('done');
+}
+
 // ---- 點選作答（第 2〜5 天的單字與對答題） ----
 // 對錯由程式判定、程式推進。模型只負責出題與回饋，不參與判分——
 // 「拼字用語音辨識不可靠」「發音正確性偵測不到」這兩個已知限制就是這樣繞過去的。
-let planTap = null;
-
-// 點選題上孩子講完話（唸完那個字）之後，模型是被要求不判斷、不回應的——
-// 在他點下去之前畫面會完全沒動靜，孩子會以為當機（2026-09-10 實測「講完沒反應，像 lag」）。
-// 所以講完話那一刻，把「點出…」的提示放大跳一下，並記進診斷檔。
-function noteSpeechOnTapItem() {
-    if (!planTap || !planRunner || planTap.picked.length) return;
-    const item = planRunner.current();
-    if (!item || item.id !== planTap.itemId) return;
-    studentView.nudgeTap();
-    sessionDiagnostics.record("plan_tap_waiting", { id: item.id, type: item.type, hint: planTap.tap.hint || "" });
-    logSystem("👆 點選題：孩子講完了，等他點畫面（模型不會回應，這是正常的）。");
+// 點選題上孩子講完話之後模型是被要求不回應的，畫面要有反應（流程回傳 tap_waiting）。
+function notePlanStudentTurn() {
+    if (!planDriving() || !planFlow) return;
+    applyFlowActions(planFlow.studentTurnEnded(studentTurnGeneration));
+    if (planFlow.phase() === 'EVALUATING') setStudentAction('wait');
 }
 
 function handlePlanTap(optionId) {
-    if (!planTap || !planRunner || planRunner.isFinished()) return;
-    const item = planRunner.current();
-    if (!item || item.id !== planTap.itemId) return;
-
-    planTap.picked = planTap.picked.concat(optionId);
-    const verdict = window.LessonPlan.checkTap(
-        Object.assign({}, item, { tap: planTap.tap }), planTap.picked);
-
-    // 還沒點完（點字母、排字母點到一半）：只更新畫面，不算一次作答
-    if (!verdict.done) {
-        studentView.showTap(planTap.tap, { picked: planTap.picked });
+    if (!planFlow || planFlow.isFinished()) return;
+    const result = planFlow.handleTap(optionId, window.LessonPlan.checkTap);
+    const tapState = planFlow.tapState();
+    if (!tapState || !tapState.tap) return;
+    if (!result.done) {
+        // 還沒點完（點字母、排字母點到一半）：只更新畫面，不算一次作答
+        if (result.picked) studentView.showTap(tapState.tap, { picked: result.picked });
         return;
     }
-
-    studentView.showTap(planTap.tap, {
-        picked: planTap.picked, locked: true, verdict: verdict.correct ? "right" : "wrong"
-    });
-    const answer = planTap.tap.answer
-        .map(id => (planTap.tap.options.find(o => o.id === id) || {}).label).join("");
-    sessionDiagnostics.record("plan_tap", {
-        id: item.id, type: item.type, mode: planTap.tap.mode,
-        correct: verdict.correct, answer,
-        picked: planTap.picked.map(id =>
-            (planTap.tap.options.find(o => o.id === id) || {}).label).join("")
-    });
-    logSystem(`👆 點選作答：${verdict.correct ? "✅ 對" : "❌ 錯"}（${item.target || item.id}）`);
-    planTap = null;
-    // 判完先讓孩子看到對錯，再換下一題
-    setTimeout(() => advancePlan(verdict.correct ? "correct" : "incorrect", "tap"), 900);
+    studentView.showTap(tapState.tap, { picked: result.picked, locked: true, verdict: result.correct ? "right" : "wrong" });
+    applyFlowActions(result.actions);
+    // 判完先讓孩子看到對錯，再換下一題。900ms 後用 token 驗證還是同一題同一次作答（P0-3）
+    const token = result.token;
+    setTimeout(() => {
+        if (!planFlow) return;
+        applyFlowActions(planFlow.settleTap(token));
+        flushPendingPlanDirective();
+    }, 900);
 }
 
 // ---- 跳針偵測 ----
@@ -2916,7 +2950,9 @@ let repetitionCutCount = 0;
 function detectRepetitionLoop(transcript) {
     const tail = String(transcript || "").slice(-400);
     if (tail.length < 60) return false;
-    return /(.{8,80}?){3}/s.test(tail);
+    // v3.50 修正：原本寫成 /(.{8,80}?){3}/（沒有反向參照 \1），任何 24 字以上的文字都符合，
+    // 等於逐字稿超過 60 字就被判成跳針（Gemini 路徑會把語音切掉）。補丁腳本的跳脫吃掉了 \1。
+    return /(.{8,80}?)\1{3}/s.test(tail);
 }
 
 function checkAiRepetitionLoop() {
@@ -2931,161 +2967,141 @@ function checkAiRepetitionLoop() {
     stopAllPlayback();
     dropStaleAudio = true;
     // 連續切太多次代表模型狀態不對，別再火上加油
-    if (planDriving() && planRunner && !planRunner.isFinished() && repetitionCutCount <= 3
+    if (planDriving() && planFlow && !planFlow.isFinished() && repetitionCutCount <= 3
         && !openaiSessionActive) {
-        const item = planRunner.current();
-        const progress = planRunner.progress();
         pendingPlanDirective = null;
-        deliverPlanDirective({
-            body: "你剛才的回應卡住重複了，停下來深呼吸。回到目前的項目，重新進行一次：" +
-                window.LessonPlan.itemDirective(item, progress),
-            item, attempts: progress.attempts
-        });
+        applyFlowActions(planFlow.repetitionCut());
+        flushPendingPlanDirective();
     }
 }
 
-// ---- 導演指令的排隊 ----
+// ---- 導演指令的排隊（P1-2：單一排程） ----
 // 指令一旦送出，Gemini 會把它當成新的一輪輸入而中斷手上的語音。
 // 實測（2026-08-24 診斷檔）立刻送會發生兩種災難：
 //   1. 模型回報後推進 → 指令把 AI 還在講的回饋攔腰切斷（ai_interrupted）
 //   2. 孩子說到一半時升階 → AI 疊在孩子的聲音上講話
-// 所以 AI 還在講或學生正在說時先排隊，等這一輪自然結束再送。
-let pendingPlanDirective = null;    // { body, item, attempts }
+// 所以 AI 還在講（生成中或語音還在播）或學生正在說時先排隊，等這一輪自然結束再送。
+// 換題、升階、補問、沉默重送、重連重送全部走這一條，不另建互相競爭的推進途徑。
+let pendingPlanDirective = null;    // { body, item, attempts, directiveId, itemId, attemptId, reason }
 let deferPlanDirective = false;     // 工具結果送出前，指令一律先暫存（見 handleOpenAIToolCall）
-let planItemSentGeneration = -1;    // 指令「實際送出」時的學生回合數（兜底計數的分界線）
+
+function aiAudioStillPlaying() {
+    if (openaiSessionActive && openaiRealtime) return openaiRealtime.isSpeaking();
+    if (playbackContext && nextPlayTime > playbackContext.currentTime + 0.15) return true;
+    return false;
+}
 
 function deliverPlanDirective(payload) {
     applyPlanReveal(payload.item, payload.attempts);
-    planItemSentGeneration = studentTurnGeneration;
     // 正式下課旗標要等結尾指令「實際送出」才立。v3.20 加指令排隊後，
     // 排隊當下就立旗標會讓下課守衛把前一輪的回饋語音當成告別，
     // AI 還沒說再見就被斷線（2026-08-27 兩場實測都是這樣結束的）。
     closingStageActive = !!(payload.item && payload.item.type === "closing");
-    sendPlanDirective(payload.body);
+    aiAudioSinceDirective = false;
+    const sent = sendPlanDirective(payload.body, payload);
+    if (sent && planFlow) {
+        planFlow.directiveSent(payload.directiveId, { epoch: connectionEpoch, studentTurn: studentTurnGeneration });
+        sessionDiagnostics.record("plan_directive_sent", {
+            directiveId: payload.directiveId, itemId: payload.itemId, attemptId: payload.attemptId,
+            reason: payload.reason, epoch: connectionEpoch, studentTurn: studentTurnGeneration
+        });
+        if (payload.item && payload.item.type !== "closing") stageIndicator.textContent = `🗒️ 項目 ${payload.itemId}（${payload.item.type}）`;
+    }
+    return sent;
 }
 
 function queuePlanDirective(payload) {
-    if (deferPlanDirective || aiTurnActive || isTalking) { pendingPlanDirective = payload; return; }
+    if (deferPlanDirective || aiTurnActive || isTalking || aiAudioStillPlaying()) { pendingPlanDirective = payload; return; }
     pendingPlanDirective = null;
     deliverPlanDirective(payload);
 }
 
+let flushRetryTimer = null;
 function flushPendingPlanDirective() {
-    if (!pendingPlanDirective || isTalking) return;
+    if (!pendingPlanDirective || isTalking || deferPlanDirective) return;
+    if (aiAudioStillPlaying()) {
+        // Gemini 的播放結束沒有事件，剩餘時間算得出來：稍後再試
+        if (!openaiSessionActive && !flushRetryTimer) {
+            flushRetryTimer = setTimeout(() => { flushRetryTimer = null; flushPendingPlanDirective(); }, 300);
+        }
+        return;
+    }
     const payload = pendingPlanDirective;
     pendingPlanDirective = null;
     deliverPlanDirective(payload);
 }
 
-// 送出目前這個項目；已經沒有項目就收尾下課
+// 流程控制器回傳的動作清單，只有這一個執行入口（P1-2）
+function applyFlowActions(actions) {
+    (actions || []).forEach(action => {
+        switch (action.type) {
+            case "directive":
+                queuePlanDirective(action);
+                break;
+            case "event":
+                sessionDiagnostics.record(action.name, action.details);
+                if (action.name === "plan_item_sent") {
+                    const d = action.details;
+                    logSystem(`🗒️ [${d.index + 1}/${d.total}] ${d.type}${d.target ? "：" + d.target : ""}（${d.attemptId}）`);
+                }
+                break;
+            case "log":
+                logSystem(action.message);
+                break;
+            case "item_done": {
+                // 單字項目完成：亮出完整卡片（圖＋英文＋中文）當作確認。
+                // word_read 答對時從頭到尾沒出現過圖（第一階刻意只給字），
+                // 實測家長會以為圖片壞了；答對後看到圖也是對孩子的回饋。
+                const done = action.item;
+                studentView.showCard({
+                    imageUrl: done.image ? "images/" + done.image : "",
+                    word: done.answerDisplay || done.display || done.target,
+                    meaning: done.meaning,
+                    icon: "✅"
+                });
+                break;
+            }
+            case "tap_waiting":
+                studentView.nudgeTap();
+                setStudentAction('tap');
+                sessionDiagnostics.record("plan_tap_waiting", { id: action.item.id, type: action.item.type, hint: (action.tap && action.tap.hint) || "" });
+                logSystem("👆 點選題：孩子講完了，等他點畫面（模型不會回應，這是正常的）。");
+                break;
+            case "phase":
+                break;
+            case "blocked":
+                studentView.showRecover(true);
+                setStudentAction('recover');
+                break;
+            case "closing_spoken":
+                break;
+            case "finished":
+                logSystem("🗒️ 課程計畫全部完成，準備下課。");
+                setStudentAction('done');
+                scheduleLessonCompletion();
+                break;
+            default:
+                break;
+        }
+    });
+}
+
+// 送出第一個項目（連線就緒時呼叫一次；之後由流程控制器推進）
 function sendCurrentPlanItem() {
-    if (!planRunner) return;
-    if (planRunner.isFinished()) {
+    if (!planRunner || !planFlow) return;
+    if (planFlow.isFinished()) {
         sessionDiagnostics.record("plan_completed", { snapshot: planRunner.snapshot() });
         logSystem("🗒️ 課程計畫全部完成，準備下課。");
         scheduleLessonCompletion();
         return;
     }
-    const item = planRunner.current();
-    const progress = planRunner.progress();
-    planItemReported = false;
-    planNudgedItemId = null;
-    aiSpokeSinceItemSent = false;
-    stageIndicator.textContent = `🗒️ 項目 ${progress.index + 1}/${progress.total}：${item.type}`;
-    sessionDiagnostics.record("plan_item_sent", {
-        id: item.id, type: item.type, target: item.target || "",
-        index: progress.index, total: progress.total, attempt: progress.attempts + 1
-    });
-    logSystem(`🗒️ [${progress.index + 1}/${progress.total}] ${item.type}${item.target ? "：" + item.target : ""}`);
-    // 指令只帶這一項的內容。通用規則（只做這一件事、做完回報、結束回合等待）
-    // 已寫在系統提示的 PLAN MODE 合約裡，不在每個項目重複——
-    // 一字不差的尾巴每堂出現 9 次以上，重複的上下文會誘發模型跳針（2026-08-27 實測）。
-    queuePlanDirective({
-        body: window.LessonPlan.itemDirective(item, progress),
-        item, attempts: progress.attempts
-    });
-}
-
-// 收到一次結果（可能來自模型回報，也可能是兜底判定）
-function advancePlan(outcome, source) {
-    if (!planRunner || planRunner.isFinished()) return;
-    const before = planRunner.current();
-    const result = planRunner.recordAttempt(outcome);
-    sessionDiagnostics.record("plan_attempt", {
-        id: before ? before.id : "", outcome, source,
-        advanced: !!result.advanced, attempts: result.attempts || null
-    });
-    if (result.advanced) {
-        lastCompletedPlanItem = result.item || before;
-        // 單字項目完成：亮出完整卡片（圖＋英文＋中文）當作確認。
-        // word_read 答對時從頭到尾沒出現過圖（第一階刻意只給字），
-        // 實測家長會以為圖片壞了；答對後看到圖也是對孩子的回饋。
-        const done = result.item;
-        if (done && /^word_/.test(done.type)) {
-            studentView.showCard({
-                imageUrl: done.image ? "images/" + done.image : "",
-                // 三選一顯示正確答案而不是三個選項；填字母顯示完整字而不是挖空版
-                word: done.answerDisplay || done.display || done.target,
-                meaning: done.meaning,
-                icon: "✅"
-            });
-        }
-        sendCurrentPlanItem();
-        return;
-    }
-    // 還沒過但沒到上限：留在同一項，走提示階梯的下一階。
-    // 揭露層級（圖、中文、英文）跟著嘗試次數升級，指示也換成那一階的做法。
-    logSystem(`🔁 同一項升到第 ${result.attempts + 1} 階（共 ${before.maxAttempts} 階）。`);
-    queuePlanDirective({
-        body: window.LessonPlan.itemDirective(before, planRunner.progress()),
-        item: before, attempts: result.attempts
-    });
-}
-
-// 兜底：模型沒回報，但確實完成了一次「學生說話 → AI 回應」的問答
-let planNudgedItemId = null;   // 每個項目最多補問一次
-
-function planFallbackAfterTurn(completedStudentTurn, completedGeneration) {
-    if (!planRunner || planItemReported || !completedStudentTurn) return;
-    // AI 這輪沒開口、剛剛才重送指令：不能把這種空白輪當成一次問答推進
-    if (pendingPlanDirective) return;
-    // 新項目的指令還在排隊（學生根本沒聽到題目）就不能計數
-    if (pendingPlanDirective) return;
-    // 這輪問答若在項目指令送出「之前」就開始，它屬於上一個項目。
-    // 少了這道防護時，回報推進後緊接著的 turn completed 會把全新項目
-    // 立刻打成一次「沒回應」（實測 25 毫秒內就發生）。
-    if (completedGeneration != null && completedGeneration <= planItemSentGeneration) return;
-    const item = planRunner.current();
-    if (!item) return;
-    // 點選題只有孩子點下去才會推進。孩子講完話、AI 回完一輪就兜底推進的話，
-    // 他還沒碰到螢幕題目就換掉了。
-    if (window.LessonPlan.isTapItem(item)) return;
-    // 補問機制（HANDOFF 階段 4，遵從率 0.6~0.9 的處方）：
-    // 漏回報時先要求模型回報，而不是直接無聲跳過——2026-09-02 實測
-    // 「上到一半跳掉」就是兜底把沒回報的項目靜靜推進造成的。
-    // 補問順便重申目前的項目，模型岔題亂跑時也能被拉回來。
-    // 開場與結尾本來就常無回報（沒有練習目標），不補問直接推進。
-    if (item.type !== "opening" && item.type !== "closing" && planNudgedItemId !== item.id) {
-        planNudgedItemId = item.id;
-        sessionDiagnostics.record("plan_report_nudged", { id: item.id, type: item.type, target: item.target || "" });
-        logSystem("📮 模型沒回報這一輪的結果，補問一次（暫不推進）。");
-        queuePlanDirective({
-            body: "剛才那一輪你沒有回報結果。目前的項目仍然是" +
-                (item.target ? `「${item.target}」` : `這一項（${item.type}）`) +
-                "，不要跳到別的內容。立刻為學員剛才的嘗試呼叫 report_item_result——" +
-                "這是安靜的系統動作，不要對學員說任何話。",
-            item, attempts: planRunner.progress().attempts
-        });
-        return;
-    }
-    sessionDiagnostics.record("plan_fallback_advance", { id: item.id, type: item.type });
-    advancePlan("unknown", "turn-fallback");
+    applyFlowActions(planFlow.start());
 }
 
 // 課前準備執行器。條件不成立（沒開、時事模式、沒選單元）就回到原本的階段流程。
 async function preparePlanRunner() {
     planRunner = null;
-    planItemReported = false;
+    planFlow = null;
     if (!planModeEnabled()) {
         // 明確講出來。先前一次實測全程以為在跑計畫模式，其實開關是關的。
         logSystem("📋 流程模式：依時間切換階段（計畫驅動未開啟）。");
@@ -3102,6 +3118,14 @@ async function preparePlanRunner() {
         return null;
     }
     planRunner = window.LessonPlan.createRunner(plan);
+    planFlow = window.LessonFlow.create({
+        runner: planRunner, plan,
+        sessionId: sessionDiagnostics.inspect().activeId,
+        connectionEpoch,
+        isTapItem: window.LessonPlan.isTapItem,
+        directiveFor: window.LessonPlan.itemDirective,
+        revealFor: window.LessonPlan.revealFor
+    });
     // 手機實測圖片切換慢半拍：課前把今天會用到的圖全抓進快取（每張約 35KB）
     const planImages = [...new Set(plan.items.map(item => item.image).filter(Boolean))];
     planImages.forEach(name => { new Image().src = "images/" + name; });
@@ -3126,176 +3150,75 @@ async function preparePlanRunner() {
     });
 })();
 
-// ---------------- 練習結果回報（計畫驅動架構的地基） ----------------
-// 階段 1：只收集與觀察，先不改變上課流程。
-// 目的是回答兩個問題：模型願不願意每次都回報？回報的內容準不準？
-// 之後（階段 3）計畫才會改由這些回報來推進，同一題最多兩次也會變成結構保證。
+// ---------------- 練習結果回報 ----------------
+// 計畫模式：回報交給流程控制器驗證（attemptId、工具呼叫 id、連線世代、是否已作答），
+// 只有通過的才進有效學習紀錄；原始回報全部留在診斷檔（item_report_raw）。
+// 舊流程：照舊收集（沒有題目可對）。
 const ITEM_OUTCOMES = ["correct", "incorrect", "no_response"];
-let itemResults = [];              // 本堂課收到的所有回報
+let itemResults = [];              // 本堂課收到的所有回報（原始）
 let practiceTurnsObserved = 0;     // 前端獨立偵測到的「有邀請學生練習」的回合數
 
 function recordItemResult(args) {
     const a = args || {};
     const target = String(a.target || "").trim().slice(0, 200);
     if (!target) return { status: "ignored: missing target" };
-    const outcome = ITEM_OUTCOMES.indexOf(String(a.outcome)) >= 0 ? String(a.outcome) : "incorrect";
+    const outcomeValid = ITEM_OUTCOMES.indexOf(String(a.outcome)) >= 0;
     const attemptRaw = Number(a.attempt);
     const entry = {
         at: new Date().toISOString(),
         target,
-        outcome,
+        outcome: outcomeValid ? String(a.outcome) : "invalid",
+        attemptId: String(a.attemptId || "").slice(0, 60),
         studentSaid: String(a.studentSaid || "").trim().slice(0, 300),
         attempt: Number.isFinite(attemptRaw) && attemptRaw >= 1 ? Math.min(9, Math.round(attemptRaw)) : 1,
         kind: String(a.kind || "free").slice(0, 40),
         issue: String(a.issue || "").trim().slice(0, 200),
-        stage: teachingFlow[Math.max(0, currentStageIndex - 1)]
-            ? teachingFlow[Math.max(0, currentStageIndex - 1)].name : "",
         unit: (LESSON && LESSON.unit) || "",
         mode: currentMode()
     };
     itemResults.push(entry);
-    sessionDiagnostics.record("item_result", entry);
-    const mark = { correct: "✅", incorrect: "✏️", no_response: "🤐" }[outcome];
-    logSystem(`${mark} 練習回報（第 ${entry.attempt} 次）：${target}${entry.issue ? " — " + entry.issue : ""}`);
-    // 計畫模式：這份回報就是推進的依據——但目標要對得上目前的項目。
-    // 實測（2026-08-24 第二份診斷檔）模型會對同一項回報多次（第一次唸＋複誦），
-    // 慢一拍的那筆流到下一個項目頭上，會讓新項目沒練到就被跳過。
-    if (planDriving()) {
-        const currentItem = planRunner ? planRunner.current() : null;
-        // 結尾項目沒有目標，任何回報都「對得上」——2026-09-04 實測最後一題的
-        // 重複回報流到結尾頭上，計畫立刻算完成、AI 一個字都沒說就下課。
-        // 結尾只靠「AI 真的講了結語」收尾（completeTrackedAiTurn 的 closingSpoken）。
-        // 點選題由孩子的手指決定對錯，模型的回報一律不吃——模型看不到他點了什麼，
-        // 讓它推進等於憑空判分，還會在孩子還沒點之前就把題目換掉。
-        if (currentItem && window.LessonPlan.isTapItem(currentItem)) {
-            sessionDiagnostics.record("plan_report_ignored", {
-                reported: target, expected: currentItem.target || currentItem.id,
-                outcome, reason: "tap_item"
-            });
-            logSystem(`↩️ 這一題由孩子點選作答，不採用模型的回報「${target}」。`);
-        } else if (currentItem && currentItem.type === "closing") {
-            sessionDiagnostics.record("plan_report_ignored", {
-                reported: target, expected: "closing", outcome
-            });
-            logSystem(`↩️ 結尾階段收到回報「${target}」，視為上一項的重複回報，等結語講完再下課。`);
-        } else if (currentItem && !reportMatchesPlanItem(target, currentItem)) {
-            sessionDiagnostics.record("plan_report_ignored", {
-                reported: target, expected: currentItem.target || currentItem.id, outcome
-            });
-            handleOffScriptReport(target, currentItem);
-        } else {
-            planItemReported = true;
-            advancePlan(outcome, "report");
-        }
+    const mark = { correct: "✅", incorrect: "✏️", no_response: "🤐" }[entry.outcome] || "❓";
+    if (planDriving() && planFlow) {
+        const verdict = planFlow.handleReport({
+            target, outcome: a.outcome, attemptId: a.attemptId, toolCallId: a.__callId, epoch: a.__epoch,
+            studentSaid: a.studentSaid, kind: a.kind, issue: a.issue
+        });
+        applyFlowActions(verdict.actions);
+        logSystem(`${mark} 練習回報（${entry.attemptId || "無 attemptId"}）：${target} → ${verdict.verdict}` +
+            (entry.issue ? " — " + entry.issue : ""));
+        return { status: verdict.message };
     }
+    sessionDiagnostics.record("item_result", entry);
+    logSystem(`${mark} 練習回報（第 ${entry.attempt} 次）：${target}${entry.issue ? " — " + entry.issue : ""}`);
     return { status: "result recorded" };
 }
 
-// 回報對不上目前項目時有兩種情況：
-//   1. 上一項的重複回報（Gemini 每次都回報兩筆）→ 忽略即可
-//   2. 模型自己跑去教別的東西（2026-09-04 GPT 實測：pencil 答錯一次後，
-//      模型改教 Is it finished?、Can you sing?，每筆回報都對不上，計畫永遠停在
-//      pencil，孩子看著同一張圖抱怨「圖還是 pencil 的圖」）
-// 第 2 種第一次先把目前項目的指令重送一次拉回來；再發生就跳過這一項往下走。
-let planOffScript = { id: null, count: 0 };
-
-function handleOffScriptReport(target, currentItem) {
-    // 目前項目送出後孩子還沒說過話（或指令根本還在排隊）→ 這筆回報不可能是
-    // 在講目前項目，一定是上一項的慢半拍回報。2026-09-04 實測開場的重複回報
-    // （target「Are you ready?」「ready」）被當成偏離計畫，把 table 整題跳掉。
-    const staleByTiming = !!pendingPlanDirective || planItemSentGeneration === studentTurnGeneration;
-    const lastCandidates = lastCompletedPlanItem ? planItemRawCandidates(lastCompletedPlanItem) : [];
-    const duplicateOfLast = staleByTiming || !lastCandidates.length ||
-        reportTargetsOverlap(target, lastCandidates);
-    if (duplicateOfLast) {
-        logSystem(`↩️ 回報目標「${target}」與目前項目「${currentItem.target || currentItem.type}」不符，視為上一項的重複回報，不推進。`);
-        return;
-    }
-    if (planOffScript.id !== currentItem.id) planOffScript = { id: currentItem.id, count: 0 };
-    planOffScript.count += 1;
-    if (planOffScript.count === 1) {
-        sessionDiagnostics.record("plan_off_script_resent", { id: currentItem.id, reported: target });
-        logSystem(`🧭 模型偏離計畫（回報「${target}」），重送目前項目「${currentItem.target || currentItem.type}」。`);
-        sendCurrentPlanItem();
-        return;
-    }
-    sessionDiagnostics.record("plan_off_script_skipped", { id: currentItem.id, reported: target });
-    logSystem(`⏭️ 模型仍偏離計畫，跳過「${currentItem.target || currentItem.type}」往下走。`);
-    if (planRunner) {
-        planRunner.skipCurrent("off_script");
-        sendCurrentPlanItem();
-    }
-}
-
-// 回報的 target 與目前項目是否指同一件事。字串不會逐字相同
-// （模型可能回報整句、項目存的是單字），所以雙向包含即算相符。
-function normalizeReportTarget(value) {
-    return String(value || "").toLowerCase()
-        .replace(/\([^)]*\)/g, " ")
-        .replace(/[^a-z0-9']+/g, " ")
-        .replace(/\s+/g, " ").trim();
-}
-
-function reportTargetsOverlap(reported, rawCandidates) {
-    const report = normalizeReportTarget(reported);
-    if (!report) return false;
-    return rawCandidates.map(normalizeReportTarget).filter(Boolean).some(candidate =>
-        report === candidate || report.indexOf(candidate) >= 0 || candidate.indexOf(report) >= 0);
-}
-
-function planItemRawCandidates(item) {
-    // 填字母題模型常回報「e c l」（缺的字母）或完整字，拼字題回報「s-i-n-g」，
-    // 這些都是同一項的回報（2026-09-04 GPT 實測因此卡在 pencil 不推進）。
-    return [item.target, item.display, item.ask, item.slotWord,
-            item.answerDisplay, item.missing, item.letters]
-        .concat(item.alternatives || [])
-        .map(value => String(value == null ? "" : value).trim()).filter(Boolean);
-}
-
-// 上一個完成的項目：佔位符目標無法核對時，用它擋掉「上一項的重複回報」
-let lastCompletedPlanItem = null;
-
-function reportMatchesPlanItem(reported, item) {
-    const report = normalizeReportTarget(reported);
-    if (!report) return true;
-    const raw = planItemRawCandidates(item);
-    if (!raw.length) return true;   // 開場、結尾這類沒有目標的項目
-    const verifiable = raw.filter(candidate => !/\[[^\]]+\]/.test(candidate));
-    if (reportTargetsOverlap(reported, verifiable)) return true;
-    // 佔位符目標（It's a/an [object].、I'm [Name].）沒辦法逐字核對——
-    // 孩子回報的是填好的句子（It's a goodbye sign.），模板永遠對不上，
-    // 2026-08-31 兩場各有 2 筆正確回報因此被丟掉、答錯也爬不了階梯。
-    // 對這類項目改成：只要不是「上一個項目」的重複回報就接受。
-    if (raw.some(candidate => /\[[^\]]+\]/.test(candidate))) {
-        return !(lastCompletedPlanItem &&
-            reportTargetsOverlap(reported, planItemRawCandidates(lastCompletedPlanItem)));
-    }
-    return false;
-}
-
-// 課程結束時比對「模型回報了幾次」與「前端偵測到幾次練習邀請」，
-// 這個比值就是階段 1 要驗證的遵從率。
+// 課程結束時的摘要：有效結果（通過驗證）、原始回報數、協定錯誤、恢復次數、unverified 數。
+// unverified 是「走過但未確認」，不能當 correct。
 function summariseItemResults(reason) {
-    const byOutcome = itemResults.reduce((acc, item) => {
+    const flowSummary = planFlow ? planFlow.summary() : null;
+    const source = flowSummary ? flowSummary.validResults : itemResults;
+    const byOutcome = source.reduce((acc, item) => {
         acc[item.outcome] = (acc[item.outcome] || 0) + 1;
         return acc;
     }, {});
-    const retried = itemResults.filter(item => item.attempt >= 2).length;
-    const overCap = itemResults.filter(item => item.attempt > 2).length;
     const summary = {
         reason,
         reported: itemResults.length,
+        valid: flowSummary ? flowSummary.validCount : itemResults.length,
+        protocolErrors: flowSummary ? flowSummary.protocolErrors : 0,
+        unverified: flowSummary ? flowSummary.unverified : 0,
+        recovery: flowSummary ? flowSummary.recovery : null,
         practiceTurnsObserved,
         adherence: practiceTurnsObserved
             ? Math.round((itemResults.length / practiceTurnsObserved) * 100) / 100 : null,
         byOutcome,
-        retried,
-        overCap,
         distinctTargets: new Set(itemResults.map(item => item.target.toLowerCase())).size
     };
     sessionDiagnostics.record("item_result_summary", summary);
     if (itemResults.length || practiceTurnsObserved) {
-        logSystem(`📊 本堂練習回報 ${summary.reported} 筆／偵測到 ${practiceTurnsObserved} 次練習邀請` +
+        logSystem(`📊 本堂回報 ${summary.reported} 筆／有效 ${summary.valid} 筆／協定錯誤 ${summary.protocolErrors}` +
+            (summary.recovery ? `／系統恢復 ${summary.recovery.used}/${summary.recovery.budget} 次` : "") +
             (summary.adherence !== null ? `（遵從率 ${Math.round(summary.adherence * 100)}%）` : ""));
     }
     return summary;
@@ -3480,8 +3403,12 @@ function handleServerMessage(response, socket, socketToken) {
             // 若 isTalking 仍為 true，代表使用者還在講，後續音訊由 worklet 接力即時上傳
             needsReplay = false;
         }
+        // 計畫模式：由流程控制器依目前 phase 決定要不要重送（識別碼不變、有預算），不重播開場
+        if (planDriving() && planFlow && liveSession.inspectState().socketGeneration > 1) {
+            applyFlowActions(planFlow.reconnected(connectionEpoch));
+            flushPendingPlanDirective();
+        } else if (pendingDirectorNote) {
         // 導演指令送出後、AI 還沒回應就斷線 → 指令已遺失，重連後重送（否則新階段永遠沒有開場）
-        if (pendingDirectorNote) {
             logSystem("🎬 重連後重送導演指令（上一階段轉場在斷線中遺失）。");
             socket.send(JSON.stringify({
                 clientContent: { turns: [{ role: "user", parts: [{ text: pendingDirectorNote }] }], turnComplete: true }
@@ -3643,6 +3570,7 @@ function handleServerMessage(response, socket, socketToken) {
                         turnChunks = [];    // AI 已開始回應，這句話確定送達，釋放暫存
                         needsReplay = false;
                     }
+                    aiAudioSinceDirective = true;
                     playPcmChunk(base64ToArrayBuffer(part.inlineData.data), 24000);
                 }
             }
@@ -3937,7 +3865,14 @@ function stopSession(reason) {
         elapsedSeconds: elapsedTime,
         stageIndex: currentStageIndex
     });
-    summariseItemResults(endReason);   // 階段 1：把回報遵從率寫進診斷
+    summariseItemResults(endReason);   // 有效結果、協定錯誤、恢復次數寫進診斷
+    if (planFlow) sessionDiagnostics.record("plan_flow_snapshot", planFlow.snapshot());
+    if (promptLedger) sessionDiagnostics.setPrompts(promptLedger.exportPayload());   // 指令全文隨這堂一起保存
+    planFlow = null;
+    if (flushRetryTimer) { clearTimeout(flushRetryTimer); flushRetryTimer = null; }
+    pendingPlanDirective = null;
+    studentView.showRecover(false);
+    studentView.showAction('');
     const socketToClose = liveSession.stop(); // 先讓所有遲到事件失效，再關閉實體 socket
     webSocket = null;
     if (openaiRealtime) openaiRealtime.close();

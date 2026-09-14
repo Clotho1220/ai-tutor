@@ -459,23 +459,21 @@
             /localStorage\.getItem\(PLAN_MODE_KEY\) !== "off"/.test(appSource));
         check("plan mode replaces the timed stage driver",
             /if \(planDriving\(\)\) sendCurrentPlanItem\(\)/.test(appSource));
-        check("a reported result advances the plan",
-            /advancePlan\(/.test(appSource) && /report_item_result/.test(appSource));
-        check("an unreported exchange still advances the plan",
-            /planFallbackAfterTurn/.test(appSource));
-        // 2026-09-02 實測修正：漏回報先補問一次，補問無效才兜底跳過
-        check("a missing report is nudged once before the fallback skips",
-            /plan_report_nudged/.test(appSource) && /planNudgedItemId !== item\.id/.test(appSource) &&
-            /planNudgedItemId = null;/.test(appSource));
-        check("retries climb the hint ladder with a fresh directive",
-            /queuePlanDirective\(\{\s*body: window\.LessonPlan\.itemDirective\(before/.test(appSource));
-        // 2026-08-24 實測修正：指令不能在 AI 講話或學生說話時硬送
+        // v3.50 起回報驗證、補問、兜底、升階全部在 lesson-flow.js（見 lesson-flow-smoke），app.js 只執行動作
+        const flowSource = await fetch('../lesson-flow.js?lesson-plan-test=' + Date.now()).then(r => r.text());
+        check("a reported result advances the plan through the flow",
+            /planFlow\.handleReport\(/.test(appSource) && /report_item_result/.test(appSource));
+        check("an unreported exchange is nudged once, then marked unverified (never wrong)",
+            /plan_report_nudged/.test(flowSource) && /settle\("unverified", "fallback_unverified"\)/.test(flowSource));
+        check("retries climb the hint ladder with a fresh attempt id",
+            /prepareItem\("ladder"\)/.test(flowSource) && /attemptId: `\$\{item\.id\}#a\$\{attemptNo\}`/.test(flowSource));
+        // 2026-08-24 實測修正：指令不能在 AI 講話（生成中或語音還在播）或學生說話時硬送
         check("directives queue while the AI or the student is speaking",
-            /if \(deferPlanDirective \|\| aiTurnActive \|\| isTalking\) \{ pendingPlanDirective = payload; return; \}/.test(appSource) &&
+            /if \(deferPlanDirective \|\| aiTurnActive \|\| isTalking \|\| aiAudioStillPlaying\(\)\) \{ pendingPlanDirective = payload; return; \}/.test(appSource) &&
             /flushPendingPlanDirective\(\)/.test(appSource));
         check("exchanges that began before the item was sent never count against it",
-            /completedGeneration <= planItemSentGeneration/.test(appSource) &&
-            /if \(pendingPlanDirective\) return;/.test(appSource));
+            /respondedToTurn\) === current\.studentAnsweredTurn/.test(flowSource) &&
+            /if \(!current \|\| !current\.delivered\) return/.test(flowSource));
         check("plan images are preloaded from the local library",
             /new Image\(\)\.src = "images\/" \+ name/.test(appSource));
         check("the frontend drives the student screen from the ladder",
@@ -484,17 +482,18 @@
             /plan_completed/.test(appSource) && /scheduleLessonCompletion\(\)/.test(appSource));
         check("the closing item tells the ending guard this farewell is real",
             /closingStageActive = !!\(payload\.item && payload\.item\.type === "closing"\)/.test(appSource));
+        const promptSource = await fetch('../prompt-builder.js?lesson-plan-test=' + Date.now()).then(r => r.text());
         check("the model is told it may only perform one given item",
-            /PLAN MODE \(highest priority\)/.test(appSource));
+            /PLAN MODE \(highest priority\)/.test(promptSource));
         check("the model is told the screen is system-controlled",
-            /do NOT call show_image during plan items/.test(appSource));
+            /do NOT call show_image during plan items/.test(promptSource));
         // 2026-08-25 實測修正
         check("the talk button locks while the AI is speaking",
             /lockTalkButtonWhileAiSpeaks/.test(appSource) && /unlockTalkButton\(\)/.test(appSource));
         check("the model is forbidden from adding bonus drills",
-            /Never add bonus drills/.test(appSource));
+            /Never add bonus drills/.test(promptSource));
         check("finishing a word item shows the full card as confirmation",
-            /\/\^word_\/\.test\(done\.type\)/.test(appSource));
+            /\/\^word_\/\.test\(result\.item\.type\)/.test(flowSource) && /case "item_done"/.test(appSource));
         const openaiSource = await fetch('../openai-realtime.js?lesson-plan-test=' + Date.now()).then(r => r.text());
         check("directives never open a response while one is in progress (GPT)",
             /if \(cancellationPending \|\| responseInProgress\) responseCreatePending = true;/.test(openaiSource));
@@ -514,7 +513,7 @@
         check("plan mode never suppresses audio at practice boundaries",
             /practiceJustDetected\.detected && !planDriving\(\)/.test(appSource));
         check("the fallback waits when the AI just asked for a retry",
-            /else if \(!practiceRequested\) planFallbackAfterTurn/.test(appSource));
+            /if \(turn\.practiceRequested\) return actions;/.test(flowSource) && /practiceRequested\s*\n?\s*\}\)\)/.test(appSource));
         check("the GPT talk button unlocks only after audio really stops",
             /provider === 'openai' && openaiRealtime && openaiRealtime\.isSpeaking\(\)/.test(appSource));
         // 2026-08-29 實測修正
@@ -536,35 +535,36 @@
             /openaiRealtime\.sendToolResult\(detail\.callId, result, !pendingPlanDirective\)/.test(appSource));
         check("a director-note leak on GPT is muted and hidden",
             /director_note_leak_detected/.test(appSource) && /openaiLeakMuted = true;/.test(appSource));
-        // 2026-08-31 實測修正：佔位符目標（It's a/an [object].）收到填好的句子時要認得
-        check("placeholder targets accept filled-in reports",
-            appSource.indexOf("reportTargetsOverlap(reported, planItemRawCandidates(lastCompletedPlanItem))") >= 0 &&
-            /lastCompletedPlanItem = result\.item \|\| before;/.test(appSource));
+        // 2026-08-31 實測修正：佔位符目標（It's a/an [object].）收到填好的句子時要認得——
+        // v3.50 起身分靠 attemptId，文字只做內容核對；佔位符模板核不了就回 null（不否決）
+        check("placeholder targets are never rejected on text alone",
+            window.LessonFlow.textMatchesItem("It's a goodbye sign.", { target: "It's a/an [object]." }) === null &&
+            window.LessonFlow.textMatchesItem("sing", { target: "sing (v.)" }) === true &&
+            window.LessonFlow.textMatchesItem("desk", { target: "sing (v.)" }) === false);
         check("stale reports for another item never advance the plan",
-            /reportMatchesPlanItem/.test(appSource) && /plan_report_ignored/.test(appSource));
+            /attempt_settled/.test(flowSource) && /late_previous/.test(flowSource) && /plan_report_ignored/.test(flowSource));
         check("report_item_result kinds match the new item types",
             appSource.indexOf('"word_image", "word_read", "word_spell", "word_zh2en", "word_choice", "word_gap", "pattern_substitute", "pattern_respond", "letter_say"') >= 0);
         // 點選題只有孩子的手指能推進。模型看不到他點了什麼，讓模型判分等於憑空給分；
         // 「一輪問答結束就兜底推進」則會在他還沒碰到螢幕之前把題目換掉。
         check("a tap item never advances on the model's word",
-            /isTapItem\(currentItem\)/.test(appSource) && /reason: "tap_item"/.test(appSource));
+            /if \(current\.tapItem\) \{/.test(flowSource) && /reason: "tap_item"/.test(flowSource));
         check("a tap item never advances on the turn fallback",
-            /if \(window\.LessonPlan\.isTapItem\(item\)\) return;/.test(appSource));
+            /!current\.tapItem &&/.test(flowSource));
         check("a tap is judged by the program and recorded",
-            /LessonPlan\.checkTap/.test(appSource) && /plan_tap/.test(appSource) &&
-            /advancePlan\(verdict\.correct \? "correct" : "incorrect", "tap"\)/.test(appSource));
+            /LessonPlan\.checkTap/.test(appSource) && /plan_tap/.test(flowSource) &&
+            /settle\(token\.correct \? "correct" : "incorrect", "tap"\)/.test(flowSource));
         // 2026-09-10 實測：21 個項目全部以一句閒聊問句收尾（What do you usually put on
         // a table? / Do you like to sing?），孩子被迫一直接話，課程節奏被拖住
         // 2026-09-13：「不准以問句結尾」跟出題指令打架，GPT 整輪閉嘴。禁的只能是閒聊追問。
         check("the contract forbids chit-chat questions but requires presenting each item aloud",
-            /Do NOT add chit-chat questions after the feedback/.test(appSource) &&
-            /you MUST speak it out loud/.test(appSource) &&
-            !/Do NOT end your turn with a question of any kind/.test(appSource));
-        check("a silent AI turn after an item is sent gets the directive re-sent once",
-            /function recoverSilentPlanTurn/.test(appSource) &&
-            /plan_silent_turn/.test(appSource) &&
-            /planSilentResentItemId === item\.id\) return false;/.test(appSource) &&
-            /aiSpokeSinceItemSent = false;/.test(appSource));
+            /Do NOT add chit-chat questions after the feedback/.test(promptSource) &&
+            /you MUST speak it out loud/.test(promptSource) &&
+            !/Do NOT end your turn with a question of any kind/.test(promptSource));
+        check("a silent AI turn after an item is sent gets the directive re-sent once, within a budget",
+            /plan_silent_turn/.test(flowSource) &&
+            /tryRecover\("silent", budget\.silentPerItem, true\)/.test(flowSource) &&
+            /aiAudioSinceDirective = false;/.test(appSource));
         // 純口說的項目（點選題有自己的一套規則，判分本來就不歸模型）
         check("spoken word directives forbid asking the learner anything back",
             [dayPlans[0].items.find(one => one.type === "word_zh2en"),
@@ -573,10 +573,10 @@
                     .indexOf("不要反問他任何問題") >= 0));
         // 點選題上孩子講完話畫面要有反應（模型被要求不回應，沒反應會像當機）
         check("speech on a tap item makes the screen react and is recorded",
-            /function noteSpeechOnTapItem/.test(appSource) &&
+            /function notePlanStudentTurn/.test(appSource) &&
             /studentView\.nudgeTap\(\)/.test(appSource) &&
             /plan_tap_waiting/.test(appSource) &&
-            appSource.split("noteSpeechOnTapItem();").length === 3);
+            appSource.split("notePlanStudentTurn();").length === 3);
         check("news mode keeps the original flow",
             /時事討論不使用計畫驅動/.test(appSource));
 

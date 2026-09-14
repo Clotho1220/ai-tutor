@@ -43,7 +43,7 @@
             {
               "english": "hi",
               "chinese": "嗨",
-              "example": "",
+              "example": "Hi, Gogo!",
               "slot": "greeting",
               "image": "b1_u01_hi.webp",
               "askType": "dialogue"
@@ -59,7 +59,7 @@
             {
               "english": "bye",
               "chinese": "拜拜",
-              "example": "",
+              "example": "Bye, Gogo!",
               "slot": "greeting",
               "image": "b1_u01_bye.webp",
               "askType": "dialogue"
@@ -217,7 +217,7 @@
             {
               "english": "table",
               "chinese": "桌子",
-              "example": "",
+              "example": "It's a table.",
               "slot": "object",
               "image": "b1_u02_table.webp",
               "askType": "what_is_this"
@@ -233,7 +233,7 @@
             {
               "english": "chair",
               "chinese": "椅子",
-              "example": "",
+              "example": "It's a chair.",
               "slot": "object",
               "image": "b1_u02_chair.webp",
               "askType": "what_is_this"
@@ -415,7 +415,7 @@
             {
               "english": "fly",
               "chinese": "飛",
-              "example": "",
+              "example": "Can you fly?",
               "slot": "action",
               "image": "b1_u03_fly.webp",
               "askType": "what_is_he_doing"
@@ -447,7 +447,7 @@
             {
               "english": "swim",
               "chinese": "游泳",
-              "example": "",
+              "example": "Can you swim?",
               "slot": "action",
               "image": "b1_u03_swim.webp",
               "askType": "what_is_he_doing"
@@ -646,7 +646,7 @@
             {
               "english": "hi",
               "chinese": "嗨",
-              "example": "",
+              "example": "Hi, Gogo!",
               "slot": "greeting",
               "image": "b1_u01_hi.webp",
               "askType": "dialogue"
@@ -662,7 +662,7 @@
             {
               "english": "bye",
               "chinese": "拜拜",
-              "example": "",
+              "example": "Bye, Gogo!",
               "slot": "greeting",
               "image": "b1_u01_bye.webp",
               "askType": "dialogue"
@@ -670,7 +670,7 @@
             {
               "english": "table",
               "chinese": "桌子",
-              "example": "",
+              "example": "It's a table.",
               "slot": "object",
               "image": "b1_u02_table.webp",
               "askType": "what_is_this"
@@ -686,7 +686,7 @@
             {
               "english": "chair",
               "chinese": "椅子",
-              "example": "",
+              "example": "It's a chair.",
               "slot": "object",
               "image": "b1_u02_chair.webp",
               "askType": "what_is_this"
@@ -718,7 +718,7 @@
             {
               "english": "fly",
               "chinese": "飛",
-              "example": "",
+              "example": "Can you fly?",
               "slot": "action",
               "image": "b1_u03_fly.webp",
               "askType": "what_is_he_doing"
@@ -750,7 +750,7 @@
             {
               "english": "swim",
               "chinese": "游泳",
-              "example": "",
+              "example": "Can you swim?",
               "slot": "action",
               "image": "b1_u03_swim.webp",
               "askType": "what_is_he_doing"
@@ -1146,7 +1146,7 @@
             {
               "english": "family",
               "chinese": "家庭；家人",
-              "example": "",
+              "example": "This is my family.",
               "slot": "other",
               "image": "b1_u05_family.webp",
               "askType": "who_is_this"
@@ -1186,7 +1186,7 @@
             {
               "english": "friend",
               "chinese": "朋友",
-              "example": "",
+              "example": "You're my friend!",
               "slot": "person",
               "image": "b1_u05_friend.webp",
               "askType": "who_is_this"
@@ -1364,7 +1364,7 @@
             {
               "english": "parent",
               "chinese": "家長（父或母）",
-              "example": "",
+              "example": "They're my parents.",
               "slot": "person",
               "image": "b1_u06_parent.webp",
               "askType": "who_is_this"
@@ -1372,7 +1372,7 @@
             {
               "english": "baby",
               "chinese": "嬰兒",
-              "example": "",
+              "example": "This is the baby.",
               "slot": "person",
               "image": "b1_u06_baby.webp",
               "askType": "who_is_this"
@@ -1586,7 +1586,7 @@
             {
               "english": "leopard",
               "chinese": "花豹",
-              "example": "",
+              "example": "Is this a leopard?",
               "slot": "animal",
               "image": "b1_u07_leopard.webp",
               "askType": "what_is_this"
@@ -1594,7 +1594,7 @@
             {
               "english": "ostrich",
               "chinese": "鴕鳥",
-              "example": "",
+              "example": "Is this an ostrich?",
               "slot": "animal",
               "image": "b1_u07_ostrich.webp",
               "askType": "what_is_this"
@@ -1773,7 +1773,7 @@
             {
               "english": "family",
               "chinese": "家庭；家人",
-              "example": "",
+              "example": "This is my family.",
               "slot": "other",
               "image": "b1_u05_family.webp",
               "askType": "who_is_this"
@@ -1813,7 +1813,7 @@
             {
               "english": "friend",
               "chinese": "朋友",
-              "example": "",
+              "example": "You're my friend!",
               "slot": "person",
               "image": "b1_u05_friend.webp",
               "askType": "who_is_this"
@@ -1837,7 +1837,7 @@
             {
               "english": "parent",
               "chinese": "家長（父或母）",
-              "example": "",
+              "example": "They're my parents.",
               "slot": "person",
               "image": "b1_u06_parent.webp",
               "askType": "who_is_this"
@@ -1845,7 +1845,7 @@
             {
               "english": "baby",
               "chinese": "嬰兒",
-              "example": "",
+              "example": "This is the baby.",
               "slot": "person",
               "image": "b1_u06_baby.webp",
               "askType": "who_is_this"
@@ -1901,7 +1901,7 @@
             {
               "english": "leopard",
               "chinese": "花豹",
-              "example": "",
+              "example": "Is this a leopard?",
               "slot": "animal",
               "image": "b1_u07_leopard.webp",
               "askType": "what_is_this"
@@ -1909,7 +1909,7 @@
             {
               "english": "ostrich",
               "chinese": "鴕鳥",
-              "example": "",
+              "example": "Is this an ostrich?",
               "slot": "animal",
               "image": "b1_u07_ostrich.webp",
               "askType": "what_is_this"
@@ -2345,7 +2345,7 @@
             {
               "english": "orange",
               "chinese": "橘色",
-              "example": "",
+              "example": "It's orange.",
               "slot": "color",
               "image": "b1_u09_orange.webp",
               "askType": "what_is_this"
@@ -2353,7 +2353,7 @@
             {
               "english": "purple",
               "chinese": "紫色",
-              "example": "",
+              "example": "It's purple.",
               "slot": "color",
               "image": "b1_u09_purple.webp",
               "askType": "what_is_this"
@@ -2535,7 +2535,7 @@
             {
               "english": "plates",
               "chinese": "盤子",
-              "example": "",
+              "example": "We don't have plates!",
               "slot": "object",
               "image": "b1_u10_plates.webp",
               "askType": "what_is_this"
@@ -2543,7 +2543,7 @@
             {
               "english": "cups",
               "chinese": "杯子",
-              "example": "",
+              "example": "Excuse me. Do you have cups?",
               "slot": "object",
               "image": "b1_u10_cups.webp",
               "askType": "what_is_this"
@@ -2721,7 +2721,7 @@
             {
               "english": "ice cream",
               "chinese": "冰淇淋",
-              "example": "",
+              "example": "I like ice cream.",
               "slot": "food",
               "image": "b1_u11_ice_cream.webp",
               "askType": "what_is_this"
@@ -2745,7 +2745,7 @@
             {
               "english": "soda",
               "chinese": "汽水",
-              "example": "",
+              "example": "I like soda.",
               "slot": "food",
               "image": "b1_u11_soda.webp",
               "askType": "what_is_this"
@@ -2929,7 +2929,7 @@
             {
               "english": "orange",
               "chinese": "橘色",
-              "example": "",
+              "example": "It's orange.",
               "slot": "color",
               "image": "b1_u09_orange.webp",
               "askType": "what_is_this"
@@ -2937,7 +2937,7 @@
             {
               "english": "purple",
               "chinese": "紫色",
-              "example": "",
+              "example": "It's purple.",
               "slot": "color",
               "image": "b1_u09_purple.webp",
               "askType": "what_is_this"
@@ -2977,7 +2977,7 @@
             {
               "english": "plates",
               "chinese": "盤子",
-              "example": "",
+              "example": "We don't have plates!",
               "slot": "object",
               "image": "b1_u10_plates.webp",
               "askType": "what_is_this"
@@ -2985,7 +2985,7 @@
             {
               "english": "cups",
               "chinese": "杯子",
-              "example": "",
+              "example": "Excuse me. Do you have cups?",
               "slot": "object",
               "image": "b1_u10_cups.webp",
               "askType": "what_is_this"
@@ -3009,7 +3009,7 @@
             {
               "english": "ice cream",
               "chinese": "冰淇淋",
-              "example": "",
+              "example": "I like ice cream.",
               "slot": "food",
               "image": "b1_u11_ice_cream.webp",
               "askType": "what_is_this"
@@ -3033,7 +3033,7 @@
             {
               "english": "soda",
               "chinese": "汽水",
-              "example": "",
+              "example": "I like soda.",
               "slot": "food",
               "image": "b1_u11_soda.webp",
               "askType": "what_is_this"
@@ -3415,7 +3415,7 @@
             {
               "english": "pencil case",
               "chinese": "鉛筆盒",
-              "example": "",
+              "example": "It's a pencil case.",
               "slot": "object",
               "image": "b2_u01_pencil_case.webp",
               "askType": "what_is_this"
@@ -3423,7 +3423,7 @@
             {
               "english": "snake",
               "chinese": "蛇",
-              "example": "",
+              "example": "It's a snake.",
               "slot": "animal",
               "image": "b2_u01_snake.webp",
               "askType": "what_is_this"
@@ -3439,7 +3439,7 @@
             {
               "english": "soup",
               "chinese": "湯",
-              "example": "",
+              "example": "I like soup.",
               "slot": "food",
               "image": "b2_u01_soup.webp",
               "askType": "what_is_this"
@@ -3447,7 +3447,7 @@
             {
               "english": "steak",
               "chinese": "牛排",
-              "example": "",
+              "example": "I like steak.",
               "slot": "food",
               "image": "b2_u01_steak.webp",
               "askType": "what_is_this"
@@ -3455,7 +3455,7 @@
             {
               "english": "pink",
               "chinese": "粉紅色",
-              "example": "",
+              "example": "It's a pink lamp.",
               "slot": "color",
               "image": "b2_u01_pink.webp",
               "askType": "what_is_this"
@@ -3463,7 +3463,7 @@
             {
               "english": "gray",
               "chinese": "灰色",
-              "example": "",
+              "example": "It's gray.",
               "slot": "color",
               "image": "b2_u01_gray.webp",
               "askType": "what_is_this"
@@ -3627,7 +3627,7 @@
             {
               "english": "sad",
               "chinese": "難過的",
-              "example": "",
+              "example": "He's sad.",
               "slot": "adjective",
               "image": "b2_u02_sad.webp",
               "askType": "how_is_he"
@@ -3643,7 +3643,7 @@
             {
               "english": "light",
               "chinese": "輕的",
-              "example": "",
+              "example": "It's light.",
               "slot": "adjective",
               "image": "b2_u02_light.webp",
               "askType": "how_is_he"
@@ -3651,7 +3651,7 @@
             {
               "english": "hot",
               "chinese": "熱的",
-              "example": "",
+              "example": "We're hot.",
               "slot": "adjective",
               "image": "b2_u02_hot.webp",
               "askType": "how_is_he"
@@ -3659,7 +3659,7 @@
             {
               "english": "cold",
               "chinese": "冷的",
-              "example": "",
+              "example": "They're cold.",
               "slot": "adjective",
               "image": "b2_u02_cold.webp",
               "askType": "how_is_he"
@@ -3667,7 +3667,7 @@
             {
               "english": "big",
               "chinese": "大的",
-              "example": "",
+              "example": "I'm big.",
               "slot": "adjective",
               "image": "b2_u02_big.webp",
               "askType": "how_is_he"
@@ -3675,7 +3675,7 @@
             {
               "english": "small",
               "chinese": "小的",
-              "example": "",
+              "example": "She's small.",
               "slot": "adjective",
               "image": "b2_u02_small.webp",
               "askType": "how_is_he"
@@ -3835,7 +3835,7 @@
             {
               "english": "basketball",
               "chinese": "籃球",
-              "example": "",
+              "example": "Do you like basketball?",
               "slot": "sport",
               "image": "b2_u03_basketball.webp",
               "askType": "what_is_this"
@@ -3851,7 +3851,7 @@
             {
               "english": "dodge ball",
               "chinese": "躲避球",
-              "example": "",
+              "example": "Do you like dodge ball?",
               "slot": "sport",
               "image": "b2_u03_dodge_ball.webp",
               "askType": "dialogue"
@@ -3859,7 +3859,7 @@
             {
               "english": "badminton",
               "chinese": "羽毛球",
-              "example": "",
+              "example": "I like badminton.",
               "slot": "sport",
               "image": "b2_u03_badminton.webp",
               "askType": "what_is_this"
@@ -3867,7 +3867,7 @@
             {
               "english": "volleyball",
               "chinese": "排球",
-              "example": "",
+              "example": "Do you like volleyball?",
               "slot": "sport",
               "image": "b2_u03_volleyball.webp",
               "askType": "what_is_this"
@@ -3875,7 +3875,7 @@
             {
               "english": "tennis",
               "chinese": "網球",
-              "example": "",
+              "example": "Do you like tennis?",
               "slot": "sport",
               "image": "b2_u03_tennis.webp",
               "askType": "what_is_this"
@@ -3883,7 +3883,7 @@
             {
               "english": "ping-pong",
               "chinese": "桌球",
-              "example": "",
+              "example": "I play ping-pong on Sunday.",
               "slot": "sport",
               "image": "b2_u03_ping_pong.webp",
               "askType": "what_is_this"
@@ -4055,7 +4055,7 @@
             {
               "english": "pencil case",
               "chinese": "鉛筆盒",
-              "example": "",
+              "example": "It's a pencil case.",
               "slot": "object",
               "image": "b2_u01_pencil_case.webp",
               "askType": "what_is_this"
@@ -4063,7 +4063,7 @@
             {
               "english": "snake",
               "chinese": "蛇",
-              "example": "",
+              "example": "It's a snake.",
               "slot": "animal",
               "image": "b2_u01_snake.webp",
               "askType": "what_is_this"
@@ -4079,7 +4079,7 @@
             {
               "english": "soup",
               "chinese": "湯",
-              "example": "",
+              "example": "I like soup.",
               "slot": "food",
               "image": "b2_u01_soup.webp",
               "askType": "what_is_this"
@@ -4087,7 +4087,7 @@
             {
               "english": "steak",
               "chinese": "牛排",
-              "example": "",
+              "example": "I like steak.",
               "slot": "food",
               "image": "b2_u01_steak.webp",
               "askType": "what_is_this"
@@ -4095,7 +4095,7 @@
             {
               "english": "pink",
               "chinese": "粉紅色",
-              "example": "",
+              "example": "It's a pink lamp.",
               "slot": "color",
               "image": "b2_u01_pink.webp",
               "askType": "what_is_this"
@@ -4103,7 +4103,7 @@
             {
               "english": "gray",
               "chinese": "灰色",
-              "example": "",
+              "example": "It's gray.",
               "slot": "color",
               "image": "b2_u01_gray.webp",
               "askType": "what_is_this"
@@ -4119,7 +4119,7 @@
             {
               "english": "sad",
               "chinese": "難過的",
-              "example": "",
+              "example": "He's sad.",
               "slot": "adjective",
               "image": "b2_u02_sad.webp",
               "askType": "how_is_he"
@@ -4135,7 +4135,7 @@
             {
               "english": "light",
               "chinese": "輕的",
-              "example": "",
+              "example": "It's light.",
               "slot": "adjective",
               "image": "b2_u02_light.webp",
               "askType": "how_is_he"
@@ -4143,7 +4143,7 @@
             {
               "english": "hot",
               "chinese": "熱的",
-              "example": "",
+              "example": "We're hot.",
               "slot": "adjective",
               "image": "b2_u02_hot.webp",
               "askType": "how_is_he"
@@ -4151,7 +4151,7 @@
             {
               "english": "cold",
               "chinese": "冷的",
-              "example": "",
+              "example": "They're cold.",
               "slot": "adjective",
               "image": "b2_u02_cold.webp",
               "askType": "how_is_he"
@@ -4159,7 +4159,7 @@
             {
               "english": "big",
               "chinese": "大的",
-              "example": "",
+              "example": "I'm big.",
               "slot": "adjective",
               "image": "b2_u02_big.webp",
               "askType": "how_is_he"
@@ -4167,7 +4167,7 @@
             {
               "english": "small",
               "chinese": "小的",
-              "example": "",
+              "example": "She's small.",
               "slot": "adjective",
               "image": "b2_u02_small.webp",
               "askType": "how_is_he"
@@ -4183,7 +4183,7 @@
             {
               "english": "basketball",
               "chinese": "籃球",
-              "example": "",
+              "example": "Do you like basketball?",
               "slot": "sport",
               "image": "b2_u03_basketball.webp",
               "askType": "what_is_this"
@@ -4199,7 +4199,7 @@
             {
               "english": "dodge ball",
               "chinese": "躲避球",
-              "example": "",
+              "example": "Do you like dodge ball?",
               "slot": "sport",
               "image": "b2_u03_dodge_ball.webp",
               "askType": "dialogue"
@@ -4207,7 +4207,7 @@
             {
               "english": "badminton",
               "chinese": "羽毛球",
-              "example": "",
+              "example": "I like badminton.",
               "slot": "sport",
               "image": "b2_u03_badminton.webp",
               "askType": "what_is_this"
@@ -4215,7 +4215,7 @@
             {
               "english": "volleyball",
               "chinese": "排球",
-              "example": "",
+              "example": "Do you like volleyball?",
               "slot": "sport",
               "image": "b2_u03_volleyball.webp",
               "askType": "what_is_this"
@@ -4223,7 +4223,7 @@
             {
               "english": "tennis",
               "chinese": "網球",
-              "example": "",
+              "example": "Do you like tennis?",
               "slot": "sport",
               "image": "b2_u03_tennis.webp",
               "askType": "what_is_this"
@@ -4231,7 +4231,7 @@
             {
               "english": "ping-pong",
               "chinese": "桌球",
-              "example": "",
+              "example": "I play ping-pong on Sunday.",
               "slot": "sport",
               "image": "b2_u03_ping_pong.webp",
               "askType": "what_is_this"
@@ -4600,7 +4600,7 @@
             {
               "english": "bed",
               "chinese": "床",
-              "example": "",
+              "example": "It's on the bed.",
               "slot": "object",
               "image": "b2_u05_bed.webp",
               "askType": "what_is_this"
@@ -4616,7 +4616,7 @@
             {
               "english": "window",
               "chinese": "窗戶",
-              "example": "",
+              "example": "It's a window.",
               "slot": "object",
               "image": "b2_u05_window.webp",
               "askType": "what_is_this"
@@ -4624,7 +4624,7 @@
             {
               "english": "clock",
               "chinese": "時鐘",
-              "example": "",
+              "example": "It's a clock.",
               "slot": "object",
               "image": "b2_u05_clock.webp",
               "askType": "what_is_this"
@@ -4640,7 +4640,7 @@
             {
               "english": "blanket",
               "chinese": "毯子",
-              "example": "",
+              "example": "It's a pink blanket.",
               "slot": "object",
               "image": "b2_u05_blanket.webp",
               "askType": "what_is_this"
@@ -4648,7 +4648,7 @@
             {
               "english": "door",
               "chinese": "門",
-              "example": "",
+              "example": "Is that a brown door?",
               "slot": "object",
               "image": "b2_u05_door.webp",
               "askType": "what_is_this"
@@ -4656,7 +4656,7 @@
             {
               "english": "lamp",
               "chinese": "檯燈",
-              "example": "",
+              "example": "It's a pink lamp.",
               "slot": "object",
               "image": "b2_u05_lamp.webp",
               "askType": "what_is_this"
@@ -4814,7 +4814,7 @@
             {
               "english": "strawberries",
               "chinese": "草莓",
-              "example": "",
+              "example": "How many strawberries are there?",
               "slot": "food",
               "image": "b2_u06_strawberries.webp",
               "askType": "what_is_this",
@@ -4823,7 +4823,7 @@
             {
               "english": "cherries",
               "chinese": "櫻桃",
-              "example": "",
+              "example": "How many cherries are there?",
               "slot": "food",
               "image": "b2_u06_cherries.webp",
               "askType": "what_is_this",
@@ -4832,7 +4832,7 @@
             {
               "english": "pears",
               "chinese": "梨子",
-              "example": "",
+              "example": "They're pears.",
               "slot": "food",
               "image": "b2_u06_pears.webp",
               "askType": "what_is_this",
@@ -4841,7 +4841,7 @@
             {
               "english": "oranges",
               "chinese": "柳丁",
-              "example": "",
+              "example": "They're oranges.",
               "slot": "food",
               "image": "b2_u06_oranges.webp",
               "askType": "what_is_this",
@@ -4859,7 +4859,7 @@
             {
               "english": "mangoes",
               "chinese": "芒果",
-              "example": "",
+              "example": "They're mangoes.",
               "slot": "food",
               "image": "b2_u06_mangoes.webp",
               "askType": "what_is_this",
@@ -4877,7 +4877,7 @@
             {
               "english": "pineapples",
               "chinese": "鳳梨",
-              "example": "",
+              "example": "They're pineapples.",
               "slot": "food",
               "image": "b2_u06_pineapples.webp",
               "askType": "what_is_this",
@@ -5035,7 +5035,7 @@
             {
               "english": "in",
               "chinese": "在……裡面",
-              "example": "",
+              "example": "They're in the box.",
               "slot": "preposition",
               "image": "b2_u07_in.webp",
               "askType": "where_is_it"
@@ -5043,7 +5043,7 @@
             {
               "english": "on",
               "chinese": "在……上面",
-              "example": "",
+              "example": "It's on the bed.",
               "slot": "preposition",
               "image": "b2_u07_on.webp",
               "askType": "where_is_it"
@@ -5059,7 +5059,7 @@
             {
               "english": "between",
               "chinese": "在……之間",
-              "example": "",
+              "example": "It's between the bed and the desk.",
               "slot": "preposition",
               "image": "b2_u07_between.webp",
               "askType": "where_is_it"
@@ -5067,7 +5067,7 @@
             {
               "english": "socks",
               "chinese": "襪子",
-              "example": "",
+              "example": "Where are my socks?",
               "slot": "object",
               "image": "b2_u07_socks.webp",
               "askType": "what_is_this",
@@ -5076,7 +5076,7 @@
             {
               "english": "pants",
               "chinese": "長褲",
-              "example": "",
+              "example": "Where are my pants?",
               "slot": "object",
               "image": "b2_u07_pants.webp",
               "askType": "what_is_this",
@@ -5085,7 +5085,7 @@
             {
               "english": "skirt",
               "chinese": "裙子",
-              "example": "",
+              "example": "Where's my skirt?",
               "slot": "object",
               "image": "b2_u07_skirt.webp",
               "askType": "what_is_this"
@@ -5297,7 +5297,7 @@
             {
               "english": "bed",
               "chinese": "床",
-              "example": "",
+              "example": "It's on the bed.",
               "slot": "object",
               "image": "b2_u05_bed.webp",
               "askType": "what_is_this"
@@ -5313,7 +5313,7 @@
             {
               "english": "window",
               "chinese": "窗戶",
-              "example": "",
+              "example": "It's a window.",
               "slot": "object",
               "image": "b2_u05_window.webp",
               "askType": "what_is_this"
@@ -5321,7 +5321,7 @@
             {
               "english": "clock",
               "chinese": "時鐘",
-              "example": "",
+              "example": "It's a clock.",
               "slot": "object",
               "image": "b2_u05_clock.webp",
               "askType": "what_is_this"
@@ -5337,7 +5337,7 @@
             {
               "english": "blanket",
               "chinese": "毯子",
-              "example": "",
+              "example": "It's a pink blanket.",
               "slot": "object",
               "image": "b2_u05_blanket.webp",
               "askType": "what_is_this"
@@ -5345,7 +5345,7 @@
             {
               "english": "door",
               "chinese": "門",
-              "example": "",
+              "example": "Is that a brown door?",
               "slot": "object",
               "image": "b2_u05_door.webp",
               "askType": "what_is_this"
@@ -5353,7 +5353,7 @@
             {
               "english": "lamp",
               "chinese": "檯燈",
-              "example": "",
+              "example": "It's a pink lamp.",
               "slot": "object",
               "image": "b2_u05_lamp.webp",
               "askType": "what_is_this"
@@ -5361,7 +5361,7 @@
             {
               "english": "strawberries",
               "chinese": "草莓",
-              "example": "",
+              "example": "How many strawberries are there?",
               "slot": "food",
               "image": "b2_u06_strawberries.webp",
               "askType": "what_is_this",
@@ -5370,7 +5370,7 @@
             {
               "english": "cherries",
               "chinese": "櫻桃",
-              "example": "",
+              "example": "How many cherries are there?",
               "slot": "food",
               "image": "b2_u06_cherries.webp",
               "askType": "what_is_this",
@@ -5379,7 +5379,7 @@
             {
               "english": "pears",
               "chinese": "梨子",
-              "example": "",
+              "example": "They're pears.",
               "slot": "food",
               "image": "b2_u06_pears.webp",
               "askType": "what_is_this",
@@ -5388,7 +5388,7 @@
             {
               "english": "oranges",
               "chinese": "柳丁",
-              "example": "",
+              "example": "They're oranges.",
               "slot": "food",
               "image": "b2_u06_oranges.webp",
               "askType": "what_is_this",
@@ -5406,7 +5406,7 @@
             {
               "english": "mangoes",
               "chinese": "芒果",
-              "example": "",
+              "example": "They're mangoes.",
               "slot": "food",
               "image": "b2_u06_mangoes.webp",
               "askType": "what_is_this",
@@ -5424,7 +5424,7 @@
             {
               "english": "pineapples",
               "chinese": "鳳梨",
-              "example": "",
+              "example": "They're pineapples.",
               "slot": "food",
               "image": "b2_u06_pineapples.webp",
               "askType": "what_is_this",
@@ -5433,7 +5433,7 @@
             {
               "english": "in",
               "chinese": "在……裡面",
-              "example": "",
+              "example": "They're in the box.",
               "slot": "preposition",
               "image": "b2_u07_in.webp",
               "askType": "where_is_it"
@@ -5441,7 +5441,7 @@
             {
               "english": "on",
               "chinese": "在……上面",
-              "example": "",
+              "example": "It's on the bed.",
               "slot": "preposition",
               "image": "b2_u07_on.webp",
               "askType": "where_is_it"
@@ -5457,7 +5457,7 @@
             {
               "english": "between",
               "chinese": "在……之間",
-              "example": "",
+              "example": "It's between the bed and the desk.",
               "slot": "preposition",
               "image": "b2_u07_between.webp",
               "askType": "where_is_it"
@@ -5465,7 +5465,7 @@
             {
               "english": "socks",
               "chinese": "襪子",
-              "example": "",
+              "example": "Where are my socks?",
               "slot": "object",
               "image": "b2_u07_socks.webp",
               "askType": "what_is_this",
@@ -5474,7 +5474,7 @@
             {
               "english": "pants",
               "chinese": "長褲",
-              "example": "",
+              "example": "Where are my pants?",
               "slot": "object",
               "image": "b2_u07_pants.webp",
               "askType": "what_is_this",
@@ -5483,7 +5483,7 @@
             {
               "english": "skirt",
               "chinese": "裙子",
-              "example": "",
+              "example": "Where's my skirt?",
               "slot": "object",
               "image": "b2_u07_skirt.webp",
               "askType": "what_is_this"
@@ -5869,7 +5869,7 @@
             {
               "english": "one o'clock",
               "chinese": "一點",
-              "example": "",
+              "example": "Is it one o'clock?",
               "slot": "time",
               "image": "b2_u09_one_oclock.webp",
               "askType": "read_it"
@@ -5877,7 +5877,7 @@
             {
               "english": "two o'clock",
               "chinese": "兩點",
-              "example": "",
+              "example": "It's two o'clock.",
               "slot": "time",
               "image": "b2_u09_two_oclock.webp",
               "askType": "read_it"
@@ -5885,7 +5885,7 @@
             {
               "english": "three o'clock",
               "chinese": "三點",
-              "example": "",
+              "example": "It's three o'clock.",
               "slot": "time",
               "image": "b2_u09_three_oclock.webp",
               "askType": "read_it"
@@ -5893,7 +5893,7 @@
             {
               "english": "four o'clock",
               "chinese": "四點",
-              "example": "",
+              "example": "It's four o'clock.",
               "slot": "time",
               "image": "b2_u09_four_oclock.webp",
               "askType": "read_it"
@@ -5901,7 +5901,7 @@
             {
               "english": "five o'clock",
               "chinese": "五點",
-              "example": "",
+              "example": "It's five o'clock.",
               "slot": "time",
               "image": "b2_u09_five_oclock.webp",
               "askType": "read_it"
@@ -5909,7 +5909,7 @@
             {
               "english": "six o'clock",
               "chinese": "六點",
-              "example": "",
+              "example": "It's six o'clock.",
               "slot": "time",
               "image": "b2_u09_six_oclock.webp",
               "askType": "read_it"
@@ -5917,7 +5917,7 @@
             {
               "english": "seven o'clock",
               "chinese": "七點",
-              "example": "",
+              "example": "It's seven o'clock.",
               "slot": "time",
               "image": "b2_u09_seven_oclock.webp",
               "askType": "read_it"
@@ -5925,7 +5925,7 @@
             {
               "english": "eight o'clock",
               "chinese": "八點",
-              "example": "",
+              "example": "It's eight o'clock.",
               "slot": "time",
               "image": "b2_u09_eight_oclock.webp",
               "askType": "read_it"
@@ -5933,7 +5933,7 @@
             {
               "english": "nine o'clock",
               "chinese": "九點",
-              "example": "",
+              "example": "It's nine o'clock.",
               "slot": "time",
               "image": "b2_u09_nine_oclock.webp",
               "askType": "read_it"
@@ -5941,7 +5941,7 @@
             {
               "english": "ten o'clock",
               "chinese": "十點",
-              "example": "",
+              "example": "It's ten o'clock.",
               "slot": "time",
               "image": "b2_u09_ten_oclock.webp",
               "askType": "read_it"
@@ -5949,7 +5949,7 @@
             {
               "english": "eleven o'clock",
               "chinese": "十一點",
-              "example": "",
+              "example": "It's eleven o'clock.",
               "slot": "time",
               "image": "b2_u09_eleven_oclock.webp",
               "askType": "read_it"
@@ -5957,7 +5957,7 @@
             {
               "english": "twelve o'clock",
               "chinese": "十二點",
-              "example": "",
+              "example": "Is it twelve o'clock?",
               "slot": "time",
               "image": "b2_u09_twelve_oclock.webp",
               "askType": "read_it"
@@ -6113,7 +6113,7 @@
             {
               "english": "fourteen",
               "chinese": "十四",
-              "example": "",
+              "example": "There are fourteen.",
               "slot": "number",
               "image": "b2_u10_fourteen.webp",
               "askType": "read_it"
@@ -6121,7 +6121,7 @@
             {
               "english": "fifteen",
               "chinese": "十五",
-              "example": "",
+              "example": "There are fifteen.",
               "slot": "number",
               "image": "b2_u10_fifteen.webp",
               "askType": "read_it"
@@ -6129,7 +6129,7 @@
             {
               "english": "sixteen",
               "chinese": "十六",
-              "example": "",
+              "example": "There are sixteen.",
               "slot": "number",
               "image": "b2_u10_sixteen.webp",
               "askType": "read_it"
@@ -6137,7 +6137,7 @@
             {
               "english": "seventeen",
               "chinese": "十七",
-              "example": "",
+              "example": "There are seventeen.",
               "slot": "number",
               "image": "b2_u10_seventeen.webp",
               "askType": "read_it"
@@ -6145,7 +6145,7 @@
             {
               "english": "eighteen",
               "chinese": "十八",
-              "example": "",
+              "example": "There are eighteen.",
               "slot": "number",
               "image": "b2_u10_eighteen.webp",
               "askType": "read_it"
@@ -6153,7 +6153,7 @@
             {
               "english": "nineteen",
               "chinese": "十九",
-              "example": "",
+              "example": "There are nineteen.",
               "slot": "number",
               "image": "b2_u10_nineteen.webp",
               "askType": "read_it"
@@ -6327,7 +6327,7 @@
             {
               "english": "forks",
               "chinese": "叉子",
-              "example": "",
+              "example": "Do you have forks?",
               "slot": "object",
               "image": "b2_u11_forks.webp",
               "askType": "what_is_this",
@@ -6336,7 +6336,7 @@
             {
               "english": "spoons",
               "chinese": "湯匙",
-              "example": "",
+              "example": "You have spoons.",
               "slot": "object",
               "image": "b2_u11_spoons.webp",
               "askType": "what_is_this",
@@ -6345,7 +6345,7 @@
             {
               "english": "knives",
               "chinese": "刀子",
-              "example": "",
+              "example": "Does he have knives?",
               "slot": "object",
               "image": "b2_u11_knives.webp",
               "askType": "what_is_this",
@@ -6372,7 +6372,7 @@
             {
               "english": "glasses",
               "chinese": "玻璃杯",
-              "example": "",
+              "example": "She has glasses.",
               "slot": "object",
               "image": "b2_u11_glasses.webp",
               "askType": "what_is_this",
@@ -6381,7 +6381,7 @@
             {
               "english": "tissues",
               "chinese": "面紙",
-              "example": "",
+              "example": "Do you have tissues?",
               "slot": "object",
               "image": "b2_u11_tissues.webp",
               "askType": "what_is_this",
@@ -6390,7 +6390,7 @@
             {
               "english": "bowls",
               "chinese": "碗",
-              "example": "",
+              "example": "She has bowls.",
               "slot": "object",
               "image": "b2_u11_bowls.webp",
               "askType": "what_is_this",
@@ -6590,7 +6590,7 @@
             {
               "english": "one o'clock",
               "chinese": "一點",
-              "example": "",
+              "example": "Is it one o'clock?",
               "slot": "time",
               "image": "b2_u09_one_oclock.webp",
               "askType": "read_it"
@@ -6598,7 +6598,7 @@
             {
               "english": "two o'clock",
               "chinese": "兩點",
-              "example": "",
+              "example": "It's two o'clock.",
               "slot": "time",
               "image": "b2_u09_two_oclock.webp",
               "askType": "read_it"
@@ -6606,7 +6606,7 @@
             {
               "english": "three o'clock",
               "chinese": "三點",
-              "example": "",
+              "example": "It's three o'clock.",
               "slot": "time",
               "image": "b2_u09_three_oclock.webp",
               "askType": "read_it"
@@ -6614,7 +6614,7 @@
             {
               "english": "four o'clock",
               "chinese": "四點",
-              "example": "",
+              "example": "It's four o'clock.",
               "slot": "time",
               "image": "b2_u09_four_oclock.webp",
               "askType": "read_it"
@@ -6622,7 +6622,7 @@
             {
               "english": "five o'clock",
               "chinese": "五點",
-              "example": "",
+              "example": "It's five o'clock.",
               "slot": "time",
               "image": "b2_u09_five_oclock.webp",
               "askType": "read_it"
@@ -6630,7 +6630,7 @@
             {
               "english": "six o'clock",
               "chinese": "六點",
-              "example": "",
+              "example": "It's six o'clock.",
               "slot": "time",
               "image": "b2_u09_six_oclock.webp",
               "askType": "read_it"
@@ -6638,7 +6638,7 @@
             {
               "english": "seven o'clock",
               "chinese": "七點",
-              "example": "",
+              "example": "It's seven o'clock.",
               "slot": "time",
               "image": "b2_u09_seven_oclock.webp",
               "askType": "read_it"
@@ -6646,7 +6646,7 @@
             {
               "english": "eight o'clock",
               "chinese": "八點",
-              "example": "",
+              "example": "It's eight o'clock.",
               "slot": "time",
               "image": "b2_u09_eight_oclock.webp",
               "askType": "read_it"
@@ -6654,7 +6654,7 @@
             {
               "english": "nine o'clock",
               "chinese": "九點",
-              "example": "",
+              "example": "It's nine o'clock.",
               "slot": "time",
               "image": "b2_u09_nine_oclock.webp",
               "askType": "read_it"
@@ -6662,7 +6662,7 @@
             {
               "english": "ten o'clock",
               "chinese": "十點",
-              "example": "",
+              "example": "It's ten o'clock.",
               "slot": "time",
               "image": "b2_u09_ten_oclock.webp",
               "askType": "read_it"
@@ -6670,7 +6670,7 @@
             {
               "english": "eleven o'clock",
               "chinese": "十一點",
-              "example": "",
+              "example": "It's eleven o'clock.",
               "slot": "time",
               "image": "b2_u09_eleven_oclock.webp",
               "askType": "read_it"
@@ -6678,7 +6678,7 @@
             {
               "english": "twelve o'clock",
               "chinese": "十二點",
-              "example": "",
+              "example": "Is it twelve o'clock?",
               "slot": "time",
               "image": "b2_u09_twelve_oclock.webp",
               "askType": "read_it"
@@ -6694,7 +6694,7 @@
             {
               "english": "fourteen",
               "chinese": "十四",
-              "example": "",
+              "example": "There are fourteen.",
               "slot": "number",
               "image": "b2_u10_fourteen.webp",
               "askType": "read_it"
@@ -6702,7 +6702,7 @@
             {
               "english": "fifteen",
               "chinese": "十五",
-              "example": "",
+              "example": "There are fifteen.",
               "slot": "number",
               "image": "b2_u10_fifteen.webp",
               "askType": "read_it"
@@ -6710,7 +6710,7 @@
             {
               "english": "sixteen",
               "chinese": "十六",
-              "example": "",
+              "example": "There are sixteen.",
               "slot": "number",
               "image": "b2_u10_sixteen.webp",
               "askType": "read_it"
@@ -6718,7 +6718,7 @@
             {
               "english": "seventeen",
               "chinese": "十七",
-              "example": "",
+              "example": "There are seventeen.",
               "slot": "number",
               "image": "b2_u10_seventeen.webp",
               "askType": "read_it"
@@ -6726,7 +6726,7 @@
             {
               "english": "eighteen",
               "chinese": "十八",
-              "example": "",
+              "example": "There are eighteen.",
               "slot": "number",
               "image": "b2_u10_eighteen.webp",
               "askType": "read_it"
@@ -6734,7 +6734,7 @@
             {
               "english": "nineteen",
               "chinese": "十九",
-              "example": "",
+              "example": "There are nineteen.",
               "slot": "number",
               "image": "b2_u10_nineteen.webp",
               "askType": "read_it"
@@ -6750,7 +6750,7 @@
             {
               "english": "forks",
               "chinese": "叉子",
-              "example": "",
+              "example": "Do you have forks?",
               "slot": "object",
               "image": "b2_u11_forks.webp",
               "askType": "what_is_this",
@@ -6759,7 +6759,7 @@
             {
               "english": "spoons",
               "chinese": "湯匙",
-              "example": "",
+              "example": "You have spoons.",
               "slot": "object",
               "image": "b2_u11_spoons.webp",
               "askType": "what_is_this",
@@ -6768,7 +6768,7 @@
             {
               "english": "knives",
               "chinese": "刀子",
-              "example": "",
+              "example": "Does he have knives?",
               "slot": "object",
               "image": "b2_u11_knives.webp",
               "askType": "what_is_this",
@@ -6795,7 +6795,7 @@
             {
               "english": "glasses",
               "chinese": "玻璃杯",
-              "example": "",
+              "example": "She has glasses.",
               "slot": "object",
               "image": "b2_u11_glasses.webp",
               "askType": "what_is_this",
@@ -6804,7 +6804,7 @@
             {
               "english": "tissues",
               "chinese": "面紙",
-              "example": "",
+              "example": "Do you have tissues?",
               "slot": "object",
               "image": "b2_u11_tissues.webp",
               "askType": "what_is_this",
@@ -6813,7 +6813,7 @@
             {
               "english": "bowls",
               "chinese": "碗",
-              "example": "",
+              "example": "She has bowls.",
               "slot": "object",
               "image": "b2_u11_bowls.webp",
               "askType": "what_is_this",

@@ -1,6 +1,6 @@
 # AI Tutor Studio 開發進度
 
-最後更新：2026-09-10  
+最後更新：2026-09-14  
 目前版本：v3.49  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
@@ -767,10 +767,17 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 | `stage-transition.js` | 階段切換門檻，避免回饋尚未完成就硬切 |
 | `course-progression.js` | 五日課程、前後單元推進與跨單元複習來源 |
 | `lesson-plan.js` | 課前組裝今日項目清單（辨識階梯、句型代換、對答），含提示階梯與執行器 |
-| `images/` | 527 張單字卡與句型情境圖（512px WebP，共 18 MB），由 build-images.py 產生 |
-| `build-images.py` | 「Gogo English」專案的插畫母版 → `images/*.webp` |
+| `images/` | 766 張單字卡、句型情境圖與對話漫畫（512px WebP），由 build-images.py 產生；`images/letters/` 52 張字母卡 |
+| `build-images.py` | 「Gogo English」專案的插畫母版 → `images/*.webp`（母版比 webp 新就重轉） |
 | `learning-records.js` | 每位學員的句子練習記錄與合併 |
 | `session-diagnostics.js` | 課堂診斷事件及 JSON 匯出 |
+| `letter-player.js` | 字母 ABC 播放模式（不連線）：教材音軌片段 → TTS 三段 → 瀏覽器語音 |
+| `dialogues.json` | 239 張句型對話漫畫的網頁索引（由 build-dialogue-list.py 產生） |
+| `letters.json` | 26 字母 × 2 例字：圖、教材音軌切點、TTS 備援段落（由 build-letters.py 產生） |
+| `pearson-cuts.json` | 教材 Alphabet 軌每張卡的 start/end 秒數（人可微調） |
+| `audio/letters/pearson/` | 培生教材 9 軌 Alphabet 真人錄音（使用者 2026-09-11 決定放進 repo） |
+| `audio/letters/seg/` | ElevenLabs TTS 備援旁白（字母名／音／單字三段） |
+| `build-letters.py`、`build-letter-audio.py`、`review-letter-audio.py`、`letter-audio-lab.py` | 字母卡資料、TTS 錄音、Scribe 對讀、試聽室 |
 | `sync.gs` | Apps Script 後端、同步、臨時憑證及新聞來源 |
 | `units.json` | 36 個 Gogo English 單元資料（Book 1／2／3，含 Review），由產生器輸出，不要手改 |
 | `units-overlay.json` | 人工整理、gogo 教材資料沒有的部分：模板化句型、英文 theme、單字例句與詞性 |

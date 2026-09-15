@@ -10,8 +10,9 @@
     // 沒有連線、沒有延遲、每次唸的一模一樣，也不會多說一個字。
     //
     // 一張卡的流程：
-    //   顯示卡片 → 播旁白（A, a. aa. Apple.）→ 亮出「換你唸」→ 安靜等他唸 → 下一張
-    // 全程不需要孩子按任何按鈕，也不聽他唸得標不標準。
+    //   顯示卡片 → 播旁白（A, a. aa. Apple.）→ 安靜等他唸 → 下一張
+    // 不聽他唸得標不標準。畫面上只有一顆「⏸ 暫停」（v3.53，使用者 2026-09-15 要求取代「換你唸」提示）：
+    // 暫停立刻停掉聲音；繼續時從這張卡的開頭重播（從半句接回去聽不懂）。
 
     // 旁白之後留給孩子跟著唸的時間。原本 2.6～5.2 秒；2026-09-13 使用者實聽教材真人音後
     // 要求固定 1.5 秒——那段錄音在字母、音、單字之間本來就留了空，孩子邊聽邊跟得上。
@@ -45,7 +46,8 @@
         const speech = config.speechSynthesis !== undefined
             ? config.speechSynthesis : global.speechSynthesis;
 
-        const state = { running: false, timer: null, release: null, audio: null, source: null, index: 0, total: 0 };
+        const state = { running: false, paused: false, resumeGate: null, abortAudio: null,
+                        timer: null, release: null, audio: null, source: null, index: 0, total: 0 };
 
         function clear() {
             if (state.timer != null) clearTimer(state.timer);
@@ -57,6 +59,8 @@
                 try { state.audio.pause(); } catch (e) {}
                 state.audio = null;
             }
+            // <audio> 被 pause() 不會觸發 ended，等它的那個 promise 要手動放掉（暫停時會用到）
+            if (state.abortAudio) { const abort = state.abortAudio; state.abortAudio = null; abort(); }
             if (state.source) {
                 try { state.source.stop(); } catch (e) {}
                 state.source = null;
@@ -87,7 +91,7 @@
             const url = config.audioBase + clip.file;
             return new Promise((resolve, reject) => {
                 decode(url).then(buffer => {
-                    if (!state.running) { resolve(0); return; }
+                    if (!state.running || state.paused) { resolve(0); return; }
                     const start = Math.max(0, Number(clip.start) || 0);
                     const end = Math.min(buffer.duration, Number(clip.end) || buffer.duration);
                     if (end <= start) { reject(new Error("bad clip range")); return; }
@@ -136,7 +140,7 @@
         // <audio> 元素備援也要三段接起來，不能只播第一段（只唸字母名）
         async function playFiles(urls) {
             let total = 0;
-            for (let i = 0; i < urls.length && state.running; i++) {
+            for (let i = 0; i < urls.length && state.running && !state.paused; i++) {
                 total += await playFile(urls[i]);
                 if (i < urls.length - 1 && state.running) { await wait(SEGMENT_GAP); total += SEGMENT_GAP; }
             }
@@ -146,7 +150,7 @@
         // 三段接起來播，段與段之間留 SEGMENT_GAP；回傳總共播了多久
         async function playBuffers(urls) {
             let total = 0;
-            for (let i = 0; i < urls.length && state.running; i++) {
+            for (let i = 0; i < urls.length && state.running && !state.paused; i++) {
                 total += await playBuffer(urls[i]);
                 if (i < urls.length - 1 && state.running) { await wait(SEGMENT_GAP); total += SEGMENT_GAP; }
             }
@@ -156,7 +160,7 @@
         function playBuffer(url) {
             return new Promise((resolve, reject) => {
                 decode(url).then(buffer => {
-                    if (!state.running) { resolve(0); return; }
+                    if (!state.running || state.paused) { resolve(0); return; }
                     const source = audioContext.createBufferSource();
                     source.buffer = buffer;
                     source.connect(outputNode ? outputNode() : audioContext.destination);
@@ -239,6 +243,7 @@
                     settled = true; cleanup();
                     reject(error instanceof Error ? error : new Error('audio failed'));
                 }
+                state.abortAudio = ended;
 
                 audio.addEventListener('ended', ended);
                 audio.addEventListener('error', failed);
@@ -262,7 +267,7 @@
             });
         }
 
-        function show(item, speaking) {
+        function show(item) {
             if (!studentView) return;
             studentView.showCard({
                 imageUrl: item.image ? config.imageBase + item.image : "",
@@ -271,7 +276,12 @@
                 kind: "letter",
                 icon: "🔤"
             });
-            if (studentView.showSpeakCue) studentView.showSpeakCue(!speaking);
+        }
+
+        // 暫停中就停在這裡，直到按「繼續」或「結束播放」
+        function waitWhilePaused() {
+            if (!state.paused) return Promise.resolve();
+            return new Promise(resolve => { state.resumeGate = resolve; });
         }
 
         async function play(items) {
@@ -287,40 +297,65 @@
                 contextState: audioContext ? audioContext.state : ""
             });
             let played = 0;
-            for (let i = 0; i < cards.length && state.running; i++) {
+            for (let i = 0; i < cards.length && state.running;) {
+                await waitWhilePaused();
+                if (!state.running) break;
                 const item = cards[i];
                 state.index = i;
                 log(`🔤 [${i + 1}/${cards.length}] ${item.letter}　${item.target}`);
-                show(item, true);
+                show(item);
                 let spoken = 0;
                 try { spoken = await speakCard(item); } catch (e) { spoken = 0; }
                 if (!state.running) break;
+                if (state.paused) continue;          // 唸到一半被暫停：繼續時整張卡重播
                 // 留給孩子跟著唸：至少 DEFAULT_PAUSE，旁白長就跟著長一點
-                show(item, false);
                 const pause = Math.min(MAX_PAUSE, Math.max(DEFAULT_PAUSE, spoken + 600));
                 await wait(pause);
                 if (!state.running) break;
+                if (state.paused) continue;          // 跟唸的那段安靜被暫停：也重播這張，孩子才接得上
                 played += 1;
                 if (i < cards.length - 1) await wait(GAP);
+                i += 1;                              // 換卡空隙被暫停就不重播，繼續時直接下一張
             }
             const stopped = !state.running;
             state.running = false;
-            if (studentView && studentView.showSpeakCue) studentView.showSpeakCue(false);
+            state.paused = false;
             record("letter_player_finished", { played, total: cards.length, stopped });
             return { played, stopped };
+        }
+
+        function pause() {
+            if (!state.running || state.paused) return false;
+            state.paused = true;
+            clear();                                 // 立刻停聲音、放掉正在等的計時
+            record("letter_player_paused", { index: state.index, total: state.total });
+            log(`⏸ 暫停在第 ${state.index + 1} 張。`);
+            return true;
+        }
+
+        function resume() {
+            if (!state.running || !state.paused) return false;
+            state.paused = false;
+            record("letter_player_resumed", { index: state.index, total: state.total });
+            log(`▶ 從第 ${state.index + 1} 張繼續。`);
+            if (state.resumeGate) { const gate = state.resumeGate; state.resumeGate = null; gate(); }
+            return true;
         }
 
         function stop() {
             if (!state.running) return;
             state.running = false;
+            state.paused = false;
             clear();
-            if (studentView && studentView.showSpeakCue) studentView.showSpeakCue(false);
+            // 暫停中按「結束播放」：把停在暫停的那個 await 也放掉，play() 才會收尾
+            if (state.resumeGate) { const gate = state.resumeGate; state.resumeGate = null; gate(); }
         }
 
         function isPlaying() { return state.running; }
+        function isPaused() { return state.running && state.paused; }
         function progress() { return { index: state.index, total: state.total }; }
 
-        return Object.freeze({ play, stop, isPlaying, progress, preload });
+        return Object.freeze({ play, stop, pause, resume, isPlaying, isPaused, progress, preload });
     }
 
     global.LetterPlayer = Object.freeze({ create });

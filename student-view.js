@@ -23,7 +23,7 @@
             sayBox: doc.getElementById('svSayBox'),
             say: doc.getElementById('svSay'),
             transcript: doc.getElementById('svTranscript'),
-            speakCue: doc.getElementById('svSpeakCue'),
+            pauseBtn: doc.getElementById('svPauseBtn'),
             startBtn: doc.getElementById('svStartBtn'),
             tapArea: doc.getElementById('svTapArea'),
             tapHint: doc.getElementById('svTapHint'),
@@ -215,9 +215,31 @@
             hint.classList.add('nudge');
         }
 
-        // 字母單元：旁白唸完之後亮「換你唸」，那段安靜是留給孩子的
-        function showSpeakCue(on) {
-            if (elements.speakCue) elements.speakCue.hidden = !on;
+        // 字母單元的「⏸ 暫停／▶ 繼續」（v3.53，取代原本的「換你唸」提示）。
+        // 播放期間一直在；按了做什麼由呼叫端決定，這裡只負責畫與切換文字。
+        let pauseHandler = null;
+        function setPaused(paused) {
+            const button = elements.pauseBtn;
+            if (!button) return;
+            button.textContent = paused ? "▶ 繼續" : "⏸ 暫停";
+            button.classList.toggle('paused', !!paused);
+        }
+        function showPauseButton(onToggle) {
+            const button = elements.pauseBtn;
+            if (!button) return;
+            if (pauseHandler) button.removeEventListener('click', pauseHandler);
+            pauseHandler = () => { if (typeof onToggle === 'function') onToggle(); };
+            button.addEventListener('click', pauseHandler);
+            setPaused(false);
+            button.hidden = false;
+        }
+        function hidePauseButton() {
+            const button = elements.pauseBtn;
+            if (!button) return;
+            if (pauseHandler) button.removeEventListener('click', pauseHandler);
+            pauseHandler = null;
+            setPaused(false);
+            button.hidden = true;
         }
 
         function labelOf(tap, id) {
@@ -346,7 +368,7 @@
             showTap(data.tap || null, data.tapState || null);
             // 字母卡是直式的，版面要換一套（CSS 的 body.letter-mode）
             if (doc.body) doc.body.classList.toggle('letter-mode', data.kind === 'letter');
-            if (data.kind !== 'letter') showSpeakCue(false);
+            if (data.kind !== 'letter') hidePauseButton();
             state.contentVersion += 1;
             state.wordKey = normalize(data.word || "");
             if (elements.word) elements.word.textContent = data.word || "";
@@ -490,7 +512,7 @@
             state.contentVersion += 1;
             state.wordKey = "";
             showTap(null, null);
-            showSpeakCue(false);
+            hidePauseButton();
             showAction('');
             showRecover(false);
             hideStartButton();
@@ -522,7 +544,9 @@
             showWord,
             showCard,
             showTap,
-            showSpeakCue,
+            showPauseButton,
+            setPaused,
+            hidePauseButton,
             nudgeTap,
             showAction,
             showRecover,

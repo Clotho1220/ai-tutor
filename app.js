@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.52";
+const APP_VERSION = "3.53";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1890,6 +1890,17 @@ async function startLetterPlayerSession() {
             if (playbackContext && playbackContext.state === 'suspended') playbackContext.resume();
             letterPlayerStarted = true;
             letterPlayer.play(cards).then(resolve);
+            // 暫停／繼續（v3.53，使用者 2026-09-15 要求）。繼續也是一次點擊，順便 resume AudioContext
+            studentView.showPauseButton(() => {
+                if (!letterPlayer) return;
+                if (letterPlayer.isPaused()) {
+                    if (playbackContext && playbackContext.state === 'suspended') playbackContext.resume();
+                    letterPlayer.resume();
+                } else {
+                    letterPlayer.pause();
+                }
+                studentView.setPaused(letterPlayer.isPaused());
+            });
         });
         letterPlayerWaiting = resolve;
     });
@@ -1903,6 +1914,7 @@ function finishLetterPlayer() {
     if (letterPlayer) letterPlayer.stop();
     if (letterPlayerWaiting) { const release = letterPlayerWaiting; letterPlayerWaiting = null; release({ played: 0, stopped: true }); }
     studentView.hideStartButton();
+    studentView.hidePauseButton();
     letterPlayer = null;
     letterPlayerActive = false;
     letterPlayerStarted = false;

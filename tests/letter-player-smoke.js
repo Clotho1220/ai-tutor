@@ -40,9 +40,8 @@
     }
 
     function fakeView() {
-        const view = { cards: [], cue: [] };
+        const view = { cards: [] };
         view.showCard = card => view.cards.push(card);
-        view.showSpeakCue = on => view.cue.push(!!on);
         return view;
     }
 
@@ -98,11 +97,6 @@
             view.cards.length >= 3 &&
             view.cards[0].imageUrl === "images/letters/A_apple.webp" &&
             view.cards[0].kind === "letter");
-        // 使用者定案：不用按鈕、不判對錯，但要留說話的時間
-        check("each card ends with a silent turn for the child",
-            view.cue.filter(on => on).length === 3);
-        check("the cue is cleared when the sequence ends",
-            view.cue[view.cue.length - 1] === false);
         check("the run is recorded for the diagnostics file",
             events.some(e => e.type === "letter_player_started") &&
             events.some(e => e.type === "letter_player_finished" && e.detail.played === 3));
@@ -266,6 +260,58 @@
         check("stopping mid-way ends the run instead of racing on",
             result3.stopped && result3.played < 6 && !player3.isPlaying());
 
+        // ---- 中途暫停／繼續（v3.53，取代「換你唸」提示）----
+        const pausePlays = [];
+        function PauseAudio(url) {
+            const handlers = {};
+            return {
+                addEventListener: (name, fn) => { handlers[name] = fn; },
+                removeEventListener: name => { delete handlers[name]; },
+                pause: () => {},                       // 跟真的 <audio> 一樣：pause 不會觸發 ended
+                play: () => {
+                    pausePlays.push(url);
+                    setTimeoutFn(() => handlers.ended && handlers.ended(), 1);
+                    return Promise.resolve();
+                }
+            };
+        }
+        const pauseEvents = [];
+        const playerP = LP.create({
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
+            AudioCtor: PauseAudio, speechSynthesis: null, setTimeoutFn, clearTimeoutFn,
+            onEvent: type => pauseEvents.push(type)
+        });
+        const runP = playerP.play(cards(3));
+        await runTimers(4);                            // 第一張卡唸到一半
+        const pausedAt = playerP.progress().index;
+        check("pause stops the sound right away", playerP.pause() && playerP.isPaused() && playerP.isPlaying());
+        const playsWhenPaused = pausePlays.length;
+        await runTimers();
+        check("nothing plays while paused", pausePlays.length === playsWhenPaused && playerP.isPaused());
+        check("pausing twice is a no-op", playerP.pause() === false);
+        check("resume continues from the same card", playerP.resume() && !playerP.isPaused());
+        await runTimers();
+        const resultP = await runP;
+        check("after resuming the whole run still finishes, replaying the paused card",
+            !resultP.stopped && resultP.played === 3 && pausePlays.length > 9 &&
+            pausePlays[playsWhenPaused] === "audio/letters/seg/A_name.mp3" && pausedAt === 0);
+        check("pause and resume are recorded for the diagnostics file",
+            pauseEvents.indexOf("letter_player_paused") >= 0 && pauseEvents.indexOf("letter_player_resumed") >= 0);
+
+        // 暫停中老師按「結束播放」要能收掉，不能卡在暫停
+        const playerQ = LP.create({
+            studentView: fakeView(), imageBase: "images/", audioBase: "audio/",
+            AudioCtor: PauseAudio, speechSynthesis: null, setTimeoutFn, clearTimeoutFn
+        });
+        const runQ = playerQ.play(cards(3));
+        await runTimers(4);
+        playerQ.pause();
+        await runTimers();
+        playerQ.stop();
+        await runTimers();
+        const resultQ = await runQ;
+        check("stopping while paused ends the run", resultQ.stopped && !playerQ.isPlaying() && !playerQ.isPaused());
+
         // ---- 不是字母卡的項目一律不碰 ----
         const view4 = fakeView();
         const player4 = LP.create({
@@ -298,6 +344,13 @@
             return body.indexOf("letterPlayer.play(cards)") > 0 &&
                 body.slice(0, body.indexOf("letterPlayer.play(cards)")).indexOf("await") < 0;
         })());
+
+        const indexSource = await fetch("../index.html?letter-player-test=" + Date.now()).then(r => r.text());
+        check("the letter screen shows a pause button instead of the speak cue",
+            /id="svPauseBtn"/.test(indexSource) && !/svSpeakCue/.test(indexSource) && !/換你唸/.test(indexSource));
+        check("the pause button is wired to the player and removed when playback ends",
+            /studentView\.showPauseButton\(/.test(appSource) && /letterPlayer\.pause\(\)/.test(appSource) &&
+            /letterPlayer\.resume\(\)/.test(appSource) && /studentView\.hidePauseButton\(\)/.test(appSource));
 
         const failed = checks.filter(c => !c.pass);
         document.title = (failed.length ? "FAIL" : "PASS") + " - letter player smoke test";

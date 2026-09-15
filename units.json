@@ -11042,7 +11042,7 @@
                   "expect": "A apple",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 10.86,
+                    "start": 10.8,
                     "end": 16.04
                   },
                   "audio": [
@@ -11082,7 +11082,7 @@
                   "expect": "A ant",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 19.92,
+                    "start": 19.86,
                     "end": 25.1
                   },
                   "audio": [
@@ -11129,7 +11129,7 @@
                   "expect": "B banana",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 28.98,
+                    "start": 28.92,
                     "end": 34.38
                   },
                   "audio": [
@@ -11169,7 +11169,7 @@
                   "expect": "B bear",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 38.36,
+                    "start": 38.27,
                     "end": 43.4
                   },
                   "audio": [
@@ -11216,7 +11216,7 @@
                   "expect": "C cat",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 47.6,
+                    "start": 47.29,
                     "end": 51.86
                   },
                   "audio": [
@@ -11256,7 +11256,7 @@
                   "expect": "C carrot",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 56.1,
+                    "start": 55.86,
                     "end": 60.4
                   },
                   "audio": [
@@ -11303,7 +11303,7 @@
                   "expect": "D dog",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 10.9,
+                    "start": 10.84,
                     "end": 16.18
                   },
                   "audio": [
@@ -11343,7 +11343,7 @@
                   "expect": "D duck",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 20.2,
+                    "start": 20.14,
                     "end": 25.36
                   },
                   "audio": [
@@ -11390,7 +11390,7 @@
                   "expect": "E elephant",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 29.48,
+                    "start": 29.42,
                     "end": 34.74
                   },
                   "audio": [
@@ -11430,7 +11430,7 @@
                   "expect": "E egg",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 38.68,
+                    "start": 38.62,
                     "end": 43.74
                   },
                   "audio": [
@@ -11477,7 +11477,7 @@
                   "expect": "F fish",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 48.14,
+                    "start": 47.93,
                     "end": 52.62
                   },
                   "audio": [
@@ -11517,7 +11517,7 @@
                   "expect": "F fox",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 56.82,
+                    "start": 56.74,
                     "end": 61.26
                   },
                   "audio": [
@@ -11564,7 +11564,7 @@
                   "expect": "G goat",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 11.16,
+                    "start": 11.1,
                     "end": 16.48
                   },
                   "audio": [
@@ -11604,7 +11604,7 @@
                   "expect": "G girl",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 20.44,
+                    "start": 20.38,
                     "end": 25.84
                   },
                   "audio": [
@@ -11651,7 +11651,7 @@
                   "expect": "H hippo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 30.14,
+                    "start": 29.95,
                     "end": 35.14
                   },
                   "audio": [
@@ -11691,7 +11691,7 @@
                   "expect": "H hat",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 39.34,
+                    "start": 39.09,
                     "end": 44.0
                   },
                   "audio": [
@@ -11738,7 +11738,7 @@
                   "expect": "I iguana",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 48.24,
+                    "start": 48.07,
                     "end": 53.36
                   },
                   "audio": [
@@ -11778,7 +11778,7 @@
                   "expect": "I igloo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 57.44,
+                    "start": 57.33,
                     "end": 62.34
                   },
                   "audio": [
@@ -11825,7 +11825,7 @@
                   "expect": "J juice",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 10.6,
+                    "start": 10.54,
                     "end": 16.12
                   },
                   "audio": [
@@ -11865,7 +11865,7 @@
                   "expect": "J jellyfish",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 20.12,
+                    "start": 20.06,
                     "end": 25.26
                   },
                   "audio": [
@@ -11912,7 +11912,7 @@
                   "expect": "K kangaroo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 29.22,
+                    "start": 29.16,
                     "end": 34.24
                   },
                   "audio": [
@@ -11952,7 +11952,7 @@
                   "expect": "K kite",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 38.04,
+                    "start": 37.98,
                     "end": 42.68
                   },
                   "audio": [
@@ -11999,7 +11999,7 @@
                   "expect": "L lion",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 46.86,
+                    "start": 46.66,
                     "end": 51.58
                   },
                   "audio": [
@@ -12039,7 +12039,7 @@
                   "expect": "L lemon",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 55.74,
+                    "start": 55.55,
                     "end": 60.04
                   },
                   "audio": [
@@ -12086,7 +12086,7 @@
                   "expect": "M monkey",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 10.5,
+                    "start": 10.4,
                     "end": 16.16
                   },
                   "audio": [
@@ -12126,7 +12126,7 @@
                   "expect": "M melon",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 20.3,
+                    "start": 20.18,
                     "end": 25.84
                   },
                   "audio": [
@@ -12173,7 +12173,7 @@
                   "expect": "N noodles",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 29.92,
+                    "start": 29.78,
                     "end": 37.82
                   },
                   "audio": [
@@ -12213,7 +12213,7 @@
                   "expect": "N nose",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 39.76,
+                    "start": 39.62,
                     "end": 46.9
                   },
                   "audio": [
@@ -12260,7 +12260,7 @@
                   "expect": "O octopus",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 48.94,
+                    "start": 48.88,
                     "end": 54.4
                   },
                   "audio": [
@@ -12300,7 +12300,7 @@
                   "expect": "O ox",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 58.46,
+                    "start": 58.4,
                     "end": 63.86
                   },
                   "audio": [
@@ -12347,7 +12347,7 @@
                   "expect": "P panda",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 10.76,
+                    "start": 10.7,
                     "end": 16.22
                   },
                   "audio": [
@@ -12387,7 +12387,7 @@
                   "expect": "P piano",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 20.1,
+                    "start": 20.04,
                     "end": 24.84
                   },
                   "audio": [
@@ -12434,7 +12434,7 @@
                   "expect": "Q queen",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 28.9,
+                    "start": 28.7,
                     "end": 33.64
                   },
                   "audio": [
@@ -12474,7 +12474,7 @@
                   "expect": "Q question",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 37.86,
+                    "start": 37.67,
                     "end": 42.76
                   },
                   "audio": [
@@ -12521,7 +12521,7 @@
                   "expect": "R rabbit",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 47.06,
+                    "start": 46.8,
                     "end": 52.22
                   },
                   "audio": [
@@ -12561,7 +12561,7 @@
                   "expect": "R rice",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 56.16,
+                    "start": 55.98,
                     "end": 60.94
                   },
                   "audio": [
@@ -12608,7 +12608,7 @@
                   "expect": "S sun",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 10.82,
+                    "start": 10.66,
                     "end": 16.1
                   },
                   "audio": [
@@ -12648,7 +12648,7 @@
                   "expect": "S soccer",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 20.18,
+                    "start": 20.01,
                     "end": 25.9
                   },
                   "audio": [
@@ -12695,7 +12695,7 @@
                   "expect": "T tiger",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 29.7,
+                    "start": 29.64,
                     "end": 35.14
                   },
                   "audio": [
@@ -12735,7 +12735,7 @@
                   "expect": "T TV",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 38.94,
+                    "start": 38.88,
                     "end": 43.7
                   },
                   "audio": [
@@ -12782,7 +12782,7 @@
                   "expect": "U umbrella",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 47.94,
+                    "start": 47.69,
                     "end": 52.98
                   },
                   "audio": [
@@ -12822,7 +12822,7 @@
                   "expect": "U unhappy",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 57.16,
+                    "start": 56.91,
                     "end": 62.76
                   },
                   "audio": [
@@ -12869,7 +12869,7 @@
                   "expect": "V violin",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 11.12,
+                    "start": 11.06,
                     "end": 16.58
                   },
                   "audio": [
@@ -12909,7 +12909,7 @@
                   "expect": "V volleyball",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 20.66,
+                    "start": 20.57,
                     "end": 26.72
                   },
                   "audio": [
@@ -12956,7 +12956,7 @@
                   "expect": "W watch",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 30.68,
+                    "start": 30.39,
                     "end": 35.86
                   },
                   "audio": [
@@ -12996,7 +12996,7 @@
                   "expect": "W witch",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 40.14,
+                    "start": 39.88,
                     "end": 45.2
                   },
                   "audio": [
@@ -13043,7 +13043,7 @@
                   "expect": "X x-ray",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 49.72,
+                    "start": 49.45,
                     "end": 55.06
                   },
                   "audio": [
@@ -13083,7 +13083,7 @@
                   "expect": "X exercise",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 59.36,
+                    "start": 59.12,
                     "end": 64.6
                   },
                   "audio": [
@@ -13130,7 +13130,7 @@
                   "expect": "Y yo-yo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 10.34,
+                    "start": 10.28,
                     "end": 15.6
                   },
                   "audio": [
@@ -13170,7 +13170,7 @@
                   "expect": "Y yogurt",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 19.36,
+                    "start": 19.3,
                     "end": 24.04
                   },
                   "audio": [
@@ -13217,7 +13217,7 @@
                   "expect": "Z zebra",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 28.2,
+                    "start": 28.08,
                     "end": 32.88
                   },
                   "audio": [
@@ -13257,7 +13257,7 @@
                   "expect": "Z zoo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 36.78,
+                    "start": 36.72,
                     "end": 41.72
                   },
                   "audio": [
@@ -13322,7 +13322,7 @@
                   "expect": "M monkey",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 10.5,
+                    "start": 10.4,
                     "end": 16.16
                   },
                   "audio": [
@@ -13362,7 +13362,7 @@
                   "expect": "M melon",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 20.3,
+                    "start": 20.18,
                     "end": 25.84
                   },
                   "audio": [
@@ -13409,7 +13409,7 @@
                   "expect": "C cat",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 47.6,
+                    "start": 47.29,
                     "end": 51.86
                   },
                   "audio": [
@@ -13449,7 +13449,7 @@
                   "expect": "C carrot",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 56.1,
+                    "start": 55.86,
                     "end": 60.4
                   },
                   "audio": [
@@ -13496,7 +13496,7 @@
                   "expect": "T tiger",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 29.7,
+                    "start": 29.64,
                     "end": 35.14
                   },
                   "audio": [
@@ -13536,7 +13536,7 @@
                   "expect": "T TV",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 38.94,
+                    "start": 38.88,
                     "end": 43.7
                   },
                   "audio": [
@@ -13583,7 +13583,7 @@
                   "expect": "F fish",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 48.14,
+                    "start": 47.93,
                     "end": 52.62
                   },
                   "audio": [
@@ -13623,7 +13623,7 @@
                   "expect": "F fox",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 56.82,
+                    "start": 56.74,
                     "end": 61.26
                   },
                   "audio": [
@@ -13670,7 +13670,7 @@
                   "expect": "Z zebra",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 28.2,
+                    "start": 28.08,
                     "end": 32.88
                   },
                   "audio": [
@@ -13710,7 +13710,7 @@
                   "expect": "Z zoo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 36.78,
+                    "start": 36.72,
                     "end": 41.72
                   },
                   "audio": [
@@ -13757,7 +13757,7 @@
                   "expect": "I iguana",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 48.24,
+                    "start": 48.07,
                     "end": 53.36
                   },
                   "audio": [
@@ -13797,7 +13797,7 @@
                   "expect": "I igloo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 57.44,
+                    "start": 57.33,
                     "end": 62.34
                   },
                   "audio": [
@@ -13844,7 +13844,7 @@
                   "expect": "R rabbit",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 47.06,
+                    "start": 46.8,
                     "end": 52.22
                   },
                   "audio": [
@@ -13884,7 +13884,7 @@
                   "expect": "R rice",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 56.16,
+                    "start": 55.98,
                     "end": 60.94
                   },
                   "audio": [
@@ -13931,7 +13931,7 @@
                   "expect": "B banana",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 28.98,
+                    "start": 28.92,
                     "end": 34.38
                   },
                   "audio": [
@@ -13971,7 +13971,7 @@
                   "expect": "B bear",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 38.36,
+                    "start": 38.27,
                     "end": 43.4
                   },
                   "audio": [
@@ -14018,7 +14018,7 @@
                   "expect": "Y yo-yo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 10.34,
+                    "start": 10.28,
                     "end": 15.6
                   },
                   "audio": [
@@ -14058,7 +14058,7 @@
                   "expect": "Y yogurt",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_85_yz.mp3",
-                    "start": 19.36,
+                    "start": 19.3,
                     "end": 24.04
                   },
                   "audio": [
@@ -14105,7 +14105,7 @@
                   "expect": "O octopus",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 48.94,
+                    "start": 48.88,
                     "end": 54.4
                   },
                   "audio": [
@@ -14145,7 +14145,7 @@
                   "expect": "O ox",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 58.46,
+                    "start": 58.4,
                     "end": 63.86
                   },
                   "audio": [
@@ -14192,7 +14192,7 @@
                   "expect": "L lion",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 46.86,
+                    "start": 46.66,
                     "end": 51.58
                   },
                   "audio": [
@@ -14232,7 +14232,7 @@
                   "expect": "L lemon",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 55.74,
+                    "start": 55.55,
                     "end": 60.04
                   },
                   "audio": [
@@ -14279,7 +14279,7 @@
                   "expect": "E elephant",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 29.48,
+                    "start": 29.42,
                     "end": 34.74
                   },
                   "audio": [
@@ -14319,7 +14319,7 @@
                   "expect": "E egg",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 38.68,
+                    "start": 38.62,
                     "end": 43.74
                   },
                   "audio": [
@@ -14366,7 +14366,7 @@
                   "expect": "W watch",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 30.68,
+                    "start": 30.39,
                     "end": 35.86
                   },
                   "audio": [
@@ -14406,7 +14406,7 @@
                   "expect": "W witch",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 40.14,
+                    "start": 39.88,
                     "end": 45.2
                   },
                   "audio": [
@@ -14453,7 +14453,7 @@
                   "expect": "A apple",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 10.86,
+                    "start": 10.8,
                     "end": 16.04
                   },
                   "audio": [
@@ -14493,7 +14493,7 @@
                   "expect": "A ant",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_12_abc.mp3",
-                    "start": 19.92,
+                    "start": 19.86,
                     "end": 25.1
                   },
                   "audio": [
@@ -14540,7 +14540,7 @@
                   "expect": "S sun",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 10.82,
+                    "start": 10.66,
                     "end": 16.1
                   },
                   "audio": [
@@ -14580,7 +14580,7 @@
                   "expect": "S soccer",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 20.18,
+                    "start": 20.01,
                     "end": 25.9
                   },
                   "audio": [
@@ -14627,7 +14627,7 @@
                   "expect": "G goat",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 11.16,
+                    "start": 11.1,
                     "end": 16.48
                   },
                   "audio": [
@@ -14667,7 +14667,7 @@
                   "expect": "G girl",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 20.44,
+                    "start": 20.38,
                     "end": 25.84
                   },
                   "audio": [
@@ -14714,7 +14714,7 @@
                   "expect": "N noodles",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 29.92,
+                    "start": 29.78,
                     "end": 37.82
                   },
                   "audio": [
@@ -14754,7 +14754,7 @@
                   "expect": "N nose",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_49_mno.mp3",
-                    "start": 39.76,
+                    "start": 39.62,
                     "end": 46.9
                   },
                   "audio": [
@@ -14801,7 +14801,7 @@
                   "expect": "X x-ray",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 49.72,
+                    "start": 49.45,
                     "end": 55.06
                   },
                   "audio": [
@@ -14841,7 +14841,7 @@
                   "expect": "X exercise",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 59.36,
+                    "start": 59.12,
                     "end": 64.6
                   },
                   "audio": [
@@ -14888,7 +14888,7 @@
                   "expect": "D dog",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 10.9,
+                    "start": 10.84,
                     "end": 16.18
                   },
                   "audio": [
@@ -14928,7 +14928,7 @@
                   "expect": "D duck",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_21_def.mp3",
-                    "start": 20.2,
+                    "start": 20.14,
                     "end": 25.36
                   },
                   "audio": [
@@ -14975,7 +14975,7 @@
                   "expect": "U umbrella",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 47.94,
+                    "start": 47.69,
                     "end": 52.98
                   },
                   "audio": [
@@ -15015,7 +15015,7 @@
                   "expect": "U unhappy",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_69_stu.mp3",
-                    "start": 57.16,
+                    "start": 56.91,
                     "end": 62.76
                   },
                   "audio": [
@@ -15062,7 +15062,7 @@
                   "expect": "K kangaroo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 29.22,
+                    "start": 29.16,
                     "end": 34.24
                   },
                   "audio": [
@@ -15102,7 +15102,7 @@
                   "expect": "K kite",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 38.04,
+                    "start": 37.98,
                     "end": 42.68
                   },
                   "audio": [
@@ -15149,7 +15149,7 @@
                   "expect": "P panda",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 10.76,
+                    "start": 10.7,
                     "end": 16.22
                   },
                   "audio": [
@@ -15189,7 +15189,7 @@
                   "expect": "P piano",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 20.1,
+                    "start": 20.04,
                     "end": 24.84
                   },
                   "audio": [
@@ -15236,7 +15236,7 @@
                   "expect": "H hippo",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 30.14,
+                    "start": 29.95,
                     "end": 35.14
                   },
                   "audio": [
@@ -15276,7 +15276,7 @@
                   "expect": "H hat",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_30_ghi.mp3",
-                    "start": 39.34,
+                    "start": 39.09,
                     "end": 44.0
                   },
                   "audio": [
@@ -15323,7 +15323,7 @@
                   "expect": "V violin",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 11.12,
+                    "start": 11.06,
                     "end": 16.58
                   },
                   "audio": [
@@ -15363,7 +15363,7 @@
                   "expect": "V volleyball",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_77_vwx.mp3",
-                    "start": 20.66,
+                    "start": 20.57,
                     "end": 26.72
                   },
                   "audio": [
@@ -15410,7 +15410,7 @@
                   "expect": "J juice",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 10.6,
+                    "start": 10.54,
                     "end": 16.12
                   },
                   "audio": [
@@ -15450,7 +15450,7 @@
                   "expect": "J jellyfish",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_41_jkl.mp3",
-                    "start": 20.12,
+                    "start": 20.06,
                     "end": 25.26
                   },
                   "audio": [
@@ -15497,7 +15497,7 @@
                   "expect": "Q queen",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 28.9,
+                    "start": 28.7,
                     "end": 33.64
                   },
                   "audio": [
@@ -15537,7 +15537,7 @@
                   "expect": "Q question",
                   "clip": {
                     "file": "letters/pearson/gogo_sb1_57_pqr.mp3",
-                    "start": 37.86,
+                    "start": 37.67,
                     "end": 42.76
                   },
                   "audio": [

@@ -250,6 +250,7 @@
         function hideActualImage() {
             setBubbles(null);
             if (!elements.image) return;
+            elements.image.style.visibility = 'visible';   // showCard 等圖時會藏起來，換別的顯示路徑要復原
             elements.image.style.display = 'none';
             elements.image.removeAttribute('src');
             elements.image.removeAttribute('aria-busy');
@@ -392,15 +393,64 @@
                 if (elements.placeholder) elements.placeholder.style.display = 'none';
                 if (elements.imageStatus) elements.imageStatus.style.display = 'none';
                 if (elements.image) {
-                    elements.image.src = data.imageUrl;
-                    elements.image.style.display = 'block';
-                    elements.image.removeAttribute('aria-busy');
+                    // 2026-09-15 使用者回報：字母課唸 banana 時畫面還是 apple。
+                    // 換 src 之後瀏覽器在新圖下載完之前會繼續畫舊圖，聲音卻已經往下走了。
+                    // 所以新圖還沒好就先藏起來（佔位不跳版），載好才顯示；呼叫端可以等 whenCardImageReady()。
+                    const img = elements.image;
+                    const version = state.contentVersion;
+                    const alreadyThere = img.getAttribute('src') === data.imageUrl && img.complete && img.naturalWidth > 0;
+                    img.style.display = 'block';
+                    if (alreadyThere) {
+                        img.style.visibility = 'visible';
+                        img.removeAttribute('aria-busy');
+                        state.cardImageLoaded = true;
+                        state.cardImageReady = Promise.resolve(true);
+                    } else {
+                        img.style.visibility = 'hidden';
+                        img.setAttribute('aria-busy', 'true');
+                        state.cardImageLoaded = false;
+                        state.cardImageReady = new Promise(resolve => {
+                            const done = ok => {
+                                img.removeEventListener('load', onLoad);
+                                img.removeEventListener('error', onError);
+                                if (version === state.contentVersion) {
+                                    img.style.visibility = 'visible';
+                                    img.removeAttribute('aria-busy');
+                                    state.cardImageLoaded = true;
+                                }
+                                resolve(ok);
+                            };
+                            const onLoad = () => done(true);
+                            const onError = () => done(false);
+                            img.addEventListener('load', onLoad);
+                            img.addEventListener('error', onError);
+                        });
+                        img.src = data.imageUrl;
+                    }
                 }
                 setBubbles(data.bubbles || null);
             } else {
                 invalidateImage(data.icon || '🎧', "");
+                state.cardImageLoaded = true;
+                state.cardImageReady = Promise.resolve(true);
             }
             return state.contentVersion;
+        }
+
+        // 目前這張卡的圖好了沒（同步）。好了就不必 await，保住「使用者那一下」直接觸發播放。
+        function cardImageIsReady() {
+            return state.cardImageLoaded !== false;
+        }
+
+        // 等目前這張卡的圖載好；逾時回 false（照樣往下，不讓整堂卡住）
+        function whenCardImageReady(timeoutMs) {
+            const ready = state.cardImageReady || Promise.resolve(true);
+            if (!timeoutMs) return ready;
+            return new Promise(resolve => {
+                let finished = false;
+                const handle = setTimer(() => { if (!finished) { finished = true; resolve(false); } }, timeoutMs);
+                ready.then(ok => { if (!finished) { finished = true; clearTimer(handle); resolve(ok); } });
+            });
         }
 
         function retryUrl(url) {
@@ -543,6 +593,8 @@
             hideTopics,
             showWord,
             showCard,
+            cardImageIsReady,
+            whenCardImageReady,
             showTap,
             showPauseButton,
             setPaused,

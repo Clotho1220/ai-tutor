@@ -19,6 +19,9 @@
     const DEFAULT_PAUSE = 1500;
     const MAX_PAUSE = 1500;
     const GAP = 400;                 // 換卡之間的空隙，不要一句接一句
+    // 換卡後最多等圖多久才開始唸（v3.54）。圖沒到就唸，孩子看到的是上一張的圖（使用者 9/15 回報 banana 配 apple）。
+    // 課前已經把整輪的圖下載好，正常一張都不用等；這是網路很慢時的保險，逾時照唸、記進診斷檔。
+    const IMAGE_WAIT = 4000;
     const SEGMENT_GAP = 700;         // 字母名／音／單字三段之間的停頓（原本寫在 TTS 裡的 <break>）
 
     function create(options) {
@@ -304,6 +307,20 @@
                 state.index = i;
                 log(`🔤 [${i + 1}/${cards.length}] ${item.letter}　${item.target}`);
                 show(item);
+                // 圖還沒好就先等：聲音跟畫面一定要是同一張卡。已經好了就不 await（保住點擊當下直接出聲）
+                if (studentView && studentView.cardImageIsReady && !studentView.cardImageIsReady()) {
+                    const waitStarted = Date.now();
+                    const ready = await studentView.whenCardImageReady(IMAGE_WAIT);
+                    const waited = Date.now() - waitStarted;
+                    if (!state.running) break;
+                    if (!ready) {
+                        record("letter_image_timeout", { index: i, image: item.image, waitedMs: waited });
+                        log(`🐢 第 ${i + 1} 張的圖 ${Math.round(waited / 100) / 10} 秒還沒載好，先唸。`);
+                    } else if (waited > 300) {
+                        record("letter_image_waited", { index: i, image: item.image, waitedMs: waited });
+                    }
+                    if (state.paused) continue;
+                }
                 let spoken = 0;
                 try { spoken = await speakCard(item); } catch (e) { spoken = 0; }
                 if (!state.running) break;

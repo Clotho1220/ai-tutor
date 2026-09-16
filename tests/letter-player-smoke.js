@@ -312,6 +312,43 @@
         const resultQ = await runQ;
         check("stopping while paused ends the run", resultQ.stopped && !playerQ.isPlaying() && !playerQ.isPaused());
 
+        // ---- 圖還沒載好不能先唸（v3.54：使用者回報唸 banana 時圖還是 apple）----
+        const imgPlays = [];
+        function ImgAudio(url) {
+            const handlers = {};
+            return {
+                addEventListener: (name, fn) => { handlers[name] = fn; },
+                removeEventListener: name => { delete handlers[name]; },
+                pause: () => {},
+                play: () => { imgPlays.push(url); setTimeoutFn(() => handlers.ended && handlers.ended(), 1); return Promise.resolve(); }
+            };
+        }
+        const slowView = fakeView();
+        let releaseImage = null;
+        let imageReady = true;
+        const imgEvents = [];
+        slowView.showCard = card => { slowView.cards.push(card); imageReady = slowView.cards.length === 1; };
+        slowView.cardImageIsReady = () => imageReady;
+        slowView.whenCardImageReady = () => new Promise(resolve => { releaseImage = ok => { imageReady = true; resolve(ok); }; });
+        const playerI = LP.create({
+            studentView: slowView, imageBase: "images/", audioBase: "audio/",
+            AudioCtor: ImgAudio, speechSynthesis: null, setTimeoutFn, clearTimeoutFn,
+            onEvent: (type, detail) => imgEvents.push({ type, detail })
+        });
+        const runI = playerI.play(cards(2));
+        await runTimers();                             // 第 1 張圖本來就好了；第 2 張卡在等圖
+        const playsBeforeImage = imgPlays.length;
+        check("a card whose picture is already there plays right away", playsBeforeImage === 3);
+        check("the next card waits for its picture before speaking",
+            slowView.cards.length === 2 && typeof releaseImage === "function" && playerI.isPlaying());
+        releaseImage(false);                           // 模擬逾時：照唸，但記下來
+        await runTimers();
+        const resultI = await runI;
+        check("after the picture arrives (or times out) the card is spoken",
+            resultI.played === 2 && imgPlays.length === 6);
+        check("a picture timeout is recorded for the diagnostics file",
+            imgEvents.some(e => e.type === "letter_image_timeout" && e.detail.index === 1));
+
         // ---- 不是字母卡的項目一律不碰 ----
         const view4 = fakeView();
         const player4 = LP.create({
@@ -345,6 +382,12 @@
                 body.slice(0, body.indexOf("letterPlayer.play(cards)")).indexOf("await") < 0;
         })());
 
+        check("all letter pictures are downloaded before the start button appears", (function () {
+            const body = appSource.split("async function startLetterPlayerSession")[1].split("function finishLetterPlayer")[0];
+            const pre = body.indexOf("await preloadLetterImages(cards");
+            const start = body.indexOf("studentView.showStartButton(");
+            return pre > 0 && start > pre && /letterImageCache = images;/.test(appSource);
+        })());
         const indexSource = await fetch("../index.html?letter-player-test=" + Date.now()).then(r => r.text());
         check("the letter screen shows a pause button instead of the speak cue",
             /id="svPauseBtn"/.test(indexSource) && !/svSpeakCue/.test(indexSource) && !/換你唸/.test(indexSource));

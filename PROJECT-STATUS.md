@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
-最後更新：2026-09-15  
-目前版本：v3.53  
+最後更新：2026-09-16  
+目前版本：v3.54  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -87,13 +87,36 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.53`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.54`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - 每堂的 `prompts`（v3.50）：實際送出的系統提示、工具定義、每題導演指令、指令更新（含原因），
   同一份文字只存一次（雜湊識別）。設定頁「🧾 本堂 AI 指令」可直接看。
 - 每次回報都留原始紀錄（`item_report_raw`），只有通過驗證的進 `item_result`；協定錯誤記 `plan_report_protocol_error`。
 
 ## 3. 最近完成的重要修正
+
+### v3.54
+
+2026-09-16。使用者回報字母課「大問題」：**圖來不及下載，唸 banana 時圖片還是 apple**。
+
+- **症狀**：聲音已經換到下一張卡，畫面還停在上一張的圖；網路慢的時候連續好幾張對不上。
+- **根因**（兩層）：
+  1. `studentView.showCard()` 換 `<img>` 的 src 後立刻回來，`letter-player.js` 馬上開始播聲音。
+     瀏覽器在新圖下載完之前**會繼續畫舊圖**，所以聲音是 banana、畫面還是 apple。
+  2. 課前的「預載」只是 `new Image().src = …` 丟出去就不管：沒有等下載完、也沒有留參照，
+     孩子按 ▶ 開始的時候後面幾十張可能根本還沒抓。字母卡 52 張約 2.2 MB，手機網路慢就追不上每張 ~7 秒的節奏。
+- **修法**：
+  - `student-view.js`：換卡時新圖還沒載好就**先把圖藏起來（保留版面）**，載好才顯示——舊圖絕不會配到新卡的聲音。
+    新增 `cardImageIsReady()`（同步）與 `whenCardImageReady(timeout)`。圖壞掉會回 false，不會卡住。
+  - `letter-player.js`：每張卡 `show()` 之後，圖還沒好就等（最多 4 秒）再唸。已經好了就不 await，
+    保住「▶ 開始那一下直接出聲」。逾時照唸並記 `letter_image_timeout`；等超過 0.3 秒記 `letter_image_waited`。
+  - `app.js` 字母課：▶ 開始按鈕出現**之前**先把整輪的圖下載並 `decode()` 好（最多 15 秒，留參照在 `letterImageCache`），
+    System Log 顯示「字母卡圖片 N/52 張已下載（X 秒）」，診斷檔記 `letter_images_preloaded`。
+  - 一般課的 `showCard` 走同一段，一樣不會再出現「舊圖配新題」。
+- **如何驗證**：`letter-player-smoke` 加 4 條（圖好了立刻唸、圖沒好先等、逾時照唸並記錄、課前下載在 ▶ 開始之前）；
+  `student-view-smoke` 加 5 條（用真的 `<img>` 載 data URI：載好前藏起來、下一張不會露出舊圖、同圖不必等、壞圖不卡住）。
+  瀏覽器用節流網路實際跑字母課，量每張卡「圖顯示」與「聲音開始」的先後。
+- 診斷檔要看：`letter_images_preloaded.ms`／`timedOut`、`letter_image_timeout` 次數。
 
 ### v3.53
 

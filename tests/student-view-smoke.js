@@ -124,6 +124,27 @@
     controller.beginTranscriptTurn();
     check('new transcript turn clears old text', controller.transcriptText() === '');
 
+    // v3.54：換卡時新圖還沒載好，舊圖不能留在畫面上（字母課唸 banana 時圖還是 apple）
+    const cardImage = document.getElementById('svImage');
+    const tinyPng = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+    const tinyPng2 = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==';
+    const cardController = StudentView.create({ document, ImageCtor: FakeImage, setTimeoutFn: setTimeout.bind(window), clearTimeoutFn: clearTimeout.bind(window) });
+    cardController.showCard({ imageUrl: tinyPng, word: 'Aa', kind: 'letter' });
+    const hiddenWhileLoading = cardImage.style.visibility === 'hidden' && !cardController.cardImageIsReady();
+    const firstReady = await cardController.whenCardImageReady(3000);
+    check('a new card picture stays hidden until it has loaded', hiddenWhileLoading && firstReady &&
+        cardImage.style.visibility === 'visible' && cardController.cardImageIsReady());
+    cardController.showCard({ imageUrl: tinyPng2, word: 'Bb', kind: 'letter' });
+    check('the previous card picture is never shown with the next card',
+        cardImage.style.visibility === 'hidden' && cardImage.getAttribute('src') === tinyPng2);
+    await cardController.whenCardImageReady(3000);
+    cardController.showCard({ imageUrl: tinyPng2, word: 'Bb', kind: 'letter' });
+    check('showing the same already-loaded picture is ready immediately',
+        cardController.cardImageIsReady() && cardImage.style.visibility === 'visible');
+    cardController.showCard({ imageUrl: 'data:image/png;base64,broken', word: 'Cc', kind: 'letter' });
+    check('a broken picture resolves as not ready instead of hanging', (await cardController.whenCardImageReady(3000)) === false);
+    cardController.reset();
+
     const appSource = await fetch('../app.js?student-view-test=' + Date.now()).then(response => response.text());
     const indexSource = await fetch('../index.html?student-view-test=' + Date.now()).then(response => response.text());
     check('home provides a return-to-student-view button',

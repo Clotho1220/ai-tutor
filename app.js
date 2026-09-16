@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.53";
+const APP_VERSION = "3.54";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1774,6 +1774,26 @@ let letterPlayerActive = false;
 let letterPlayerStarted = false;      // 孩子按了 ▶ 開始沒有
 let letterPlayerWaiting = null;       // 還在等 ▶ 開始時，老師按結束要能放掉那個 await
 let letterAudioElement = null;
+let letterImageCache = [];            // 課前下載好的字母卡圖（留著參照，瀏覽器才不會丟掉）
+
+// 課前把整輪的字母卡圖下載並解碼好（v3.54）。
+// 2026-09-15 使用者回報：唸 banana 時圖還是 apple——原本只是 new Image().src 丟出去不等，
+// 手機網路慢的時候孩子按 ▶ 開始，前幾十張的圖根本還沒到。
+function preloadLetterImages(cards, timeoutMs) {
+    const started = Date.now();
+    const names = [...new Set(cards.map(item => item.image).filter(Boolean))];
+    const images = names.map(name => { const img = new Image(); img.src = "images/" + name; return img; });
+    letterImageCache = images;
+    const loaded = images.map(img => (typeof img.decode === 'function'
+        ? img.decode()
+        : new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; }))
+        .then(() => true, () => false));
+    const all = Promise.all(loaded).then(results => ({ ok: results.filter(Boolean).length, timedOut: false }));
+    const timeout = new Promise(resolve => setTimeout(() => resolve({
+        ok: images.filter(img => img.complete && img.naturalWidth > 0).length, timedOut: true
+    }), timeoutMs));
+    return Promise.race([all, timeout]).then(result => Object.assign(result, { total: images.length, ms: Date.now() - started }));
+}
 
 // 手機與桌機 Chrome 只允許「使用者那一下」直接觸發的播放。播放器是在
 // 好幾個 await 之後才要放第一段旁白，那時已經不算使用者手勢，整堂課會一點聲音都沒有。
@@ -1852,7 +1872,6 @@ async function startLetterPlayerSession() {
     const label = `${unit.book} Unit ${unit.num}: ${unit.title}`;
     sessionDiagnostics.updateMetadata({ unit: label, planItems: cards.length });
     logSystem(`🔤 播放模式：${label}，整輪 ${cards.length} 張卡（不連線、每次從頭）。`);
-    cards.forEach(item => { new Image().src = "images/" + item.image; });
 
     studentView.reset();
     letterPlayerActive = true;
@@ -1884,6 +1903,13 @@ async function startLetterPlayerSession() {
     // 「開始連線」那一下離這裡隔了好幾個 await，2026-09-10 實測手機上整堂無聲。
     studentView.showCard({ imageUrl: cards[0] ? "images/" + cards[0].image : "",
                            word: cards[0] ? cards[0].letter : "", meaning: "", kind: "letter", icon: "🔤" });
+    // ▶ 開始 之前先把整輪的圖下載好（最多等 15 秒）。這段 await 在按鈕出現之前，
+    // 不影響「第一段旁白要在 ▶ 開始那一下裡直接播」。
+    logSystem(`🖼️ 下載字母卡圖片中（${cards.length} 張）…`);
+    const images = await preloadLetterImages(cards, 15000);
+    sessionDiagnostics.record("letter_images_preloaded", images);
+    logSystem(`🖼️ 字母卡圖片 ${images.ok}/${images.total} 張已下載（${(images.ms / 1000).toFixed(1)} 秒${images.timedOut ? "，逾時先開始，沒到的圖會在換卡時再等" : ""}）。`);
+    if (!letterPlayerActive) return true;          // 下載期間老師按了「結束播放」
     const result = await new Promise(resolve => {
         studentView.showStartButton(() => {
             // AudioContext 要在使用者那一下裡 resume 才會出聲（跟「開始連線」那顆一樣）
@@ -1916,6 +1942,7 @@ function finishLetterPlayer() {
     studentView.hideStartButton();
     studentView.hidePauseButton();
     letterPlayer = null;
+    letterImageCache = [];
     letterPlayerActive = false;
     letterPlayerStarted = false;
     document.body.classList.remove('student-mode');

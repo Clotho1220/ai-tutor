@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.55";
+const APP_VERSION = "3.56";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1776,31 +1776,62 @@ let letterPlayerWaiting = null;       // 還在等 ▶ 開始時，老師按結�
 let letterAudioElement = null;
 let letterImageCache = [];            // 課前下載好的字母卡圖（留著參照，瀏覽器才不會丟掉）
 
-// 課前把整輪的字母卡圖下載並解碼好（v3.54）。
-// 2026-09-15 使用者回報：唸 banana 時圖還是 apple——原本只是 new Image().src 丟出去不等，
-// 手機網路慢的時候孩子按 ▶ 開始，前幾十張的圖根本還沒到。
-function preloadLetterImages(cards, timeoutMs) {
+// 課前下載字母卡圖（v3.54 → v3.56）。
+// 2026-09-15 使用者回報：唸 banana 時圖還是 apple。v3.54 讓換卡等圖好才唸，保證不錯位；
+// v3.56 在正式站量到真正的瓶頸：GitHub Pages 單張 45 KB 要 ~0.9 秒，52 張同時開抓（加上 9 條音軌 ~9 MB 一起搶）
+// 後面的圖要排 15～25 秒，15 秒內只到 9 張。所以：
+//   • 照卡片順序、一次 3 張下載——前面的卡先到，不是 52 張一起卡住
+//   • 前 6 張到了就回來（讓 ▶ 開始出現），其餘在背景繼續抓；播放一張 ~7 秒，下載一張 ~1 秒，一路領先
+//   • 用 load／error 事件判斷，不用圖片的 decode 方法（分頁不在前景時它不回應，v3.55）；監聽掛在設 src 之前
+function preloadLetterImages(cards, options) {
+    const opts = Object.assign({ first: 6, concurrency: 3, timeoutMs: 15000 }, options || {});
     const started = Date.now();
     const names = [...new Set(cards.map(item => item.image).filter(Boolean))];
-    // 用 load／error 事件判斷，不用圖片的 decode 方法：v3.54 實測它在分頁不在前景時
-    // 一直不回應（52 張明明都下載好了），結果每堂都空等滿 15 秒才出現 ▶ 開始。
-    // 監聽要在設 src 之前掛上，快取裡的圖才不會在掛上之前就 load 完而漏接。
-    const loaded = [];
-    const images = names.map(name => {
-        const img = new Image();
-        loaded.push(new Promise(resolve => {
+    const images = new Array(names.length);
+    const results = new Array(names.length);
+    letterImageCache = images;                       // 結束播放時會換掉，背景下載就停
+    const firstCount = Math.min(opts.first, names.length);
+    let resolveFirst = null;
+    const firstReady = new Promise(resolve => { resolveFirst = resolve; });
+    // 逐格檢查：results 是 new Array(n) 的空洞陣列，every／filter 會跳過空洞，第 1 張到就誤判「前 6 張齊了」
+    const checkFirst = () => {
+        for (let i = 0; i < firstCount; i++) if (results[i] === undefined) return;
+        resolveFirst("ok");
+    };
+    if (!firstCount) resolveFirst("ok");
+
+    function loadOne(index) {
+        return new Promise(resolve => {
+            const img = new Image();
+            images[index] = img;
             img.addEventListener('load', () => resolve(true), { once: true });
             img.addEventListener('error', () => resolve(false), { once: true });
-        }));
-        img.src = "images/" + name;
-        return img;
+            img.src = "images/" + names[index];
+        }).then(ok => { results[index] = ok; checkFirst(); return ok; });
+    }
+
+    let next = 0;
+    const workers = Array.from({ length: Math.max(1, opts.concurrency) }, async () => {
+        while (next < names.length && letterImageCache === images) {
+            await loadOne(next++);
+        }
     });
-    letterImageCache = images;
-    const all = Promise.all(loaded).then(results => ({ ok: results.filter(Boolean).length, timedOut: false }));
-    const timeout = new Promise(resolve => setTimeout(() => resolve({
-        ok: images.filter(img => img.complete && img.naturalWidth > 0).length, timedOut: true
-    }), timeoutMs));
-    return Promise.race([all, timeout]).then(result => Object.assign(result, { total: images.length, ms: Date.now() - started }));
+    Promise.all(workers).then(() => {
+        if (letterImageCache !== images) return;
+        const all = { ok: results.filter(Boolean).length, total: names.length, ms: Date.now() - started };
+        sessionDiagnostics.record("letter_images_all_loaded", all);
+        logSystem(`🖼️ 整輪字母卡圖 ${all.ok}/${all.total} 張都下載好了（${(all.ms / 1000).toFixed(1)} 秒）。`);
+    });
+
+    const timeout = new Promise(resolve => setTimeout(() => resolve("timeout"), opts.timeoutMs));
+    return Promise.race([firstReady, timeout]).then(outcome => ({
+        first: firstCount,
+        firstOk: results.slice(0, firstCount).filter(Boolean).length,
+        loadedSoFar: results.filter(Boolean).length,
+        total: names.length,
+        ms: Date.now() - started,
+        timedOut: outcome === "timeout"
+    }));
 }
 
 // 手機與桌機 Chrome 只允許「使用者那一下」直接觸發的播放。播放器是在
@@ -1903,8 +1934,6 @@ async function startLetterPlayerSession() {
         onLog: logSystem,
         onEvent: (type, detail) => sessionDiagnostics.record(type, detail)
     });
-    // 課前先解好今天的段落，播的時候零等待（順便驗證檔案抓得到）
-    letterPlayer.preload(cards).then(n => logSystem("🔉 旁白預先解碼 " + n + "/" + cards.length + " 段。"));
     // 第一段旁白一定要在孩子（或老師）親手按的那一下裡直接播：
     // play() 到第一次 audio.play() 之前沒有任何 await，所以在 click handler 裡
     // 同步呼叫它，第一段就是手勢觸發的；之後同一個元素接著播就都被允許。
@@ -1913,11 +1942,15 @@ async function startLetterPlayerSession() {
                            word: cards[0] ? cards[0].letter : "", meaning: "", kind: "letter", icon: "🔤" });
     // ▶ 開始 之前先把整輪的圖下載好（最多等 15 秒）。這段 await 在按鈕出現之前，
     // 不影響「第一段旁白要在 ▶ 開始那一下裡直接播」。
-    logSystem(`🖼️ 下載字母卡圖片中（${cards.length} 張）…`);
-    const images = await preloadLetterImages(cards, 15000);
+    logSystem(`🖼️ 下載字母卡圖片中（先等前 6 張，其餘背景繼續）…`);
+    const images = await preloadLetterImages(cards, { first: 6, concurrency: 3, timeoutMs: 15000 });
     sessionDiagnostics.record("letter_images_preloaded", images);
-    logSystem(`🖼️ 字母卡圖片 ${images.ok}/${images.total} 張已下載（${(images.ms / 1000).toFixed(1)} 秒${images.timedOut ? "，逾時先開始，沒到的圖會在換卡時再等" : ""}）。`);
+    logSystem(`🖼️ 前 ${images.first} 張字母卡圖 ${images.firstOk} 張已下載（${(images.ms / 1000).toFixed(1)} 秒` +
+        `${images.timedOut ? "，逾時先開始，沒到的圖會在換卡時再等" : ""}）；其餘 ${images.total - images.loadedSoFar} 張背景下載中。`);
     if (!letterPlayerActive) return true;          // 下載期間老師按了「結束播放」
+    // 旁白音軌（9 條共 ~9 MB）等開頭的圖到了才開始預先解碼，不跟前幾張圖搶網路。
+    // 沒解完的那條，播到時播放器自己會抓（decode 有快取）。
+    letterPlayer.preload(cards).then(n => logSystem("🔉 旁白預先解碼 " + n + "/" + cards.length + " 段。"));
     const result = await new Promise(resolve => {
         studentView.showStartButton(() => {
             // AudioContext 要在使用者那一下裡 resume 才會出聲（跟「開始連線」那顆一樣）

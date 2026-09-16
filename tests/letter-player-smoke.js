@@ -382,7 +382,18 @@
                 body.slice(0, body.indexOf("letterPlayer.play(cards)")).indexOf("await") < 0;
         })());
 
-        check("all letter pictures are downloaded before the start button appears", (function () {
+        // v3.56：正式站 52 張同時開抓，15 秒只到 9 張——要照順序、限量，先等前幾張
+        check("pictures download in card order a few at a time, and the start waits only for the first ones",
+            /first: 6, concurrency: 3/.test(appSource) &&
+            /while \(next < names\.length && letterImageCache === images\)/.test(appSource));
+        check("waiting for the first pictures checks every slot (sparse arrays skip holes)",
+            /for \(let i = 0; i < firstCount; i\+\+\) if \(results\[i\] === undefined\) return;/.test(appSource) &&
+            !/results\.slice\(0, firstCount\)\.every/.test(appSource));
+        check("the audio tracks start preloading only after the first pictures arrived", (function () {
+            const body = appSource.split("async function startLetterPlayerSession")[1].split("function finishLetterPlayer")[0];
+            return body.indexOf("letterPlayer.preload(cards)") > body.indexOf("await preloadLetterImages(cards");
+        })());
+        check("the first letter pictures are downloaded before the start button appears", (function () {
             const body = appSource.split("async function startLetterPlayerSession")[1].split("function finishLetterPlayer")[0];
             const pre = body.indexOf("await preloadLetterImages(cards");
             const start = body.indexOf("studentView.showStartButton(");

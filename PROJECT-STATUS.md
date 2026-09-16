@@ -1,7 +1,7 @@
 # AI Tutor Studio 開發進度
 
 最後更新：2026-09-16  
-目前版本：v3.54  
+目前版本：v3.55  
 正式入口：<https://clotho1220.github.io/ai-tutor/>
 
 ## 1. 專案目標
@@ -87,13 +87,25 @@ AI Tutor Studio 是以 6–8 歲兒童為主要使用者的中英雙語語音家
 
 ### 診斷與版本確認
 
-- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.54`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
+- 設定頁顯示版本號，目前為 `AI Tutor Studio v3.55`。版本號的唯一來源是 `app.js` 的 `APP_VERSION`，`index.html` 的 `#appVersion` 為部署標記，兩處必須一起更新。
 - 可匯出最近課堂診斷 JSON，內容包含模型、學員、單元、階段、逐字稿、延遲、工具呼叫及異常事件。
 - 每堂的 `prompts`（v3.50）：實際送出的系統提示、工具定義、每題導演指令、指令更新（含原因），
   同一份文字只存一次（雜湊識別）。設定頁「🧾 本堂 AI 指令」可直接看。
 - 每次回報都留原始紀錄（`item_report_raw`），只有通過驗證的進 `item_result`；協定錯誤記 `plan_report_protocol_error`。
 
 ## 3. 最近完成的重要修正
+
+### v3.55
+
+2026-09-16，v3.54 推上線後自己量到的問題（使用者還沒遇到）。
+
+- **症狀**：字母課按「開始連線」後，要**空等 15 秒**才出現 ▶ 開始；System Log 寫「52/52 張已下載（15.0 秒，逾時先開始）」。
+- **根因**：v3.54 的 `preloadLetterImages()` 用 `img.decode()` 等圖。實測 52 張圖 `complete` 都是 true，
+  但 52 個 `decode()` promise 3 秒後仍全部 pending——`decode()` 在分頁不在前景（預覽分頁、手機切到背景）時不回應，
+  於是每次都等到 15 秒逾時。
+- **修法**：改用 `load`／`error` 事件判斷，而且監聽**在設 `src` 之前**掛上（快取裡的圖可能在掛上之前就 load 完）。
+- **如何驗證**：同一個瀏覽器環境重跑預載，量秒數與 52/52；`letter-player-smoke` 加一條「預載不准用 decode()、
+  load 監聽要在 src 之前」。
 
 ### v3.54
 

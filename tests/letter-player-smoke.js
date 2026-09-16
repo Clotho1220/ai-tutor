@@ -388,6 +388,12 @@
             const start = body.indexOf("studentView.showStartButton(");
             return pre > 0 && start > pre && /letterImageCache = images;/.test(appSource);
         })());
+        // v3.55：decode() 在分頁不在前景時不回應，預載會空等到逾時
+        check("picture preloading waits on load events, never on img.decode()", (function () {
+            const fn = (appSource.match(/function preloadLetterImages[\s\S]*?\n\}/) || [""])[0];
+            return fn && !/\.decode\(\)/.test(fn) && /addEventListener\('load'/.test(fn) &&
+                fn.indexOf("addEventListener('load'") < fn.indexOf('img.src = "images/"');
+        })());
         const indexSource = await fetch("../index.html?letter-player-test=" + Date.now()).then(r => r.text());
         check("the letter screen shows a pause button instead of the speak cue",
             /id="svPauseBtn"/.test(indexSource) && !/svSpeakCue/.test(indexSource) && !/換你唸/.test(indexSource));

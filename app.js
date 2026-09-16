@@ -17,7 +17,7 @@
 const GAS_URL = "";
 // 版本號的唯一來源。index.html 的 #appVersion 只是部署標記，兩處必須一起更新
 // （更新檢查會比對兩者）。
-const APP_VERSION = "3.54";
+const APP_VERSION = "3.55";
 
 let currentToken = null; // 本場課程的臨時憑證（有效期內斷線重連沿用同一張）
 
@@ -1782,12 +1782,20 @@ let letterImageCache = [];            // 課前下載好的字母卡圖（留著
 function preloadLetterImages(cards, timeoutMs) {
     const started = Date.now();
     const names = [...new Set(cards.map(item => item.image).filter(Boolean))];
-    const images = names.map(name => { const img = new Image(); img.src = "images/" + name; return img; });
+    // 用 load／error 事件判斷，不用圖片的 decode 方法：v3.54 實測它在分頁不在前景時
+    // 一直不回應（52 張明明都下載好了），結果每堂都空等滿 15 秒才出現 ▶ 開始。
+    // 監聽要在設 src 之前掛上，快取裡的圖才不會在掛上之前就 load 完而漏接。
+    const loaded = [];
+    const images = names.map(name => {
+        const img = new Image();
+        loaded.push(new Promise(resolve => {
+            img.addEventListener('load', () => resolve(true), { once: true });
+            img.addEventListener('error', () => resolve(false), { once: true });
+        }));
+        img.src = "images/" + name;
+        return img;
+    });
     letterImageCache = images;
-    const loaded = images.map(img => (typeof img.decode === 'function'
-        ? img.decode()
-        : new Promise((resolve, reject) => { img.onload = resolve; img.onerror = reject; }))
-        .then(() => true, () => false));
     const all = Promise.all(loaded).then(results => ({ ok: results.filter(Boolean).length, timedOut: false }));
     const timeout = new Promise(resolve => setTimeout(() => resolve({
         ok: images.filter(img => img.complete && img.naturalWidth > 0).length, timedOut: true
